@@ -5,9 +5,18 @@ import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
 
 export function AdminPanel() {
-  const { apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig } = useDesktopStore();
+  const {
+    apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
+    backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
+  } = useDesktopStore();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [quickURL, setQuickURL] = useState('');
+  const [bulkURLs, setBulkURLs] = useState('');
+  const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [editingApp, setEditingApp] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'apps' | 'backgrounds'>('apps');
   const [formData, setFormData] = useState<Partial<App>>({
     name: '',
     icon: 'square',
@@ -100,11 +109,122 @@ export function AdminPanel() {
     }
   };
 
+  const extractAppNameFromURL = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname.replace('www.', '');
+      const name = hostname.split('.')[0];
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    } catch {
+      return 'New App';
+    }
+  };
+
+  const handleQuickAdd = () => {
+    if (!quickURL.trim()) return;
+
+    let url = quickURL.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+
+    const appName = extractAppNameFromURL(url);
+    const newApp: App = {
+      id: `${appName.toLowerCase()}-${Date.now()}`,
+      name: appName,
+      icon: 'globe',
+      type: 'iframe',
+      url: url,
+      pinnedToTaskbar: true,
+      pinnedToDesktop: true,
+      desktopPosition: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 },
+      defaultSize: { width: 1000, height: 700 },
+      description: `Iframe app: ${url}`
+    };
+
+    addApp(newApp);
+    setQuickURL('');
+    setShowQuickAdd(false);
+  };
+
+  const handleBulkImport = () => {
+    if (!bulkURLs.trim()) return;
+
+    const urls = bulkURLs.split('\n').filter(line => line.trim());
+
+    urls.forEach((line, index) => {
+      const parts = line.split('|').map(p => p.trim());
+      let url = parts[0];
+      const name = parts[1] || extractAppNameFromURL(url);
+      const icon = parts[2] || 'globe';
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      const newApp: App = {
+        id: `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${index}`,
+        name: name,
+        icon: icon,
+        type: 'iframe',
+        url: url,
+        pinnedToTaskbar: true,
+        pinnedToDesktop: true,
+        desktopPosition: { x: 50 + (index * 30), y: 50 + (index * 30) },
+        defaultSize: { width: 1000, height: 700 },
+        description: `Iframe app: ${url}`
+      };
+
+      addApp(newApp);
+    });
+
+    setBulkURLs('');
+    setShowBulkImport(false);
+  };
+
+  const handleURLPreview = (url: string) => {
+    if (url.trim()) {
+      let fullURL = url.trim();
+      if (!fullURL.startsWith('http://') && !fullURL.startsWith('https://')) {
+        fullURL = 'https://' + fullURL;
+      }
+      setPreviewURL(fullURL);
+    }
+  };
+
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join('')] || Icons.Square;
     return Icon;
+  };
+
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload only image files');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        const newBackground = {
+          id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+          url: dataUrl,
+          thumbnail: dataUrl
+        };
+        addBackground(newBackground);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input
+    e.target.value = '';
   };
 
   if (!isAdminMode) return null;
@@ -133,37 +253,170 @@ export function AdminPanel() {
                 <p className="text-blue-100 text-sm mt-1">Manage apps and configuration</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleExport}
-                  className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all"
-                >
-                  <Icons.Download className="w-4 h-4" />
-                  Export
-                </button>
-                <label className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all cursor-pointer">
-                  <Icons.Upload className="w-4 h-4" />
-                  Import
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImport}
-                    className="hidden"
-                  />
-                </label>
+                {activeTab === 'apps' && (
+                  <>
+                    <button
+                      onClick={handleExport}
+                      className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all"
+                    >
+                      <Icons.Download className="w-4 h-4" />
+                      Export
+                    </button>
+                    <label className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all cursor-pointer">
+                      <Icons.Upload className="w-4 h-4" />
+                      Import
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={handleImport}
+                        className="hidden"
+                      />
+                    </label>
+                  </>
+                )}
               </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => setActiveTab('apps')}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                  activeTab === 'apps'
+                    ? 'bg-white text-blue-600'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                <Icons.Grid3x3 className="w-4 h-4 inline mr-2" />
+                Apps
+              </button>
+              <button
+                onClick={() => setActiveTab('backgrounds')}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                  activeTab === 'backgrounds'
+                    ? 'bg-white text-blue-600'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                <Icons.Image className="w-4 h-4 inline mr-2" />
+                Backgrounds
+              </button>
             </div>
           </div>
 
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-            <div className="mb-6">
+            {activeTab === 'apps' && (
+              <>
+                <div className="mb-6 grid grid-cols-3 gap-3">
               <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+                onClick={() => {
+                  setShowQuickAdd(!showQuickAdd);
+                  setShowAddForm(false);
+                  setShowBulkImport(false);
+                }}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+              >
+                <Icons.Zap className="w-5 h-5" />
+                Quick Add URL
+              </button>
+              <button
+                onClick={() => {
+                  setShowBulkImport(!showBulkImport);
+                  setShowAddForm(false);
+                  setShowQuickAdd(false);
+                }}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+              >
+                <Icons.Package className="w-5 h-5" />
+                Bulk Import
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddForm(!showAddForm);
+                  setShowQuickAdd(false);
+                  setShowBulkImport(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
               >
                 <Icons.Plus className="w-5 h-5" />
-                {showAddForm ? 'Cancel' : 'Add New App'}
+                Advanced Add
               </button>
             </div>
+
+            {showQuickAdd && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 rounded-xl p-6 mb-6 border border-green-700"
+              >
+                <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Icons.Zap className="w-5 h-5" />
+                  Quick Add from URL
+                </h3>
+                <p className="text-green-100 text-sm mb-4">
+                  Paste any website URL to instantly add it as an iframe app. We'll auto-detect the name and set optimal defaults.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={quickURL}
+                    onChange={(e) => setQuickURL(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-green-600 focus:outline-none focus:border-green-400 placeholder-gray-400"
+                    placeholder="https://example.com or example.com"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleQuickAdd}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all font-semibold"
+                    >
+                      Add App
+                    </button>
+                    {quickURL && (
+                      <button
+                        onClick={() => handleURLPreview(quickURL)}
+                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all"
+                      >
+                        <Icons.Eye className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {showBulkImport && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-xl p-6 mb-6 border border-purple-700"
+              >
+                <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Icons.Package className="w-5 h-5" />
+                  Bulk Import Apps
+                </h3>
+                <p className="text-purple-100 text-sm mb-4">
+                  Add multiple apps at once. Enter one URL per line. Optional format: <code className="bg-black/30 px-1 rounded">URL | Name | Icon</code>
+                </p>
+                <div className="space-y-3">
+                  <textarea
+                    value={bulkURLs}
+                    onChange={(e) => setBulkURLs(e.target.value)}
+                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-purple-600 focus:outline-none focus:border-purple-400 placeholder-gray-400 font-mono text-sm"
+                    placeholder={"https://example1.com\nhttps://example2.com | Custom Name | gamepad-2\nhttps://example3.com | Another App"}
+                    rows={6}
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleBulkImport}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all font-semibold"
+                  >
+                    Import All Apps
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
             {showAddForm && (
               <motion.div
@@ -379,8 +632,135 @@ export function AdminPanel() {
                 })}
               </div>
             </div>
+              </>
+            )}
+
+            {activeTab === 'backgrounds' && (
+              <>
+                <div className="mb-6">
+                  <label className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold cursor-pointer">
+                    <Icons.Upload className="w-5 h-5" />
+                    Upload Background Images
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleBackgroundUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-gray-400 text-sm text-center mt-2">
+                    Upload JPG, PNG, or WebP images (multiple files supported)
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {backgrounds.map((bg) => {
+                    const isSelected = selectedBackgroundId === bg.id;
+                    const isDefault = bg.id.startsWith('default-');
+                    const isGradient = bg.url.startsWith('linear-gradient');
+
+                    return (
+                      <div
+                        key={bg.id}
+                        className={`relative rounded-xl overflow-hidden border-4 transition-all cursor-pointer group ${
+                          isSelected
+                            ? 'border-blue-500 shadow-lg shadow-blue-500/50'
+                            : 'border-gray-700 hover:border-gray-500'
+                        }`}
+                        onClick={() => setSelectedBackground(bg.id)}
+                      >
+                        <div
+                          className="w-full h-40 bg-cover bg-center"
+                          style={{
+                            background: isGradient ? bg.url : 'transparent',
+                            backgroundImage: !isGradient ? `url(${bg.url})` : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        />
+
+                        <div className="bg-gray-800/95 p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-white font-semibold text-sm truncate">
+                                {bg.name}
+                              </h3>
+                              {isDefault && (
+                                <span className="text-xs text-gray-400">Built-in</span>
+                              )}
+                            </div>
+                            {isSelected && (
+                              <Icons.Check className="w-5 h-5 text-blue-400 flex-shrink-0 ml-2" />
+                            )}
+                          </div>
+                        </div>
+
+                        {!isDefault && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeBackground(bg.id);
+                            }}
+                            className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Icons.Trash2 className="w-4 h-4 text-white" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {backgrounds.length === 0 && (
+                  <div className="text-center py-12 text-gray-400">
+                    <Icons.Image className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No backgrounds available. Upload some images to get started!</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </motion.div>
+
+        {previewURL && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[15001] flex items-center justify-center p-4"
+            onClick={() => setPreviewURL(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col"
+            >
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Preview</h3>
+                  <p className="text-xs text-blue-100">{previewURL}</p>
+                </div>
+                <button
+                  onClick={() => setPreviewURL(null)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-all"
+                >
+                  <Icons.X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 bg-white">
+                <iframe
+                  src={previewURL}
+                  className="w-full h-full"
+                  title="App Preview"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

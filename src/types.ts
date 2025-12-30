@@ -41,3 +41,8 @@ export interface FileItem {
   createdAt: number;
   modifiedAt: number;
 }
+
+export interface FileSystemState {
+  files: FileItem[];
+  currentPath: string[];
+}

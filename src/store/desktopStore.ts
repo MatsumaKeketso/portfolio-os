@@ -1,16 +1,27 @@
 import { create } from 'zustand';
 import { App, WindowState } from '../types';
 
+interface DesktopBackground {
+  id: string;
+  name: string;
+  url: string;
+  thumbnail?: string;
+}
+
 interface DesktopStore {
   apps: App[];
   windows: WindowState[];
   isStartMenuOpen: boolean;
   isAdminMode: boolean;
   maxZIndex: number;
+  backgrounds: DesktopBackground[];
+  selectedBackgroundId: string;
 
   addApp: (app: App) => void;
   removeApp: (appId: string) => void;
   updateApp: (appId: string, updates: Partial<App>) => void;
+  updateAppPosition: (appId: string, position: { x: number; y: number }) => void;
+  reorderApps: (reorderedApps: App[]) => void;
 
   openWindow: (app: App) => void;
   closeWindow: (windowId: string) => void;
@@ -28,6 +39,11 @@ interface DesktopStore {
   loadApps: (apps: App[]) => void;
   exportConfig: () => string;
   importConfig: (json: string) => void;
+
+  addBackground: (background: DesktopBackground) => void;
+  removeBackground: (backgroundId: string) => void;
+  setSelectedBackground: (backgroundId: string) => void;
+  getSelectedBackground: () => DesktopBackground | undefined;
 }
 
 const defaultApps: App[] = [
@@ -152,12 +168,56 @@ const loadAppsFromStorage = (): App[] => {
   return defaultApps;
 };
 
+const defaultBackgrounds: DesktopBackground[] = [
+  {
+    id: 'default-blue',
+    name: 'Windows Blue',
+    url: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  {
+    id: 'default-dark',
+    name: 'Dark Space',
+    url: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+  },
+  {
+    id: 'default-sunset',
+    name: 'Sunset',
+    url: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
+  },
+  {
+    id: 'default-forest',
+    name: 'Forest',
+    url: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+  }
+];
+
+const loadBackgroundsFromStorage = (): DesktopBackground[] => {
+  const stored = localStorage.getItem('portfolioOS_backgrounds');
+  if (stored) {
+    try {
+      const customBackgrounds = JSON.parse(stored);
+      // Merge default backgrounds with custom ones
+      return [...defaultBackgrounds, ...customBackgrounds.filter((b: DesktopBackground) => !b.id.startsWith('default-'))];
+    } catch (e) {
+      return defaultBackgrounds;
+    }
+  }
+  return defaultBackgrounds;
+};
+
+const loadSelectedBackgroundId = (): string => {
+  const stored = localStorage.getItem('portfolioOS_selectedBackground');
+  return stored || 'default-blue';
+};
+
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   apps: loadAppsFromStorage(),
   windows: [],
   isStartMenuOpen: false,
   isAdminMode: false,
   maxZIndex: 1000,
+  backgrounds: loadBackgroundsFromStorage(),
+  selectedBackgroundId: loadSelectedBackgroundId(),
 
   addApp: (app) => set((state) => {
     const newApps = [...state.apps, app];
@@ -174,6 +234,22 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   updateApp: (appId, updates) => set((state) => {
     const newApps = state.apps.map(a => a.id === appId ? { ...a, ...updates } : a);
+    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    return { apps: newApps };
+  }),
+
+  updateAppPosition: (appId, position) => set((state) => {
+    const newApps = state.apps.map(a =>
+      a.id === appId ? { ...a, desktopPosition: position } : a
+    );
+    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    return { apps: newApps };
+  }),
+
+  reorderApps: (reorderedApps) => set((state) => {
+    // Replace desktop apps with reordered ones, keep non-desktop apps
+    const nonDesktopApps = state.apps.filter(a => !a.pinnedToDesktop);
+    const newApps = [...reorderedApps, ...nonDesktopApps];
     localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
     return { apps: newApps };
   }),
@@ -268,5 +344,41 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     } catch (e) {
       console.error('Invalid JSON configuration');
     }
+  },
+
+  addBackground: (background) => set((state) => {
+    const newBackgrounds = [...state.backgrounds, background];
+    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(newBackgrounds));
+    return { backgrounds: newBackgrounds };
+  }),
+
+  removeBackground: (backgroundId) => set((state) => {
+    // Don't allow removing default backgrounds
+    if (backgroundId.startsWith('default-')) return state;
+
+    const newBackgrounds = state.backgrounds.filter(b => b.id !== backgroundId);
+    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(newBackgrounds));
+
+    // If removed background was selected, switch to default
+    const newSelectedId = state.selectedBackgroundId === backgroundId
+      ? 'default-blue'
+      : state.selectedBackgroundId;
+
+    localStorage.setItem('portfolioOS_selectedBackground', newSelectedId);
+
+    return {
+      backgrounds: newBackgrounds,
+      selectedBackgroundId: newSelectedId
+    };
+  }),
+
+  setSelectedBackground: (backgroundId) => set((state) => {
+    localStorage.setItem('portfolioOS_selectedBackground', backgroundId);
+    return { selectedBackgroundId: backgroundId };
+  }),
+
+  getSelectedBackground: () => {
+    const state = get();
+    return state.backgrounds.find(b => b.id === state.selectedBackgroundId);
   }
 }));

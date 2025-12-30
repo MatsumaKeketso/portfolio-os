@@ -8,9 +8,10 @@ import { WindowManager } from './WindowManager';
 import { AdminPanel } from './AdminPanel';
 
 export function Desktop() {
-  const { setStartMenuOpen, toggleAdminMode, setAdminMode } = useDesktopStore();
+  const { setStartMenuOpen, toggleAdminMode, setAdminMode, getSelectedBackground } = useDesktopStore();
   const fileStore = useFileStore();
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const selectedBackground = getSelectedBackground();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -108,16 +109,18 @@ export function Desktop() {
     };
   }, [fileStore]);
 
+  const isGradient = selectedBackground?.url.startsWith('linear-gradient');
+
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 overflow-hidden desktop-drop-zone">
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: `url('https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=1920')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
+    <div
+      className="fixed inset-0 overflow-hidden desktop-drop-zone"
+      style={{
+        background: isGradient ? selectedBackground?.url : '#1e3a8a',
+        backgroundImage: !isGradient && selectedBackground?.url ? `url(${selectedBackground.url})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
 
       {isDraggingOver && (
         <div className="absolute inset-0 bg-blue-500/20 border-4 border-blue-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
