@@ -2,6 +2,7 @@ export interface App {
   id: string;
   name: string;
   icon: string;
+  customIcon?: string; // Base64 data URL for custom uploaded icon
   type: 'component' | 'iframe' | 'static';
   component?: string;
   url?: string;
@@ -17,6 +18,7 @@ export interface WindowState {
   appId: string;
   title: string;
   icon: string;
+  customIcon?: string; // Base64 data URL for custom uploaded icon
   type: 'component' | 'iframe' | 'static';
   component?: string;
   url?: string;

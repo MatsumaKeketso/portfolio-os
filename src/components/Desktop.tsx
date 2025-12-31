@@ -13,6 +13,7 @@ import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { LoginModal } from './LoginModal';
 import { WelcomeScreen } from './WelcomeScreen';
+import { NotificationContainer } from './NotificationContainer';
 
 export function Desktop() {
   const {
@@ -30,6 +31,8 @@ export function Desktop() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
 
   useEffect(() => {
     // Check authentication session on mount
@@ -174,7 +177,7 @@ export function Desktop() {
 
       <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
         <div className="flex-1 relative desktop-area">
-          <DesktopIcons />
+          <DesktopIcons iconSize={iconSize} sortBy={sortBy} />
           <WindowManager />
         </div>
 
@@ -196,6 +199,8 @@ export function Desktop() {
 
         <WelcomeScreen />
 
+        <NotificationContainer />
+
         {/* Desktop Context Menu */}
         <AnimatePresence>
           {contextMenu && (
@@ -204,22 +209,93 @@ export function Desktop() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.1 }}
-              className="desktop-context-menu fixed bg-gray-900/70 backdrop-blur-md rounded shadow-2xl border-b border-white/10 py-2 min-w-[200px] z-[10000]"
+              className="desktop-context-menu fixed bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl border border-gray-700/50 py-2 min-w-[220px] z-[10002]"
               style={{
                 left: `${contextMenu.x}px`,
                 top: `${contextMenu.y}px`,
               }}
             >
+              {/* View Options */}
+              <div className="px-2 py-1">
+                <div className="text-gray-400 text-xs font-semibold px-2 py-1">View</div>
+                <div className="space-y-0.5">
+                  {(['large', 'medium', 'small'] as const).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        setIconSize(size);
+                        setContextMenu(null);
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center justify-between ${
+                        iconSize === size
+                          ? 'text-primary-300 bg-primary-500/20'
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="capitalize">{size} icons</span>
+                      {iconSize === size && <Icons.Check className="w-3 h-3" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-700 my-2" />
+
+              {/* Sort Options */}
+              <div className="px-2 py-1">
+                <div className="text-gray-400 text-xs font-semibold px-2 py-1">Sort by</div>
+                <div className="space-y-0.5">
+                  {[
+                    { value: 'name' as const, label: 'Name', icon: Icons.SortAsc },
+                    { value: 'type' as const, label: 'Type', icon: Icons.Layers },
+                    { value: 'date' as const, label: 'Date Added', icon: Icons.Calendar },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSortBy(option.value);
+                        setContextMenu(null);
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center gap-2 ${
+                        sortBy === option.value
+                          ? 'text-primary-300 bg-primary-500/20'
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <option.icon className="w-3.5 h-3.5" />
+                      {option.label}
+                      {sortBy === option.value && <Icons.Check className="w-3 h-3 ml-auto" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-700 my-2" />
+
+              {/* Actions */}
+              <button
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
+              >
+                <Icons.RotateCw className="w-4 h-4" />
+                Refresh Desktop
+              </button>
+
               <button
                 onClick={() => {
                   setShowBackgroundSelector(true);
                   setContextMenu(null);
                 }}
-                className="w-full px-4 py-2 text-left text-white hover:bg-primary-600 transition-colors flex items-center gap-3"
+                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
               >
                 <Icons.Image className="w-4 h-4" />
                 Change Background
               </button>
+
+              <div className="h-px bg-gray-700 my-2" />
+
               <button
                 onClick={() => {
                   if (isAuthenticated) {
@@ -229,7 +305,7 @@ export function Desktop() {
                   }
                   setContextMenu(null);
                 }}
-                className="w-full px-4 py-2 text-left text-white hover:bg-primary-600 transition-colors flex items-center gap-3"
+                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-primary-600 transition-colors flex items-center gap-3 rounded mx-1"
               >
                 <Icons.Settings className="w-4 h-4" />
                 {isAuthenticated ? 'Admin Panel' : 'Admin Login'}

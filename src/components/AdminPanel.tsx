@@ -40,6 +40,55 @@ export function AdminPanel() {
     'link', 'radio', 'zap', 'trello', 'figma', 'github-pages', 'shopping-cart'
   ];
 
+  // Icon library with popular app/service icons
+  const iconLibrary = [
+    {
+      name: 'GitHub',
+      icon: 'github',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTgiIGhlaWdodD0iOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00OC44NTQgMEMyMS44MzkgMCAwIDIyIDAgNDkuMjE3YzAgMjEuNzU2IDEzLjk5MyA0MC4xNzIgMzMuNDA1IDQ2LjY5IDIuNDI3LjQ5IDMuMzE2LTEuMDU5IDMuMzE2LTIuMzYyIDAtMS4xNDEtLjA4LTUuMDUyLS4wOC05LjEyNy0xMy41OSAyLjkzNC0xNi40Mi01Ljg2Ny0xNi40Mi01Ljg2Ny0yLjE4NC01LjcwNC01LjQyLTcuMTctNS40Mi03LjE3LTQuNDQ4LTMuMDE1LjMyNC0zLjAxNS4zMjQtMy4wMTUgNC45MzQuMzI2IDcuNTIzIDUuMDUyIDcuNTIzIDUuMDUyIDQuMzY3IDcuNDk2IDExLjQwNCA1LjM3OCAxNC4yMzUgNC4wNzQuNDA0LTMuMTc4IDEuNjk5LTUuMzc4IDMuMDc0LTYuNi0xMC44MzktMS4xNDEtMjIuMjQzLTUuMzc4LTIyLjI0My0yNC4yODMgMC01LjM3OCAxLjk0LTkuNzc4IDUuMDE0LTEzLjItLjQ4NS0xLjIyMi0yLjE4NC02LjI3NS40ODYtMTMuMDM4IDAgMCA0LjEyNS0xLjMwNCAxMy40MjYgNS4wNTJhNDYuOTcgNDYuOTcgMCAwIDEgMTIuMjE0LTEuNjNjNC4xMjUgMCA4LjMzLjU3MSAxMi4yMTMgMS42MyA5LjMwMi02LjM1NiAxMy40MjctNS4wNTIgMTMuNDI3LTUuMDUyIDIuNjcgNi43NjMuOTcgMTEuODE2LjQ4NSAxMy4wMzggMy4xNTUgMy40MjIgNS4wMTUgNy44MjIgNS4wMTUgMTMuMiAwIDE4LjkwNS0xMS40MDQgMjMuMDYtMjIuMzI0IDI0LjI4MyAxLjc4IDEuNTQ4IDMuMzE2IDQuNDgxIDMuMzE2IDkuMTI2IDAgNi42LS4wOCAxMS44OTctLjA4IDEzLjUyNiAwIDEuMzA0Ljg5IDIuODUzIDMuMzE2IDIuMzY0IDE5LjQxMi02LjUyIDMzLjQwNS0yNC45MzUgMzMuNDA1LTQ2LjY5MUM5Ny43MDcgMjIgNzUuNzg4IDAgNDguODU0IDB6IiBmaWxsPSIjZmZmIi8+PC9zdmc+'
+    },
+    {
+      name: 'LinkedIn',
+      icon: 'linkedin',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwLjQ0NyAyMC40NTJoLTMuNTU0di01LjU2OWMwLTEuMzI4LS4wMjctMy4wMzctMS44NTItMy4wMzctMS44NTMgMC0yLjEzNiAxLjQ0NS0yLjEzNiAyLjkzOXY1LjY2N0g5LjM1MVY5aDMuNDE0djEuNTYxaC4wNDZjLjQ3Ny0uOSAxLjYzNy0xLjg1IDMuMzctMS44NSAzLjYwMSAwIDQuMjY3IDIuMzcgNC4yNjcgNS40NTV2Ni4yODZ6TTUuMzM3IDcuNDMzYTIuMDYyIDIuMDYyIDAgMCAxLTIuMDYzLTIuMDY1IDIuMDY0IDIuMDY0IDAgMSAxIDIuMDYzIDIuMDY1em0xLjc4MiAxMy4wMTlIMy41NTVWOWgzLjU2NHYxMS40NTJ6TTIyLjIyNSAwSDEuNzcxQy43OTIgMCAwIC43NzQgMCAxLjcyOXYyMC41NDJDMCAyMy4yMjcuNzkyIDI0IDEuNzcxIDI0aDIwLjQ1MUMyMy4yIDI0IDI0IDIzLjIyNyAyNCAyMi4yNzFWMS43MjlDMjQgLjc3NCAyMy4yIDAgMjIuMjIyIDBoLjAwM3oiIGZpbGw9IiMwMDc3QjUiLz48L3N2Zz4='
+    },
+    {
+      name: 'Twitter/X',
+      icon: 'twitter',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE4LjkwMSAxLjE1M2gzLjY4bC04LjA0IDkuMTlMMjQgMjIuODQ2aC03LjQwNmwtNS44LTcuNTg0LTYuNjM4IDcuNTg0SC40NzRsOC42LTkuODNMMCAxLjE1NGg3LjU5NGw1LjI0MyA2LjkzMlpNMTcuNjEgMjAuNjQ0aDIuMDM5TDYuNDg2IDMuMjRINC4yOThaIiBmaWxsPSIjZmZmIi8+PC9zdmc+'
+    },
+    {
+      name: 'YouTube',
+      icon: 'youtube',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIzLjQ5OCA2LjE4NmExMy4wNjUgMTMuMDY1IDAgMCAwLTIuNTE5LTQuNzI1QzE5LjUwMi4zMjUgMTguMDg1LjA0OCAxNC44NTcgMGMtMy4yMDYuMDQ4LTQuNjIxLjMyNS02LjA5OSAxLjQ2MWExMy4wNjUgMTMuMDY1IDAgMCAwLTIuNTE5IDQuNzI1QzUuNzY4IDcuNjk0IDUuNjk1IDkuNDk5IDUuNjk1IDEyYzAgMi41MDEuMDczIDQuMzA2LjU0NCA1LjgxNGExMy4wNjUgMTMuMDY1IDAgMCAwIDIuNTE5IDQuNzI1YzEuNDc4IDEuMTM2IDIuODkzIDEuNDEzIDYuMDk5IDEuNDYxIDMuMjI4LS4wNDggNC42NDUtLjMyNSA2LjEyMS0xLjQ2MWExMy4wNjUgMTMuMDY1IDAgMCAwIDIuNTE5LTQuNzI1Yy40NzEtMS41MDguNTQ0LTMuMzEzLjU0NC01LjgxNCAwLTIuNTAxLS4wNzMtNC4zMDYtLjU0NC01LjgxNHpNOS41NDUgMTUuNTY4VjguNDMybDYuNTQ1IDMuNTY4LTYuNTQ1IDMuNTY4eiIgZmlsbD0iI0ZGMDAwMCIvPjwvc3ZnPg=='
+    },
+    {
+      name: 'Discord',
+      icon: 'message-circle',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwLjMxNyA0LjQ5MmExOS44OTEgMTkuNzkgMCAwIDAtNC45MDUtMS41MzguMTI0LjEyNCAwIDAgMC0uMTMxLjA2MmMtLjIxMS4zNzUtLjQ0NS43NjQtLjYwOCAxLjEwN2E4LjMzNiAxOC40MTcgMCAwIDAtNS41MTYgMCA2LjQ2NiAxMy4zODUgMCAwIDAtLjYxNy0xLjEwNy4xMjkuMTI5IDAgMCAwLS4xMzEtLjA2MiAxOS44MzggMTkuNzg3IDAgMCAwLTQuOTA0IDEuNTM4LjExNy4xMTcgMCAwIDAtLjA1NC4wNDZDLjM1IDguNzk4LS4yMSAxMi45NDEuMDY2IDE3LjAzOGEuMTM3LjEzNyAwIDAgMCAuMDUyLjA5NCAyMC4wNiAxOS45OSAwIDAgMCA2LjAzOCAzLjA1MS4xMy4xMyAwIDAgMCAuMTQtLjA0NmMuMzg2LS41MjcuNzMtMS4wODEgMS4wMjktMS42NThhLjEyNi4xMjYgMCAwIDAtLjA2OS0uMTc2IDEzLjE3IDEzLjA4NiAwIDAgMS0xLjg3OS0uODk1LjEyNy4xMjcgMCAwIDEtLjAxMi0uMjExYy4xMjYtLjA5NS4yNTItLjE5My4zNzMtLjI5MmEuMTI0LjEyNCAwIDAgMSAuMTMtLjAxOGM5LjkzNiA0LjUzNiAxMi40NjcgNC41MzYgMTUuNzY3IDBhLjEyNC4xMjQgMCAwIDEgLjEzMS4wMTdjLjEyLjEuMjQ3LjE5OC4zNzQuMjkzYS4xMjcuMTI3IDAgMCAxLS4wMTEuMjExIDEyLjM3IDEyLjI4OCAwIDAgMS0xLjg4Ljg5NC4xMjcuMTI3IDAgMCAwLS4wNjguMTc3Yy4zMDMuNTc2LjY0OCAxLjEzIDEuMDI5IDEuNjU3YS4xMjYuMTI2IDAgMCAwIC4xNC4wNDcgMTkuOTYzIDE5Ljk1IDAgMCAwIDYuMDUzLTMuMDUxLjEyOS4xMjkgMCAwIDAgLjA1Mi0uMDkzYy4zMzEtNC43MzMtLjU1NS04LjgzNi0yLjM1Mi0xMi40OGEuMS4xIDAgMCAwLS4wNTMtLjA0N3pNOC4wMiAxNC4zMzRjLS43ODMgMC0xLjQyOS0uNzE5LTEuNDI5LTEuNjAyIDAtLjg4My42My0xLjYwMiAxLjQyOS0xLjYwMi44MDYgMCAxLjQ0NC43MjYgMS40MjkgMS42MDIgMCAuODgzLS42MyAxLjYwMi0xLjQyOSAxLjYwMnptNy45NzUgMGMtLjc4MyAwLTEuNDI5LS43MTktMS40MjktMS42MDIgMC0uODgzLjYzLTEuNjAyIDEuNDI5LTEuNjAyLjgwNiAwIDEuNDQ0LjcyNiAxLjQyOSAxLjYwMiAwIC44ODMtLjYyMyAxLjYwMi0xLjQyOSAxLjYwMnoiIGZpbGw9IiM1ODY1RjIiLz48L3N2Zz4='
+    },
+    {
+      name: 'Spotify',
+      icon: 'music',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEyIDI0QzUuMzczIDI0IDAgMTguNjI3IDAgMTJTNS4zNzMgMCAxMiAwczEyIDUuMzczIDEyIDEyLTUuMzczIDEyLTEyIDEyem01LjAxLTEzLjY4MWE1NS40NyA1NS40NyAwIDAgMC0xMC4wMi0uNThjLS4xODkgMC0uMzY3LjAwNC0uNTQ1LjAxYS4yNy4yNyAwIDAgMC0uMjU3LjI3Mi4yNjguMjY4IDAgMCAwIC4yNTguMjdoLjAwMWMuMTcyLS4wMDYuMzQzLS4wMDkuNTE0LS4wMDlhNTYuMDY1IDU2LjA2NSAwIDAgMSA5LjkyNy41NzJjLjE1Mi4wMjIuMjkzLS4wNzkuMzE1LS4yMjguMDIyLS4xNS0uMDc5LS4yOS0uMjI4LS4zMTJ6bS40NyAyLjY1YTU4LjI4MyA1OC4yODMgMCAwIDAtMTEuNTMtLjg1NGMtLjE1NCAwLS4yNzkuMTI1LS4yNzkuMjc5YS4yNzguMjc4IDAgMCAwIC4yNzkuMjc5IDU3LjcyMyA1Ny43MjMgMCAwIDEgMTEuNDE0Ljg0NS4yNzkuMjc5IDAgMCAwIC4zMTQtLjIzOS4yNzkuMjc5IDAgMCAwLS4yMzgtLjMxNHptLjY5MyAyLjgxNWMtMy41My0uODE3LTguMzM5LTEuMDk1LTExLjQ4NC0uNzAzYS4yOTQuMjk0IDAgMSAxLS4xMTctLjU3N2MzLjI1OC0uNDA1IDguMjU3LS4xMTcgMTEuOTg1Ljc4YS4yOTUuMjk1IDAgMSAxLS4xNDcuNTc0bC0uMjM3LS4wNzR6IiBmaWxsPSIjMUVENzYwIi8+PC9zdmc+'
+    },
+    {
+      name: 'Gmail',
+      icon: 'mail',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMyA1LjI1VjE4Ljc1QzMgMTkuOTkyNiAzLjk5NzQgMjEgNS4yNSAyMUgxOC43NUM0OS45OTI2IDIxIDUxIDIwLjAwMjYgNTEgMTguNzVWNS4yNUM1MSA0LjAwNzM2IDUwLjAwMjYgMTUgNDguNzUgMTVINS4yNUM0LjAwNzM2IDE1IDMgNC4wMDczNiAzIDUuMjV6IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTIxIDEyLjA5NiAxNS4wOTcgNi4xOTNIMjEuMDk2VjEyLjA5NnpNMyA2LjE5M0w4LjkwMyAxMi4wOTYgMyAxOC4wOTdWNi4xOTN6IiBmaWxsPSIjRUE0MzM1Ii8+PHBhdGggZD0iTTEzLjUgMTIuNUw4LjkwMyAxOC4wOThIMy45OTdMMi41OTMgMTkuNDk5TDggMTMuOTk2TDEzLjUgMTIuNXoiIGZpbGw9IiNGQkJDMDQiLz48cGF0aCBkPSJNMjAgMTguMDk4SDE1LjA5N0wxMC41IDEyLjVMMTYgOC45MDNMMjEgMTIuMDk3VjE4LjA5OHoiIGZpbGw9IiMzNEE4NTMiLz48cGF0aCBkPSJNMyA2LjE5M0w4LjkwMyAxMi4wOTZMNCAxNlYxMC4wOTZMMy4zNCA5LjM0MkwzIDYuMTkzeiIgZmlsbD0iI0M1MjIxRiIvPjwvZz48L3N2Zz4='
+    },
+    {
+      name: 'Slack',
+      icon: 'hash',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSI+PHBhdGggZD0iTTUuMDQyIDE1LjE2NWEyLjUyOCAyLjUyOCAwIDAgMS0yLjUyIDIuNTIzQTIuNTI4IDIuNTI4IDAgMCAxIDAgMTUuMTY1YTIuNTI3IDIuNTI3IDAgMCAxIDIuNTIyLTIuNTIzaDIuNTJ2Mi41MjN6bTEuMjY3IDBhMi41MjggMi41MjggMCAwIDEgMi41MjEtMi41MjMgMi41MjcgMi41MjcgMCAwIDEgMi41MjIgMi41MjN2Ni4zMTVBMi41MjggMi41MjggMCAwIDEgOC44MyAyNGEyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMS0yLjUydi02LjMxNXoiIGZpbGw9IiNFMDFGNUYiLz48cGF0aCBkPSJNOC44MyA1LjA0MmEyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMS0yLjUyQTIuNTI4IDIuNTI4IDAgMCAxIDguODMgMGEyLjUyOCAyLjUyOCAwIDAgMSAyLjUyMiAyLjUyMnYyLjUySDguODN6bTAgMS4yNjdhMi41MjggMi41MjggMCAwIDEgMi41MjIgMi41MjEgMi41MjggMi41MjggMCAwIDEtMi41MjIgMi41MjJIMi41MjJBMi41MjggMi41MjggMCAwIDEgMCA4LjgzYTIuNTI4IDIuNTI4IDAgMCAxIDIuNTIyLTIuNTIxaDYuMzA4eiIgZmlsbD0iIzM2QzVGMCIvPjxwYXRoIGQ9Ik0xOC45NTYgOC44M2EyLjUyOCAyLjUyOCAwIDAgMSAyLjUyMi0yLjUyMUEyLjUyOCAyLjUyOCAwIDAgMSAyNCA4LjgzYTIuNTI4IDIuNTI4IDAgMCAxLTIuNTIyIDIuNTIyaC0yLjUyMlY4Ljgzem0tMS4yNjggMGEyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMSAyLjUyMiAyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMS0yLjUyMlYyLjUyMkEyLjUyOCAyLjUyOCAwIDAgMSAxNS4xNjcgMGEyLjUyOCAyLjUyOCAwIDAgMSAyLjUyMSAyLjUyMnY2LjMwOHoiIGZpbGw9IiMyRUI2N0QiLz48cGF0aCBkPSJNMTUuMTY3IDE4Ljk1NmEyLjUyOCAyLjUyOCAwIDAgMSAyLjUyMSAyLjUyMiAyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMSAyLjUyMiAyLjUyOCAyLjUyOCAwIDAgMS0yLjUyMS0yLjUyMnYtMi41MjJoMi41MjF6bTAgMS4yNjhhMi41MjggMi41MjggMCAwIDEtMi41MjEtMi41MjIgMi41MjggMi41MjggMCAwIDEgMi41MjEtMi41MjFoNi4zMDFBMi41MjggMi41MjggMCAwIDEgMjQgMTcuNzAyYTIuNTI4IDIuNTI4IDAgMCAxLTIuNTMxIDIuNTIyaC02LjMwMnoiIGZpbGw9IiNFQ0IyMkUiLz48L2c+PC9zdmc+'
+    },
+    {
+      name: 'VS Code',
+      icon: 'code',
+      customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIzLjE1IDIuNTg3TDE4LjIxLjIxYTEuNDk0IDEuNDk0IDAgMCAwLTEuNzA1LjI5bC05LjQ2IDguNjMtNC4xMi0zLjEyOGEuOTk5Ljk5OSAwIDAgMC0xLjI3Ni4wNTdMLjMyNyA3LjI2MUExIDEgMCAwIDAgLjMyNiA4Ljc0TDMuODk5IDEyIC4zMjYgMTUuMjZhMSAxIDAgMCAwIC4wMDEgMS40NzlMMS42NSAxOC4xYS45OTkuOTk5IDAgMCAwIDEuMjc2LjA1N2w0LjEyLTMuMTI4IDkuNDYgOC42M2ExLjQ5MiAxLjQ5MiAwIDAgMCAxLjcwNC4yOWw0Ljk0Mi0yLjM3N0ExLjUgMS41IDAgMCAwIDI0IDIwLjA2VjMuOTM5YTEuNSAxLjUgMCAwIDAtLjg1LTEuMzUyem0tNS4xNDYgMTQuODYxTDEwLjgyNiAxMmw3LjE3OC01LjQ0OHYxMC44OTZ6IiBmaWxsPSIjMDBBQ0VFIi8+PC9zdmc+'
+    }
+  ];
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -69,6 +118,7 @@ export function AdminPanel() {
         id: formData.name.toLowerCase().replace(/\s+/g, '-'),
         name: formData.name,
         icon: formData.icon || 'square',
+        customIcon: formData.customIcon,
         type: formData.type || 'component',
         component: formData.component,
         url: formData.url,
@@ -490,6 +540,93 @@ export function AdminPanel() {
                     </div>
                   </div>
 
+                  {/* Custom Icon Upload */}
+                  <div>
+                    <label className="text-white text-sm mb-2 block">Custom Icon (Optional)</label>
+                    <div className="flex items-center gap-3">
+                      {formData.customIcon ? (
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+                            <img
+                              src={formData.customIcon}
+                              alt="Custom icon preview"
+                              className="w-10 h-10 object-contain"
+                            />
+                          </div>
+                          <span className="text-gray-300 text-sm flex-1">Custom icon uploaded</span>
+                          <Button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, customIcon: undefined })}
+                            variant="danger"
+                            size="sm"
+                          >
+                            <Icons.X className="w-4 h-4" />
+                            Clear
+                          </Button>
+                        </div>
+                      ) : (
+                        <label className="flex-1 cursor-pointer">
+                          <div className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg border border-gray-600 flex items-center justify-center gap-2 transition-colors">
+                            <Icons.Upload className="w-4 h-4" />
+                            Upload Custom Icon
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 2 * 1024 * 1024) {
+                                  alert('Image too large (max 2MB)');
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const dataUrl = event.target?.result as string;
+                                  setFormData({ ...formData, customIcon: dataUrl });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                              e.target.value = '';
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-gray-400 text-xs mt-1">Upload PNG, JPG, or SVG (max 2MB). Custom icon will override the selected icon above.</p>
+                  </div>
+
+                  {/* Icon Library */}
+                  <div>
+                    <label className="text-white text-sm mb-2 block">Icon Library</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {iconLibrary.map((libIcon) => {
+                        const isSelected = formData.customIcon === libIcon.customIcon;
+                        return (
+                          <button
+                            key={libIcon.name}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, customIcon: libIcon.customIcon })}
+                            className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                              isSelected
+                                ? 'border-primary-500 bg-primary-500/20'
+                                : 'border-gray-600 bg-gray-700 hover:border-gray-500 hover:bg-gray-600'
+                            }`}
+                          >
+                            <img
+                              src={libIcon.customIcon}
+                              alt={libIcon.name}
+                              className="w-8 h-8 object-contain"
+                            />
+                            <span className="text-xs text-white text-center">{libIcon.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-gray-400 text-xs mt-2">Click any icon to use it for your app</p>
+                  </div>
+
                   <div>
                     <label className="text-white text-sm mb-2 block">Type</label>
                     <select
@@ -629,7 +766,15 @@ export function AdminPanel() {
                   return (
                     <div key={app.id} className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/5 transition-colors">
                       <div className="col-span-3 flex items-center gap-2">
-                        <Icon className="w-5 h-5 text-primary-400" />
+                        {app.customIcon ? (
+                          <img
+                            src={app.customIcon}
+                            alt={app.name}
+                            className="w-5 h-5 object-contain"
+                          />
+                        ) : (
+                          <Icon className="w-5 h-5 text-primary-400" />
+                        )}
                         <span className="text-white text-sm font-medium truncate">{app.name}</span>
                       </div>
                       <div className="col-span-2">

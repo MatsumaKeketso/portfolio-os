@@ -20,6 +20,13 @@ export function FileExplorer() {
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // New view options
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size' | 'type'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const currentFiles = fileStore.getCurrentFolderFiles();
   const pathString = fileStore.getPathString();
 
@@ -32,6 +39,65 @@ export function FileExplorer() {
       video: Icons.Video,
     };
     return iconMap[file.type] || Icons.File;
+  };
+
+  // Filter and sort files
+  const filteredAndSortedFiles = () => {
+    let files = [...currentFiles];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      files = files.filter(file =>
+        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort files
+    files.sort((a, b) => {
+      // Always put folders first
+      if (a.type === 'folder' && b.type !== 'folder') return -1;
+      if (a.type !== 'folder' && b.type === 'folder') return 1;
+
+      let comparison = 0;
+
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'date':
+          comparison = (a.modifiedAt || a.createdAt) - (b.modifiedAt || b.createdAt);
+          break;
+        case 'size':
+          comparison = (a.size || 0) - (b.size || 0);
+          break;
+        case 'type':
+          comparison = a.type.localeCompare(b.type);
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return files;
+  };
+
+  const displayFiles = filteredAndSortedFiles();
+
+  // Icon size classes
+  const getIconSizeClasses = () => {
+    switch (iconSize) {
+      case 'small': return 'w-8 h-8';
+      case 'medium': return 'w-12 h-12';
+      case 'large': return 'w-16 h-16';
+    }
+  };
+
+  const getGridColumns = () => {
+    switch (iconSize) {
+      case 'small': return 'grid-cols-6';
+      case 'medium': return 'grid-cols-4';
+      case 'large': return 'grid-cols-3';
+    }
   };
 
   const handleCreateFolder = () => {
@@ -292,6 +358,7 @@ export function FileExplorer() {
   // Context menu handlers
   const handleContextMenu = (e: React.MouseEvent, file?: FileItem) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent desktop context menu from opening
 
     if (file && !fileStore.selectedFileIds.includes(file.id)) {
       fileStore.setSelectedFiles([file.id]);
@@ -452,6 +519,7 @@ export function FileExplorer() {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col border-b border-white/10">
+      {/* Navigation Bar */}
       <div className="border-b border-white/10 p-3 flex items-center gap-2 flex-wrap backdrop-blur-sm bg-white/5">
         <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Back">
           <Icons.ChevronLeft className="w-4 h-4" />
@@ -459,12 +527,40 @@ export function FileExplorer() {
         <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Forward">
           <Icons.ChevronRight className="w-4 h-4" />
         </button>
-        <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors">
+        <button
+          onClick={() => window.location.reload()}
+          className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+          title="Refresh"
+        >
           <Icons.RefreshCw className="w-4 h-4" />
         </button>
-        <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white truncate">
-          {pathString}
+
+        {/* Breadcrumb Path */}
+        <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white flex items-center gap-1 overflow-x-auto">
+          <button
+            onClick={() => fileStore.navigateTo([])}
+            className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap"
+          >
+            <Icons.Home className="w-3.5 h-3.5" />
+            Home
+          </button>
+          {fileStore.currentPath.map((folderId, index) => {
+            const folder = fileStore.getFileById(folderId);
+            if (!folder) return null;
+            return (
+              <div key={folderId} className="flex items-center gap-1">
+                <Icons.ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                <button
+                  onClick={() => fileStore.navigateTo(fileStore.currentPath.slice(0, index + 1))}
+                  className="hover:text-primary-400 transition-colors whitespace-nowrap"
+                >
+                  {folder.name}
+                </button>
+              </div>
+            );
+          })}
         </div>
+
         <div className="flex gap-1">
           <button
             onClick={() => setShowNewDialog('folder')}
@@ -497,6 +593,126 @@ export function FileExplorer() {
         </div>
       </div>
 
+      {/* Toolbar */}
+      <div className="border-b border-white/10 p-2 flex items-center gap-2 backdrop-blur-sm bg-white/5">
+        {/* View Mode */}
+        <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
+              viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+            title="Grid View"
+          >
+            <Icons.Grid3x3 className="w-3 h-3" />
+            Grid
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
+              viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
+            title="List View"
+          >
+            <Icons.List className="w-3 h-3" />
+            List
+          </button>
+        </div>
+
+        <div className="h-6 w-px bg-gray-600 mx-1" />
+
+        {/* Sort Options */}
+        <div className="flex items-center gap-1">
+          <Icons.ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-2 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500"
+          >
+            <option value="name">Name</option>
+            <option value="date">Date Modified</option>
+            <option value="size">Size</option>
+            <option value="type">Type</option>
+          </select>
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="p-1 hover:bg-white/10 rounded text-white transition-colors"
+            title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+          >
+            {sortOrder === 'asc' ? (
+              <Icons.ArrowUp className="w-3.5 h-3.5" />
+            ) : (
+              <Icons.ArrowDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </div>
+
+        {viewMode === 'grid' && (
+          <>
+            <div className="h-6 w-px bg-gray-600 mx-1" />
+
+            {/* Icon Size */}
+            <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
+              <button
+                onClick={() => setIconSize('small')}
+                className={`px-2 py-1 text-xs rounded transition-all ${
+                  iconSize === 'small' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+                title="Small Icons"
+              >
+                S
+              </button>
+              <button
+                onClick={() => setIconSize('medium')}
+                className={`px-2 py-1 text-xs rounded transition-all ${
+                  iconSize === 'medium' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+                title="Medium Icons"
+              >
+                M
+              </button>
+              <button
+                onClick={() => setIconSize('large')}
+                className={`px-2 py-1 text-xs rounded transition-all ${
+                  iconSize === 'large' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+                title="Large Icons"
+              >
+                L
+              </button>
+            </div>
+          </>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Search */}
+        <div className="relative">
+          <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search files..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-7 pr-3 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500 w-48"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              <Icons.X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+
+        {/* File Count */}
+        <span className="text-xs text-gray-400">
+          {displayFiles.length} {displayFiles.length === 1 ? 'item' : 'items'}
+          {fileStore.selectedFileIds.length > 0 && ` (${fileStore.selectedFileIds.length} selected)`}
+        </span>
+      </div>
+
       <div className="flex-1 flex overflow-hidden">
         <div
           className="flex-1 p-4 overflow-y-auto"
@@ -505,14 +721,16 @@ export function FileExplorer() {
           onDrop={(e) => handleDrop(e)}
           onDragLeave={handleDragLeave}
         >
-          {currentFiles.length === 0 ? (
+          {displayFiles.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
               <Icons.FolderOpen className="w-16 h-16 mb-4 opacity-30" />
-              <p className="text-white/50">This folder is empty</p>
+              <p className="text-white/50">
+                {searchQuery ? 'No files match your search' : 'This folder is empty'}
+              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-4 gap-4">
-              {currentFiles.map((file) => {
+          ) : viewMode === 'grid' ? (
+            <div className={`grid ${getGridColumns()} gap-4`}>
+              {displayFiles.map((file) => {
                 const FileIcon = getFileIcon(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
                 const isCut = fileStore.clipboard.operation === 'cut' &&
@@ -537,9 +755,9 @@ export function FileExplorer() {
                     } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     {file.type === 'image' && file.dataUrl ? (
-                      <img src={file.dataUrl} alt={file.name} className="w-12 h-12 object-cover rounded" />
+                      <img src={file.dataUrl} alt={file.name} className={`${getIconSizeClasses()} object-cover rounded`} />
                     ) : (
-                      <FileIcon className={`w-12 h-12 ${
+                      <FileIcon className={`${getIconSizeClasses()} ${
                         file.type === 'folder' ? 'text-yellow-500' : 'text-primary-500'
                       }`} />
                     )}
@@ -561,6 +779,103 @@ export function FileExplorer() {
                     ) : (
                       <span className="text-xs text-center line-clamp-2 text-white">{file.name}</span>
                     )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col">
+              {/* List View Header */}
+              <div className="grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 bg-white/5 backdrop-blur-md border-b border-white/10 text-xs font-semibold text-gray-400 sticky top-0">
+                <div></div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('name')}>
+                  Name
+                  {sortBy === 'name' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                </div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('size')}>
+                  Size
+                  {sortBy === 'size' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                </div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('type')}>
+                  Type
+                  {sortBy === 'type' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                </div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('date')}>
+                  Date Modified
+                  {sortBy === 'date' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                </div>
+              </div>
+
+              {/* List View Items */}
+              {displayFiles.map((file) => {
+                const FileIcon = getFileIcon(file);
+                const isSelected = fileStore.selectedFileIds.includes(file.id);
+                const isCut = fileStore.clipboard.operation === 'cut' &&
+                              fileStore.clipboard.fileIds.includes(file.id);
+                const isDropTarget = dropTargetId === file.id;
+
+                return (
+                  <motion.button
+                    key={file.id}
+                    onClick={(e) => handleFileClick(file, e)}
+                    onDoubleClick={(e) => handleFileDoubleClick(file, e)}
+                    onContextMenu={(e) => handleContextMenu(e, file)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, file)}
+                    onDragOver={(e) => handleDragOver(e, file)}
+                    onDrop={(e) => handleDrop(e, file)}
+                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${
+                      isSelected
+                        ? 'bg-primary-500/20 border-primary-500'
+                        : 'hover:bg-white/10'
+                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
+                  >
+                    <div className="flex items-center justify-center">
+                      {file.type === 'image' && file.dataUrl ? (
+                        <img src={file.dataUrl} alt={file.name} className="w-6 h-6 object-cover rounded" />
+                      ) : (
+                        <FileIcon className={`w-6 h-6 ${
+                          file.type === 'folder' ? 'text-yellow-500' : 'text-primary-500'
+                        }`} />
+                      )}
+                    </div>
+
+                    <div className="flex items-center min-w-0">
+                      {renamingFileId === file.id ? (
+                        <input
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={finishRename}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === 'Enter') finishRename();
+                            if (e.key === 'Escape') cancelRename();
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                          className="w-full bg-gray-700/70 text-white text-sm border border-primary-500 rounded px-2 py-1 focus:outline-none"
+                        />
+                      ) : (
+                        <span className="text-sm text-white truncate">{file.name}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-400">
+                      {file.type === 'folder' ? '—' : formatFileSize(file.size)}
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-400 capitalize">
+                      {file.type}
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-400">
+                      {new Date(file.modifiedAt || file.createdAt).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </div>
                   </motion.button>
                 );
               })}

@@ -1,10 +1,20 @@
 import { useState } from 'react';
+import * as Icons from 'lucide-react';
+
+interface HistoryEntry {
+  expression: string;
+  result: string;
+}
 
 export function Calculator() {
   const [display, setDisplay] = useState('0');
   const [previousValue, setPreviousValue] = useState<number | null>(null);
   const [operation, setOperation] = useState<string | null>(null);
   const [newNumber, setNewNumber] = useState(true);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [isScientific, setIsScientific] = useState(false);
+  const [memory, setMemory] = useState<number>(0);
 
   const handleNumber = (num: string) => {
     if (newNumber) {
@@ -34,6 +44,7 @@ export function Calculator() {
       case '-': return a - b;
       case '×': return a * b;
       case '÷': return a / b;
+      case '^': return Math.pow(a, b);
       default: return b;
     }
   };
@@ -42,7 +53,10 @@ export function Calculator() {
     if (operation && previousValue !== null) {
       const current = parseFloat(display);
       const result = calculate(previousValue, current, operation);
+      const expression = `${previousValue} ${operation} ${current}`;
+
       setDisplay(String(result));
+      setHistory([{ expression, result: String(result) }, ...history].slice(0, 20));
       setPreviousValue(null);
       setOperation(null);
       setNewNumber(true);
@@ -63,85 +77,224 @@ export function Calculator() {
     }
   };
 
-  const Button = ({ children, onClick, className = '', span = false }: any) => (
-    <button
-      onClick={onClick}
-      className={`h-14 rounded-lg font-semibold text-lg transition-all active:scale-95 ${className} ${
-        span ? 'col-span-2' : ''
-      }`}
-    >
-      {children}
-    </button>
-  );
+  // Scientific functions
+  const handleScientificOp = (func: string) => {
+    const current = parseFloat(display);
+    let result: number;
+    let expression: string;
+
+    switch (func) {
+      case 'sin':
+        result = Math.sin(current * Math.PI / 180);
+        expression = `sin(${current})`;
+        break;
+      case 'cos':
+        result = Math.cos(current * Math.PI / 180);
+        expression = `cos(${current})`;
+        break;
+      case 'tan':
+        result = Math.tan(current * Math.PI / 180);
+        expression = `tan(${current})`;
+        break;
+      case 'sqrt':
+        result = Math.sqrt(current);
+        expression = `√(${current})`;
+        break;
+      case 'square':
+        result = current * current;
+        expression = `${current}²`;
+        break;
+      case 'ln':
+        result = Math.log(current);
+        expression = `ln(${current})`;
+        break;
+      case 'log':
+        result = Math.log10(current);
+        expression = `log(${current})`;
+        break;
+      case '1/x':
+        result = 1 / current;
+        expression = `1/${current}`;
+        break;
+      default:
+        result = current;
+        expression = String(current);
+    }
+
+    setDisplay(String(result));
+    setHistory([{ expression, result: String(result) }, ...history].slice(0, 20));
+    setNewNumber(true);
+  };
+
+  // Memory functions
+  const handleMemoryOp = (op: string) => {
+    const current = parseFloat(display);
+    switch (op) {
+      case 'MC':
+        setMemory(0);
+        break;
+      case 'MR':
+        setDisplay(String(memory));
+        setNewNumber(true);
+        break;
+      case 'M+':
+        setMemory(memory + current);
+        break;
+      case 'M-':
+        setMemory(memory - current);
+        break;
+    }
+  };
+
+  const Button = ({ children, onClick, className = '', span = false, variant = 'default' }: any) => {
+    const variantClasses = {
+      default: 'bg-gray-800 hover:bg-gray-700 text-white',
+      operation: 'bg-gray-700 hover:bg-gray-600 text-white',
+      clear: 'bg-red-600 hover:bg-red-700 text-white',
+      equals: 'bg-primary-600 hover:bg-primary-700 text-white',
+      scientific: 'bg-blue-900/50 hover:bg-blue-800/50 text-blue-300',
+      memory: 'bg-purple-900/50 hover:bg-purple-800/50 text-purple-300',
+    };
+
+    return (
+      <button
+        onClick={onClick}
+        className={`h-12 rounded-lg font-semibold text-sm transition-all active:scale-95 ${variantClasses[variant]} ${className} ${
+          span ? 'col-span-2' : ''
+        }`}
+      >
+        {children}
+      </button>
+    );
+  };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl p-4 flex flex-col">
-      <div className="bg-white/5 backdrop-blur-md rounded p-6 text-right border border-gray-700/50 shadow-lg">
-        <div className="text-gray-400 text-sm mb-1 h-6">
-          {previousValue !== null && operation && `${previousValue} ${operation}`}
+    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex">
+      {/* History Sidebar */}
+      {showHistory && (
+        <div className="w-64 border-r border-white/10 bg-black/20 backdrop-blur-md flex flex-col">
+          <div className="p-3 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              <Icons.History className="w-4 h-4" />
+              History
+            </h3>
+            <button
+              onClick={() => setHistory([])}
+              className="text-xs text-red-400 hover:text-red-300"
+              title="Clear history"
+            >
+              Clear
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {history.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center mt-4">No calculations yet</p>
+            ) : (
+              history.map((entry, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setDisplay(entry.result);
+                    setNewNumber(true);
+                  }}
+                  className="w-full text-left p-2 rounded hover:bg-white/10 transition-colors mb-1"
+                >
+                  <div className="text-gray-400 text-xs truncate">{entry.expression}</div>
+                  <div className="text-white font-semibold truncate">= {entry.result}</div>
+                </button>
+              ))
+            )}
+          </div>
         </div>
-        <div className="text-white text-4xl font-bold truncate">{display}</div>
-      </div>
+      )}
 
-      {/* Gradient divider */}
-      <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-4" />
+      {/* Main Calculator */}
+      <div className="flex-1 p-4 flex flex-col">
+        {/* Display */}
+        <div className="bg-white/5 backdrop-blur-md rounded p-4 text-right border border-gray-700/50 shadow-lg mb-3">
+          <div className="text-gray-400 text-sm mb-1 h-5">
+            {previousValue !== null && operation && `${previousValue} ${operation}`}
+          </div>
+          <div className="text-white text-3xl font-bold truncate">{display}</div>
+          {memory !== 0 && (
+            <div className="text-purple-400 text-xs mt-1">M: {memory}</div>
+          )}
+        </div>
 
-      <div className="grid grid-cols-4 gap-3 flex-1">
-        <Button onClick={handleClear} className="bg-red-600 hover:bg-red-700 text-white">
-          C
-        </Button>
-        <Button onClick={() => handleOperation('÷')} className="bg-gray-700 hover:bg-gray-600 text-white">
-          ÷
-        </Button>
-        <Button onClick={() => handleOperation('×')} className="bg-gray-700 hover:bg-gray-600 text-white">
-          ×
-        </Button>
-        <Button onClick={() => handleOperation('-')} className="bg-gray-700 hover:bg-gray-600 text-white">
-          −
-        </Button>
+        {/* Mode toggles */}
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className={`flex-1 px-3 py-2 rounded text-xs font-semibold transition-all ${
+              showHistory ? 'bg-primary-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Icons.History className="w-3 h-3 inline mr-1" />
+            History
+          </button>
+          <button
+            onClick={() => setIsScientific(!isScientific)}
+            className={`flex-1 px-3 py-2 rounded text-xs font-semibold transition-all ${
+              isScientific ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Icons.FlaskConical className="w-3 h-3 inline mr-1" />
+            Scientific
+          </button>
+        </div>
 
-        <Button onClick={() => handleNumber('7')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          7
-        </Button>
-        <Button onClick={() => handleNumber('8')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          8
-        </Button>
-        <Button onClick={() => handleNumber('9')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          9
-        </Button>
-        <Button onClick={() => handleOperation('+')} className="bg-gray-700 hover:bg-gray-600 text-white row-span-2">
-          +
-        </Button>
+        {/* Calculator buttons */}
+        <div className="flex-1 grid grid-cols-4 gap-2 content-start">
+          {/* Memory row */}
+          {isScientific && (
+            <>
+              <Button onClick={() => handleMemoryOp('MC')} variant="memory">MC</Button>
+              <Button onClick={() => handleMemoryOp('MR')} variant="memory">MR</Button>
+              <Button onClick={() => handleMemoryOp('M+')} variant="memory">M+</Button>
+              <Button onClick={() => handleMemoryOp('M-')} variant="memory">M-</Button>
+            </>
+          )}
 
-        <Button onClick={() => handleNumber('4')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          4
-        </Button>
-        <Button onClick={() => handleNumber('5')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          5
-        </Button>
-        <Button onClick={() => handleNumber('6')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          6
-        </Button>
+          {/* Scientific functions */}
+          {isScientific && (
+            <>
+              <Button onClick={() => handleScientificOp('sin')} variant="scientific">sin</Button>
+              <Button onClick={() => handleScientificOp('cos')} variant="scientific">cos</Button>
+              <Button onClick={() => handleScientificOp('tan')} variant="scientific">tan</Button>
+              <Button onClick={() => handleOperation('^')} variant="scientific">x^y</Button>
 
-        <Button onClick={() => handleNumber('1')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          1
-        </Button>
-        <Button onClick={() => handleNumber('2')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          2
-        </Button>
-        <Button onClick={() => handleNumber('3')} className="bg-gray-800 hover:bg-gray-700 text-white">
-          3
-        </Button>
-        <Button onClick={handleEquals} className="bg-primary-600 hover:bg-primary-700 text-white row-span-2">
-          =
-        </Button>
+              <Button onClick={() => handleScientificOp('sqrt')} variant="scientific">√</Button>
+              <Button onClick={() => handleScientificOp('square')} variant="scientific">x²</Button>
+              <Button onClick={() => handleScientificOp('1/x')} variant="scientific">1/x</Button>
+              <Button onClick={() => handleScientificOp('log')} variant="scientific">log</Button>
+            </>
+          )}
 
-        <Button onClick={() => handleNumber('0')} span className="bg-gray-800 hover:bg-gray-700 text-white">
-          0
-        </Button>
-        <Button onClick={handleDecimal} className="bg-gray-800 hover:bg-gray-700 text-white">
-          .
-        </Button>
+          {/* Standard calculator */}
+          <Button onClick={handleClear} variant="clear">C</Button>
+          <Button onClick={() => handleOperation('÷')} variant="operation">÷</Button>
+          <Button onClick={() => handleOperation('×')} variant="operation">×</Button>
+          <Button onClick={() => handleOperation('-')} variant="operation">−</Button>
+
+          <Button onClick={() => handleNumber('7')}>7</Button>
+          <Button onClick={() => handleNumber('8')}>8</Button>
+          <Button onClick={() => handleNumber('9')}>9</Button>
+          <Button onClick={() => handleOperation('+')} variant="operation">+</Button>
+
+          <Button onClick={() => handleNumber('4')}>4</Button>
+          <Button onClick={() => handleNumber('5')}>5</Button>
+          <Button onClick={() => handleNumber('6')}>6</Button>
+          <Button onClick={() => handleNumber('(')} variant="scientific">(</Button>
+
+          <Button onClick={() => handleNumber('1')}>1</Button>
+          <Button onClick={() => handleNumber('2')}>2</Button>
+          <Button onClick={() => handleNumber('3')}>3</Button>
+          <Button onClick={() => handleNumber(')')} variant="scientific">)</Button>
+
+          <Button onClick={() => handleNumber('0')} span>0</Button>
+          <Button onClick={handleDecimal}>.</Button>
+          <Button onClick={handleEquals} variant="equals">=</Button>
+        </div>
       </div>
     </div>
   );

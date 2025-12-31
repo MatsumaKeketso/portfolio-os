@@ -61,6 +61,7 @@ interface FileStoreState extends FileSystemState {
   updateFile: (fileId: string, updates: Partial<FileItem>) => void;
   updateFileContent: (fileId: string, content: string) => void;
   navigateToFolder: (folderId: string | null) => void;
+  navigateTo: (path: string[]) => void;
   navigateUp: () => void;
   getCurrentFolderFiles: () => FileItem[];
   getFileById: (fileId: string) => FileItem | undefined;
@@ -204,6 +205,12 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
     }
     return state;
   }),
+
+  navigateTo: (path) => set(() => ({
+    currentPath: path,
+    selectedFileIds: [],
+    lastSelectedFileId: null
+  })),
 
   navigateUp: () => set((state) => {
     if (state.currentPath.length > 0) {

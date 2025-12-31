@@ -4,16 +4,27 @@ import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
 
-const GRID_SIZE = 90; // Icon grid cell size (px)
-const ICON_WIDTH = 80;
-const ICON_HEIGHT = 90;
-
 interface GridPosition {
   row: number;
   col: number;
 }
 
-export function DesktopIcons() {
+interface DesktopIconsProps {
+  iconSize: 'small' | 'medium' | 'large';
+  sortBy: 'name' | 'type' | 'date';
+}
+
+export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIconsProps) {
+  // Dynamic sizes based on iconSize prop
+  const SIZES = {
+    small: { grid: 70, width: 60, height: 70, icon: 8, text: 'text-[10px]' },
+    medium: { grid: 90, width: 80, height: 90, icon: 10, text: 'text-xs' },
+    large: { grid: 110, width: 100, height: 110, icon: 12, text: 'text-sm' },
+  };
+
+  const GRID_SIZE = SIZES[iconSize].grid;
+  const ICON_WIDTH = SIZES[iconSize].width;
+  const ICON_HEIGHT = SIZES[iconSize].height;
   const { apps, openWindow, reorderApps } = useDesktopStore();
   const [draggingAppId, setDraggingAppId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -29,6 +40,22 @@ export function DesktopIcons() {
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join('')] || Icons.Square;
     return Icon;
+  };
+
+  // Render icon - either custom image or lucide icon
+  const renderIcon = (app: App, className: string) => {
+    if (app.customIcon) {
+      return (
+        <img
+          src={app.customIcon}
+          alt={app.name}
+          className={className}
+          style={{ objectFit: 'contain' }}
+        />
+      );
+    }
+    const Icon = getIcon(app.icon);
+    return <Icon className={className} />;
   };
 
   // Update container height
@@ -133,8 +160,25 @@ export function DesktopIcons() {
     };
   }, [draggingAppId, dragOffset, dragPosition, hoverIndex, containerHeight]);
 
-  // Get apps in their display order (reordered if dragging)
-  const displayApps = getReorderedApps();
+  // Sort apps based on sortBy prop
+  const sortApps = (appsToSort: App[]): App[] => {
+    const sorted = [...appsToSort];
+    switch (sortBy) {
+      case 'name':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'type':
+        return sorted.sort((a, b) => a.type.localeCompare(b.type));
+      case 'date':
+        // Assuming apps are added chronologically, maintain original order
+        return sorted;
+      default:
+        return sorted;
+    }
+  };
+
+  // Get apps in their display order (reordered if dragging, then sorted)
+  const reorderedApps = getReorderedApps();
+  const displayApps = draggingAppId ? reorderedApps : sortApps(reorderedApps);
 
   const handleIconHover = (app: App, position: { x: number; y: number }) => {
     if (!draggingAppId) {
@@ -228,15 +272,10 @@ export function DesktopIcons() {
               <div className="p-6">
                 {/* Logo/Icon at top */}
                 <div className="flex justify-center mb-5">
-                  {(() => {
-                    const Icon = getIcon(hoveredApp.icon);
-                    return (
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/30 to-tertiary-500/30 blur-2xl" />
-                        <Icon className="relative w-16 h-16 text-white drop-shadow-2xl" />
-                      </div>
-                    );
-                  })()}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/30 to-tertiary-500/30 blur-2xl" />
+                    {renderIcon(hoveredApp, "relative w-16 h-16 text-white drop-shadow-2xl")}
+                  </div>
                 </div>
 
                 {/* App name - Netflix style */}
@@ -299,7 +338,6 @@ export function DesktopIcons() {
         })()}
       </AnimatePresence>
       {displayApps.map((app, index) => {
-        const Icon = getIcon(app.icon);
         const isDragging = draggingAppId === app.id;
         const isHovered = hoveredApp?.id === app.id;
         const isOtherHovered = hoveredApp && hoveredApp.id !== app.id;
@@ -340,12 +378,12 @@ export function DesktopIcons() {
               isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
             }`}
           >
-            <div className="w-12 h-12 flex items-center justify-center">
-              <Icon className={`w-10 h-10 text-white drop-shadow-lg transition-transform ${
+            <div className={`w-${SIZES[iconSize].icon + 2} h-${SIZES[iconSize].icon + 2} flex items-center justify-center`}>
+              {renderIcon(app, `w-${SIZES[iconSize].icon} h-${SIZES[iconSize].icon} text-white drop-shadow-lg transition-transform ${
                 isHovered ? 'scale-110' : 'group-hover:scale-110'
-              }`} />
+              }`)}
             </div>
-            <span className={`text-white text-xs text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${
+            <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${
               isHovered ? 'font-bold' : ''
             }`}>
               {app.name}

@@ -3,54 +3,66 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      // PortfolioOS Design System Colors (Framer-inspired)
+      // PortfolioOS Design System Colors (Dynamic via CSS Variables)
       colors: {
-        // Primary - Red (main brand color)
+        // Primary - Customizable via theme store
         primary: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',  // Base primary
-          600: '#dc2626',  // Primary hover
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a',
-          DEFAULT: '#ef4444',
+          50: 'rgba(var(--color-primary), 0.05)',    // Backgrounds only
+          100: 'rgba(var(--color-primary), 0.15)',   // Backgrounds only
+          200: 'rgba(var(--color-primary), 0.25)',   // Backgrounds only
+          300: 'rgb(var(--color-primary))',          // Text safe - full opacity
+          400: 'rgb(var(--color-primary))',          // Text safe - full opacity
+          500: 'rgb(var(--color-primary))',          // Base primary - full opacity
+          600: 'rgb(var(--color-primary-hover))',    // Primary hover (darker)
+          700: 'rgb(var(--color-primary-hover))',
+          800: 'rgb(var(--color-primary-hover))',
+          900: 'rgb(var(--color-primary-hover))',
+          950: 'rgb(var(--color-primary-hover))',
+          DEFAULT: 'rgb(var(--color-primary))',
         },
 
-        // Secondary - White/Neutral (supporting, backgrounds)
+        // Secondary - Customizable via theme store
         secondary: {
-          50: '#ffffff',
-          100: '#f9fafb',
-          200: '#f3f4f6',
-          300: '#e5e7eb',
-          400: '#d1d5db',
-          500: '#9ca3af',  // Base secondary
-          600: '#6b7280',
-          700: '#4b5563',
-          800: '#374151',
-          900: '#1f2937',
-          950: '#0a0a0a',
-          DEFAULT: '#9ca3af',
+          50: 'rgba(var(--color-secondary), 0.05)',
+          100: 'rgba(var(--color-secondary), 0.15)',
+          200: 'rgba(var(--color-secondary), 0.25)',
+          300: 'rgb(var(--color-secondary))',
+          400: 'rgb(var(--color-secondary))',
+          500: 'rgb(var(--color-secondary))',
+          600: 'rgb(var(--color-secondary-hover))',
+          700: 'rgb(var(--color-secondary-hover))',
+          800: 'rgb(var(--color-secondary-hover))',
+          900: 'rgb(var(--color-secondary-hover))',
+          950: 'rgb(var(--color-secondary-hover))',
+          DEFAULT: 'rgb(var(--color-secondary))',
         },
 
-        // Tertiary - Orange (accents, highlights)
+        // Tertiary - Customizable via theme store
         tertiary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',  // Base tertiary
-          600: '#ea580c',  // Tertiary hover
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-          950: '#431407',
-          DEFAULT: '#f97316',
+          50: 'rgba(var(--color-tertiary), 0.05)',
+          100: 'rgba(var(--color-tertiary), 0.15)',
+          200: 'rgba(var(--color-tertiary), 0.25)',
+          300: 'rgb(var(--color-tertiary))',
+          400: 'rgb(var(--color-tertiary))',
+          500: 'rgb(var(--color-tertiary))',
+          600: 'rgb(var(--color-tertiary-hover))',
+          700: 'rgb(var(--color-tertiary-hover))',
+          800: 'rgb(var(--color-tertiary-hover))',
+          900: 'rgb(var(--color-tertiary-hover))',
+          950: 'rgb(var(--color-tertiary-hover))',
+          DEFAULT: 'rgb(var(--color-tertiary))',
+        },
+
+        // Accent - Customizable via theme store
+        accent: {
+          50: 'rgba(var(--color-accent), 0.05)',
+          100: 'rgba(var(--color-accent), 0.15)',
+          200: 'rgba(var(--color-accent), 0.25)',
+          300: 'rgb(var(--color-accent))',
+          400: 'rgb(var(--color-accent))',
+          500: 'rgb(var(--color-accent))',
+          600: 'rgb(var(--color-accent-hover))',
+          DEFAULT: 'rgb(var(--color-accent))',
         },
 
         // System - Dark surfaces (Framer-inspired)

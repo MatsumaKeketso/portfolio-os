@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
+import { useThemeStore } from '../store/themeStore';
 
 interface CustomizationSettingsProps {
   isOpen: boolean;
@@ -19,6 +20,16 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     removeBackground,
   } = useDesktopStore();
   const { profile, updatePreferences } = useUserStore();
+  const {
+    theme,
+    presets,
+    updateColors,
+    setBorderRadius,
+    setSpacing,
+    setIconStyle,
+    applyPreset,
+    resetToDefault,
+  } = useThemeStore();
 
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -269,52 +280,158 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                 {/* Appearance Tab */}
                 {activeTab === 'appearance' && (
                   <div className="space-y-6">
+                    {/* Theme Presets */}
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Icons.Type className="w-5 h-5 text-primary-400" />
-                        Text Size
+                        <Icons.Sparkles className="w-5 h-5 text-primary-400" />
+                        Theme Presets
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {presets.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => applyPreset(preset.name)}
+                            className="p-4 rounded-lg border-2 transition-all hover:scale-105 bg-white/5 border-gray-700 hover:border-primary-500"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div
+                                className="w-6 h-6 rounded-full"
+                                style={{ backgroundColor: preset.theme.colors.primary }}
+                              />
+                              <div
+                                className="w-6 h-6 rounded-full"
+                                style={{ backgroundColor: preset.theme.colors.secondary }}
+                              />
+                              <div
+                                className="w-6 h-6 rounded-full"
+                                style={{ backgroundColor: preset.theme.colors.tertiary }}
+                              />
+                            </div>
+                            <div className="text-white font-semibold text-sm">{preset.name}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Color Customization */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                        <Icons.Palette className="w-5 h-5 text-primary-400" />
+                        Custom Colors
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {(['primary', 'secondary', 'tertiary', 'accent'] as const).map((colorKey) => (
+                          <div key={colorKey} className="bg-white/5 border border-gray-700 rounded-lg p-4">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="color"
+                                value={theme.colors[colorKey]}
+                                onChange={(e) => updateColors({ [colorKey]: e.target.value })}
+                                className="w-12 h-12 rounded cursor-pointer border-2 border-gray-600"
+                              />
+                              <div className="flex-1">
+                                <p className="text-white font-semibold capitalize mb-1">{colorKey}</p>
+                                <p className="text-gray-400 text-xs font-mono">{theme.colors[colorKey]}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Border Radius */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                        <Icons.RectangleHorizontal className="w-5 h-5 text-primary-400" />
+                        Border Radius
+                      </h3>
+                      <div className="grid grid-cols-5 gap-3">
+                        {(['none', 'sm', 'md', 'lg', 'xl'] as const).map((radius) => (
+                          <button
+                            key={radius}
+                            onClick={() => setBorderRadius(radius)}
+                            className={`p-4 border-2 transition-all ${
+                              theme.borderRadius === radius
+                                ? 'border-primary-500 bg-primary-500/20'
+                                : 'border-gray-700 hover:border-gray-500 bg-white/5'
+                            }`}
+                            style={{
+                              borderRadius: radius === 'none' ? '0' : radius === 'sm' ? '0.375rem' : radius === 'md' ? '0.5rem' : radius === 'lg' ? '0.75rem' : '1rem'
+                            }}
+                          >
+                            <div className="text-white font-semibold text-xs uppercase">{radius}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Spacing */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                        <Icons.Maximize2 className="w-5 h-5 text-primary-400" />
+                        Spacing
                       </h3>
                       <div className="grid grid-cols-3 gap-4">
-                        {(['sm', 'md', 'lg'] as const).map((size) => (
+                        {(['compact', 'normal', 'comfortable'] as const).map((spacing) => (
                           <button
-                            key={size}
-                            onClick={() => updatePreferences({ fontSize: size })}
-                            className={`p-4 rounded border-2 transition-all ${
-                              profile.preferences.fontSize === size
+                            key={spacing}
+                            onClick={() => setSpacing(spacing)}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              theme.spacing === spacing
                                 ? 'border-primary-500 bg-primary-500/20'
                                 : 'border-gray-700 hover:border-gray-500 bg-white/5'
                             }`}
                           >
-                            <div className="text-white font-semibold mb-1">
-                              {size === 'sm' ? 'Small' : size === 'md' ? 'Medium' : 'Large'}
-                            </div>
-                            <div className={`text-gray-400 ${
-                              size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : 'text-base'
-                            }`}>
-                              Sample Text
+                            <div className="text-white font-semibold mb-1 capitalize">{spacing}</div>
+                            <div className="text-gray-400 text-xs">
+                              {spacing === 'compact' ? 'Dense layout' : spacing === 'normal' ? 'Balanced spacing' : 'Generous spacing'}
                             </div>
                           </button>
                         ))}
                       </div>
                     </div>
 
+                    {/* Icon Style */}
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Icons.Palette className="w-5 h-5 text-primary-400" />
-                        Accent Color
+                        <Icons.Box className="w-5 h-5 text-primary-400" />
+                        Icon Style
                       </h3>
-                      <div className="flex items-center gap-4">
-                        <input
-                          type="color"
-                          value={profile.preferences.accentColor || '#667eea'}
-                          onChange={(e) => updatePreferences({ accentColor: e.target.value })}
-                          className="w-16 h-16 rounded cursor-pointer"
-                        />
-                        <div className="flex-1">
-                          <p className="text-white mb-1">Current: {profile.preferences.accentColor || '#667eea'}</p>
-                          <p className="text-gray-400 text-sm">Choose your preferred accent color for buttons and highlights</p>
-                        </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        {(['default', 'rounded', 'sharp'] as const).map((style) => (
+                          <button
+                            key={style}
+                            onClick={() => setIconStyle(style)}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              theme.iconStyle === style
+                                ? 'border-primary-500 bg-primary-500/20'
+                                : 'border-gray-700 hover:border-gray-500 bg-white/5'
+                            }`}
+                          >
+                            <Icons.Square
+                              className={`w-8 h-8 mx-auto mb-2 text-white ${
+                                style === 'rounded' ? 'rounded-full' : style === 'sharp' ? '' : 'rounded-lg'
+                              }`}
+                              style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                padding: '8px',
+                              }}
+                            />
+                            <div className="text-white font-semibold text-sm capitalize">{style}</div>
+                          </button>
+                        ))}
                       </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    <div className="pt-4 border-t border-gray-700">
+                      <button
+                        onClick={resetToDefault}
+                        className="w-full bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <Icons.RotateCcw className="w-4 h-4" />
+                        Reset to Default Theme
+                      </button>
                     </div>
                   </div>
                 )}

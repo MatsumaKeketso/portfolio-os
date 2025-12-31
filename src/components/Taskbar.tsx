@@ -21,6 +21,22 @@ export function Taskbar() {
     return Icon;
   };
 
+  // Render icon - either custom image or lucide icon
+  const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => {
+    if (customIcon) {
+      return (
+        <img
+          src={customIcon}
+          alt=""
+          className={className}
+          style={{ objectFit: 'contain' }}
+        />
+      );
+    }
+    const Icon = getIcon(iconName);
+    return <Icon className={className} />;
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/70 backdrop-blur-md border-t border-white/10 flex items-center justify-between px-2 z-[10000]">
       <div className="flex items-center gap-1">
@@ -35,7 +51,6 @@ export function Taskbar() {
         <div className="w-px h-6 bg-gray-700 mx-1" />
 
         {pinnedApps.map((app) => {
-          const Icon = getIcon(app.icon);
           const isOpen = windows.some(w => w.appId === app.id);
 
           return (
@@ -53,7 +68,7 @@ export function Taskbar() {
                 }`}
               title={app.name}
             >
-              <Icon className="w-5 h-5 text-white" />
+              {renderIcon(app.icon, app.customIcon, "w-5 h-5 text-white")}
               {isOpen && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
               )}
@@ -62,8 +77,6 @@ export function Taskbar() {
         })}
 
         {openApps.filter(w => !pinnedApps.some(app => app.id === w.appId)).map((window) => {
-          const Icon = getIcon(window.icon);
-
           return (
             <button
               key={window.id}
@@ -71,7 +84,7 @@ export function Taskbar() {
               className="w-10 h-10 rounded flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all relative"
               title={window.title}
             >
-              <Icon className="w-5 h-5 text-white" />
+              {renderIcon(window.icon, window.customIcon, "w-5 h-5 text-white")}
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
             </button>
           );
