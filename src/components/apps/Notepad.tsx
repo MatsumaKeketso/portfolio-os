@@ -60,15 +60,15 @@ export function Notepad({ window }: NotepadProps = {}) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white">
-      <div className="border-b border-gray-200 p-2 flex items-center gap-2">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl border-b border-white/10">
+      <div className="border-b border-white/10 p-2 flex items-center gap-2 backdrop-blur-sm bg-white/5">
         <button
           onClick={handleSave}
           disabled={!hasUnsavedChanges || !fileId}
-          className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${
+          className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${
             hasUnsavedChanges && fileId
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              ? 'bg-primary-600 text-white hover:bg-primary-700'
+              : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
           }`}
         >
           <Icons.Save className="w-3 h-3" />
@@ -76,14 +76,14 @@ export function Notepad({ window }: NotepadProps = {}) {
         </button>
         <button
           onClick={handleSaveAs}
-          className="px-3 py-1 text-sm hover:bg-gray-100 rounded flex items-center gap-1"
+          className="px-3 py-1 text-sm hover:bg-white/10 rounded flex items-center gap-1 text-white transition-colors"
         >
           <Icons.FilePlus className="w-3 h-3" />
           Save As
         </button>
         <div className="flex-1" />
         {fileId && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-400">
             Editing: {window?.title || 'Untitled'}
           </span>
         )}
@@ -91,11 +91,11 @@ export function Notepad({ window }: NotepadProps = {}) {
       <textarea
         value={text}
         onChange={(e) => handleTextChange(e.target.value)}
-        className="flex-1 w-full p-4 resize-none focus:outline-none font-mono text-sm"
+        className="flex-1 w-full p-4 resize-none focus:outline-none font-mono text-sm bg-transparent text-white placeholder-gray-500"
         spellCheck={false}
         placeholder="Start typing your notes here..."
       />
-      <div className="border-t border-gray-200 px-3 py-1 text-xs text-gray-500 flex items-center justify-between">
+      <div className="border-t border-white/10 px-3 py-1 text-xs text-gray-400 flex items-center justify-between backdrop-blur-sm bg-white/5">
         <span>Characters: {text.length}</span>
         <span>Lines: {text.split('\n').length}</span>
       </div>

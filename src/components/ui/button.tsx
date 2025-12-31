@@ -4,8 +4,14 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 /**
- * Button component with Aceternity UI styling
+ * Button component with Framer-inspired styling
  * Provides multiple variants for different use cases across PortfolioOS
+ *
+ * Color System:
+ * - Primary: Red (main actions, CTAs)
+ * - Secondary: White/Gray (neutral actions)
+ * - Tertiary: Orange (accent actions, highlights)
+ * - System: Ghost/minimal buttons for UI chrome
  *
  * @example Basic usage
  * <Button variant="primary" size="md">Click me</Button>
@@ -21,39 +27,49 @@ import { cn } from '../../lib/utils'
 
 const buttonVariants = cva(
   // Base styles (applied to all variants)
-  'inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
+        // === PRIMARY BUTTON (Red - Main Actions) ===
+        primary:
+          'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 shadow-md hover:shadow-glow-primary-hover active:scale-95',
+
+        // === SECONDARY BUTTON (White/Gray - Neutral Actions) ===
+        secondary:
+          'bg-secondary-700 text-white border border-secondary-600 hover:bg-secondary-600 hover:border-secondary-500 shadow-sm',
+
+        // === TERTIARY BUTTON (Orange - Accent Actions) ===
+        tertiary:
+          'bg-gradient-to-r from-tertiary-500 to-tertiary-600 text-white hover:from-tertiary-600 hover:to-tertiary-700 shadow-md hover:shadow-glow-tertiary-hover active:scale-95',
+
+        // === SYSTEM BUTTONS (UI Chrome) ===
         // Window chrome buttons (minimal, glass effect)
         ghost: 'hover:bg-white/10 text-white',
 
         // Close button (danger on hover)
-        ghostDanger: 'hover:bg-red-500 text-white',
+        ghostDanger: 'hover:bg-primary-500 text-white',
 
         // Taskbar buttons (with active state)
         taskbar:
-          'hover:bg-white/10 text-white data-[active=true]:bg-white/20 data-[active=true]:border-b-2 data-[active=true]:border-blue-500 relative',
+          'hover:bg-white/10 text-white data-[active=true]:bg-white/20 data-[active=true]:border-b-2 data-[active=true]:border-primary-500 relative',
 
-        // Primary action buttons (gradient)
-        primary:
-          'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-glow-blue',
-
-        // Secondary buttons
-        secondary:
-          'bg-gray-700 text-white border border-gray-600 hover:bg-gray-600 hover:border-gray-500',
-
+        // === SEMANTIC BUTTONS ===
         // Danger buttons (destructive actions)
         danger:
-          'bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-glow-red',
+          'bg-primary-600 text-white hover:bg-primary-700 shadow-md hover:shadow-glow-primary active:scale-95',
 
         // Success buttons (positive actions)
         success:
-          'bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-glow-green',
+          'bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-glow-green active:scale-95',
+
+        // Outline variant (secondary style)
+        outline:
+          'border-2 border-secondary-400 text-secondary-50 hover:bg-secondary-800 hover:border-secondary-300',
 
         // Context menu items
         menuItem:
-          'w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-600 text-gray-700 dark:text-gray-200 rounded-none',
+          'w-full justify-start hover:bg-primary-50 dark:hover:bg-primary-600/20 text-gray-700 dark:text-gray-200 rounded-none',
       },
 
       size: {

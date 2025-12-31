@@ -39,10 +39,10 @@ export function TaskManager() {
   const usedMemory = 862;
 
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col">
-      <div className="bg-white border-b border-gray-200 p-4">
+    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col">
+      <div className="bg-white/5 backdrop-blur-md p-4">
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-4">
+          <div className="bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded p-4 border-b border-white/20 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm opacity-90">CPU Usage</span>
               <Icons.Cpu className="w-5 h-5 opacity-75" />
@@ -53,7 +53,7 @@ export function TaskManager() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-4">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded p-4 border-b border-white/20 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm opacity-90">Memory</span>
               <Icons.HardDrive className="w-5 h-5 opacity-75" />
@@ -62,7 +62,7 @@ export function TaskManager() {
             <div className="text-xs opacity-90 mt-1">{usedMemory} / {totalMemory} MB</div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-4">
+          <div className="bg-gradient-to-br from-tertiary-500 to-tertiary-600 text-white rounded p-4 border-b border-white/20 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm opacity-90">Processes</span>
               <Icons.Activity className="w-5 h-5 opacity-75" />
@@ -73,48 +73,59 @@ export function TaskManager() {
         </div>
       </div>
 
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+
       <div className="flex-1 overflow-auto p-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="border-b border-gray-200 px-4 py-3 bg-gray-50 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-600 uppercase">
+        <div className="bg-white/5 backdrop-blur-md rounded shadow-lg border border-gray-700/50">
+          <div className="px-4 py-3 bg-white/5 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-400 uppercase">
             <div className="col-span-5">Process</div>
             <div className="col-span-2">Status</div>
             <div className="col-span-2">CPU</div>
             <div className="col-span-3">Memory</div>
           </div>
 
+          {/* Gradient divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+
           {processes.map((process, index) => {
             const Icon = getIcon(process.icon);
             return (
-              <div
-                key={index}
-                className="border-b border-gray-100 last:border-0 px-4 py-3 hover:bg-gray-50 transition-colors grid grid-cols-12 gap-4 items-center"
-              >
-                <div className="col-span-5 flex items-center gap-3">
-                  <Icon className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">{process.name}</span>
-                </div>
+              <>
+                <div
+                  key={index}
+                  className="px-4 py-3 hover:bg-white/5 transition-colors grid grid-cols-12 gap-4 items-center"
+                >
+                  <div className="col-span-5 flex items-center gap-3">
+                    <Icon className="w-5 h-5 text-primary-400" />
+                    <span className="text-sm font-medium text-white">{process.name}</span>
+                  </div>
                 <div className="col-span-2">
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     process.status === 'Running'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-600'
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                      : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                   }`}>
                     {process.status}
                   </span>
                 </div>
                 <div className="col-span-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                    <div className="flex-1 bg-white/10 rounded-full h-1.5">
                       <div
-                        className="bg-blue-600 rounded-full h-1.5 transition-all"
+                        className="bg-primary-500 rounded-full h-1.5 transition-all"
                         style={{ width: `${Math.min(process.cpu * 5, 100)}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-700 w-10 text-right">{process.cpu}%</span>
+                    <span className="text-sm text-gray-300 w-10 text-right">{process.cpu}%</span>
                   </div>
                 </div>
-                <div className="col-span-3 text-sm text-gray-700">{process.memory}</div>
-              </div>
+                  <div className="col-span-3 text-sm text-gray-300">{process.memory}</div>
+                </div>
+                {index < processes.length - 1 && (
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent" />
+                )}
+              </>
             );
           })}
         </div>

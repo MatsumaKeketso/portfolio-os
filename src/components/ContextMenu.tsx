@@ -61,36 +61,41 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.1 }}
-      className="fixed z-[10002] bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[200px]"
+      className="fixed z-[10002] min-w-[200px]"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
     >
-      {items.map((item, index) => (
-        item.divider ? (
-          <div key={`divider-${index}`} className="h-px bg-gray-200 my-1" />
-        ) : (
-          <button
-            key={`item-${index}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!item.disabled) {
-                item.onClick();
-                onClose();
-              }
-            }}
-            disabled={item.disabled}
-            className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </div>
-            {item.shortcut && (
-              <span className="text-xs text-gray-500">{item.shortcut}</span>
-            )}
-          </button>
-        )
-      ))}
+      {/* Top gradient accent line */}
+      <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
+
+      <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl py-1">
+        {items.map((item, index) => (
+          item.divider ? (
+            <div key={`divider-${index}`} className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-1" />
+          ) : (
+            <button
+              key={`item-${index}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!item.disabled) {
+                  item.onClick();
+                  onClose();
+                }
+              }}
+              disabled={item.disabled}
+              className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <item.icon className="w-4 h-4 text-primary-400" />
+                <span>{item.label}</span>
+              </div>
+              {item.shortcut && (
+                <span className="text-xs text-gray-400">{item.shortcut}</span>
+              )}
+            </button>
+          )
+        ))}
+      </div>
     </motion.div>
   );
 }

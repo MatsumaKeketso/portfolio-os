@@ -3,21 +3,77 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      // Aceternity UI Premium Colors
+      // PortfolioOS Design System Colors (Framer-inspired)
       colors: {
+        // Primary - Red (main brand color)
         primary: {
-          50: '#f0f4ff',
-          100: '#e0e8ff',
-          200: '#c7d6fe',
-          300: '#a5b8fc',
-          400: '#8b9df8',
-          500: '#667eea', // Primary blue
-          600: '#5a67d8',
-          700: '#764ba2', // Primary purple
-          800: '#6a3e9a',
-          900: '#5e3580',
-          DEFAULT: '#667eea',
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef4444',  // Base primary
+          600: '#dc2626',  // Primary hover
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+          950: '#450a0a',
+          DEFAULT: '#ef4444',
         },
+
+        // Secondary - White/Neutral (supporting, backgrounds)
+        secondary: {
+          50: '#ffffff',
+          100: '#f9fafb',
+          200: '#f3f4f6',
+          300: '#e5e7eb',
+          400: '#d1d5db',
+          500: '#9ca3af',  // Base secondary
+          600: '#6b7280',
+          700: '#4b5563',
+          800: '#374151',
+          900: '#1f2937',
+          950: '#0a0a0a',
+          DEFAULT: '#9ca3af',
+        },
+
+        // Tertiary - Orange (accents, highlights)
+        tertiary: {
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',  // Base tertiary
+          600: '#ea580c',  // Tertiary hover
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
+          950: '#431407',
+          DEFAULT: '#f97316',
+        },
+
+        // System - Dark surfaces (Framer-inspired)
+        system: {
+          bg: {
+            primary: '#0a0a0a',
+            secondary: '#111111',
+            tertiary: '#1a1a1a',
+          },
+          surface: {
+            base: '#171717',
+            raised: '#1f1f1f',
+            overlay: '#262626',
+          },
+          text: {
+            primary: '#ffffff',
+            secondary: '#a1a1a1',
+            tertiary: '#737373',
+            disabled: '#525252',
+          },
+        },
+
+        // Glass effects
         glass: {
           dark: 'rgba(17, 24, 39, 0.95)',
           darker: 'rgba(31, 41, 55, 0.95)',
@@ -25,11 +81,21 @@ export default {
         },
       },
 
-      // Premium shadows for Aceternity effects
+      // Premium shadows (Framer-style elevation)
       boxShadow: {
         glass: '0 8px 32px rgba(0, 0, 0, 0.37)',
         window: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         elevated: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+
+        // Primary (Red) glow effects
+        'glow-primary': '0 0 20px rgba(239, 68, 68, 0.3)',
+        'glow-primary-hover': '0 0 30px rgba(239, 68, 68, 0.5)',
+
+        // Tertiary (Orange) glow effects
+        'glow-tertiary': '0 0 20px rgba(249, 115, 22, 0.3)',
+        'glow-tertiary-hover': '0 0 30px rgba(249, 115, 22, 0.5)',
+
+        // Legacy color glows (for backwards compatibility)
         'glow-blue': '0 0 20px rgba(59, 130, 246, 0.5)',
         'glow-purple': '0 0 20px rgba(168, 85, 247, 0.5)',
         'glow-green': '0 0 20px rgba(16, 185, 129, 0.5)',

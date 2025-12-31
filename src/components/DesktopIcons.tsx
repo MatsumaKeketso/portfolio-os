@@ -168,8 +168,8 @@ export function DesktopIcons() {
           >
             {/* Netflix-style card */}
             <div className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-700/50 w-[340px]">
-              {/* Top gradient accent */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500" />
+              {/* Top gradient accent - Updated to primary/tertiary colors */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500" />
 
               {/* Card content */}
               <div className="p-6">
@@ -179,7 +179,7 @@ export function DesktopIcons() {
                     const Icon = getIcon(hoveredApp.icon);
                     return (
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30 blur-2xl" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/30 to-tertiary-500/30 blur-2xl" />
                         <Icon className="relative w-16 h-16 text-white drop-shadow-2xl" />
                       </div>
                     );
@@ -202,13 +202,13 @@ export function DesktopIcons() {
                 {/* Details section */}
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2.5 text-gray-400 text-xs">
-                    <Icons.Layers className="w-4 h-4 text-blue-400" />
+                    <Icons.Layers className="w-4 h-4 text-primary-400" />
                     <span>{hoveredApp.type === 'component' ? 'Built-in Application' : hoveredApp.type === 'iframe' ? 'Web Application' : 'Static Application'}</span>
                   </div>
 
                   {hoveredApp.url && (
                     <div className="flex items-center gap-2.5 text-gray-400 text-xs">
-                      <Icons.Link className="w-4 h-4 text-purple-400" />
+                      <Icons.Link className="w-4 h-4 text-tertiary-400" />
                       <span className="truncate">{hoveredApp.url}</span>
                     </div>
                   )}
@@ -217,13 +217,13 @@ export function DesktopIcons() {
                   {(hoveredApp.pinnedToTaskbar || hoveredApp.pinnedToDesktop) && (
                     <div className="flex gap-2 pt-2">
                       {hoveredApp.pinnedToTaskbar && (
-                        <span className="px-2.5 py-1 bg-blue-500/15 text-blue-300 border border-blue-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
+                        <span className="px-2.5 py-1 bg-primary-500/15 text-primary-300 border border-primary-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
                           <Icons.Pin className="w-3 h-3" />
                           Taskbar
                         </span>
                       )}
                       {hoveredApp.pinnedToDesktop && (
-                        <span className="px-2.5 py-1 bg-purple-500/15 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
+                        <span className="px-2.5 py-1 bg-tertiary-500/15 text-tertiary-300 border border-tertiary-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
                           <Icons.Monitor className="w-3 h-3" />
                           Desktop
                         </span>

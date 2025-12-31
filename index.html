@@ -3,11 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PortfolioOS Interactive Web Desktop</title>
-    <meta property="og:image" content="https://bolt.new/static/og_default.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- Primary Meta Tags -->
+    <title>PortfolioOS - Interactive Web Desktop</title>
+    <meta name="title" content="PortfolioOS - Interactive Web Desktop" />
+    <meta name="description" content="An innovative desktop OS-style portfolio platform showcasing projects, skills, and experience in a unique interactive environment." />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#ef4444" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PortfolioOS" />
+
+    <!-- Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="PortfolioOS - Interactive Web Desktop" />
+    <meta property="og:description" content="An innovative desktop OS-style portfolio platform" />
+    <meta property="og:image" content="/screenshot-wide.png" />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
+    <meta name="twitter:title" content="PortfolioOS - Interactive Web Desktop" />
+    <meta name="twitter:description" content="An innovative desktop OS-style portfolio platform" />
+    <meta name="twitter:image" content="/screenshot-wide.png" />
+
+    <!-- Prevent text size adjustment on iOS -->
+    <style>
+      html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      /* Prevent pull-to-refresh on mobile */
+      body {
+        overscroll-behavior-y: contain;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

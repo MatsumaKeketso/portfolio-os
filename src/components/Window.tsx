@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
-import { BorderGlow } from './aceternity/ui/border-glow';
-import { useTheme } from '../theme';
 import { Button } from './ui/button';
 
 interface WindowProps {
@@ -18,7 +16,6 @@ export function Window({ window, children }: WindowProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const { theme } = useTheme();
 
   const {
     closeWindow,
@@ -102,100 +99,92 @@ export function Window({ window, children }: WindowProps) {
         height: `${window.size.height}px`
       };
 
-  // Get window config from theme
-  const windowConfig = theme.components.Window;
-
   return (
     <motion.div
-      ref={windowRef}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: Number(theme.transitions.duration.normal.replace('ms', '')) / 1000 }}
-      className={`absolute flex flex-col overflow-hidden ${windowConfig.borderRadius} ${windowConfig.shadow} ${windowConfig.backdrop}`}
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: 20 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="absolute flex flex-col"
       style={{
         ...windowStyle,
         zIndex: window.zIndex,
-        backgroundColor: theme.palette.glass.dark,
-        borderWidth: windowConfig.border.width,
-        borderColor: theme.palette.glass.border.dark,
       }}
       onMouseDown={() => bringToFront(window.id)}
     >
-      {/* Border Glow Effect */}
-      {windowConfig.glow.enabled && (
-        <BorderGlow
-          glowColor={windowConfig.glow.color}
-          glowSize={windowConfig.glow.size}
-          borderRadius={theme.borderRadius.lg}
-          className="absolute inset-0 pointer-events-none"
-        />
-      )}
+      {/* Top gradient accent line - Netflix style */}
+      <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t shrink-0" />
 
-      {/* Window Header/Chrome */}
       <div
-        ref={headerRef}
-        onMouseDown={handleMouseDown}
-        className={`flex items-center justify-between px-3 cursor-move select-none ${windowConfig.chrome.background} ${windowConfig.chrome.border}`}
-        style={{ height: windowConfig.chrome.height }}
+        ref={windowRef}
+        className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl"
       >
-        <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4" style={{ color: theme.palette.text.primary }} />
-          <span className="text-sm font-medium" style={{ color: theme.palette.text.primary }}>
-            {window.title}
-          </span>
-        </div>
-
-        {/* Window Control Buttons */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => minimizeWindow(window.id)}
-            className="hover:bg-white/10"
-          >
-            <Icons.Minus className="w-4 h-4" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => maximizeWindow(window.id)}
-            className="hover:bg-white/10"
-          >
-            {window.isMaximized ? (
-              <Icons.Minimize2 className="w-3.5 h-3.5" />
-            ) : (
-              <Icons.Square className="w-3.5 h-3.5" />
-            )}
-          </Button>
-
-          <Button
-            variant="ghostDanger"
-            size="icon"
-            onClick={() => closeWindow(window.id)}
-          >
-            <Icons.X className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Window Body */}
-      <div
-        className={`flex-1 overflow-hidden relative ${windowConfig.body.background}`}
-      >
-        {children}
-      </div>
-
-      {/* Resize Handle */}
-      {!window.isMaximized && (
+        {/* Window Header/Chrome */}
         <div
-          onMouseDown={handleResizeMouseDown}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          ref={headerRef}
+          onMouseDown={handleMouseDown}
+          className="flex items-center justify-between px-4 h-12 cursor-move select-none backdrop-blur-md bg-white/5 shrink-0"
         >
-          <Icons.GripHorizontal className="w-3 h-3 text-gray-600 absolute bottom-0.5 right-0.5 rotate-45" />
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-primary-400" />
+            <span className="text-sm font-medium text-white">
+              {window.title}
+            </span>
+          </div>
+
+          {/* Window Control Buttons */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => minimizeWindow(window.id)}
+              className="hover:bg-white/10 w-8 h-8"
+            >
+              <Icons.Minus className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => maximizeWindow(window.id)}
+              className="hover:bg-white/10 w-8 h-8"
+            >
+              {window.isMaximized ? (
+                <Icons.Minimize2 className="w-3.5 h-3.5" />
+              ) : (
+                <Icons.Square className="w-3.5 h-3.5" />
+              )}
+            </Button>
+
+            <Button
+              variant="ghostDanger"
+              size="icon"
+              onClick={() => closeWindow(window.id)}
+              className="w-8 h-8"
+            >
+              <Icons.X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      )}
+
+        {/* Gradient divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent shrink-0" />
+
+        {/* Window Body */}
+        <div className="flex-1 overflow-hidden relative">
+          {children}
+        </div>
+
+        {/* Resize Handle */}
+        {!window.isMaximized && (
+          <div
+            onMouseDown={handleResizeMouseDown}
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize group"
+          >
+            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-primary-400/30 group-hover:border-primary-400/60 transition-colors" />
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -1,15 +1,22 @@
 import { AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { Window } from './Window';
-import { Calculator } from './apps/Calculator';
-import { Notepad } from './apps/Notepad';
-import { FileExplorer } from './apps/FileExplorer';
-import { Browser } from './apps/Browser';
-import { Weather } from './apps/Weather';
-import { TaskManager } from './apps/TaskManager';
-import { About } from './apps/About';
+
+// Lazy load all apps for code splitting
+const Calculator = lazy(() => import('./apps/Calculator').then(m => ({ default: m.Calculator })));
+const Notepad = lazy(() => import('./apps/Notepad').then(m => ({ default: m.Notepad })));
+const FileExplorer = lazy(() => import('./apps/FileExplorer').then(m => ({ default: m.FileExplorer })));
+const Browser = lazy(() => import('./apps/Browser').then(m => ({ default: m.Browser })));
+const Weather = lazy(() => import('./apps/Weather').then(m => ({ default: m.Weather })));
+const TaskManager = lazy(() => import('./apps/TaskManager').then(m => ({ default: m.TaskManager })));
+const About = lazy(() => import('./apps/About').then(m => ({ default: m.About })));
+const Settings = lazy(() => import('./apps/Settings').then(m => ({ default: m.Settings })));
+const Resume = lazy(() => import('./apps/Resume').then(m => ({ default: m.Resume })));
+const Portfolio = lazy(() => import('./apps/Portfolio').then(m => ({ default: m.Portfolio })));
+const Skills = lazy(() => import('./apps/Skills').then(m => ({ default: m.Skills })));
+const Contact = lazy(() => import('./apps/Contact').then(m => ({ default: m.Contact })));
 
 function IFrameContent({ url, title }: { url: string; title: string }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +27,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
             <p className="text-sm text-gray-600">Loading {title}...</p>
           </div>
         </div>
@@ -35,7 +42,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
                 setHasError(false);
                 setIsLoading(true);
               }}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm"
             >
               Retry
             </button>
@@ -67,44 +74,72 @@ export function WindowManager() {
     }
 
     if (window.type === 'component' && window.component) {
-      switch (window.component) {
-        case 'Calculator':
-          return <Calculator />;
-        case 'Notepad':
-          return <Notepad window={window} />;
-        case 'FileExplorer':
-          return <FileExplorer />;
-        case 'Browser':
-          return <Browser />;
-        case 'Weather':
-          return <Weather />;
-        case 'TaskManager':
-          return <TaskManager />;
-        case 'About':
-          return <About />;
-        default:
-          return (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 bg-white">
+      // Wrap lazy components in Suspense
+      const componentContent = (() => {
+        switch (window.component) {
+          case 'Calculator':
+            return <Calculator />;
+          case 'Notepad':
+            return <Notepad window={window} />;
+          case 'FileExplorer':
+            return <FileExplorer />;
+          case 'Browser':
+            return <Browser />;
+          case 'Weather':
+            return <Weather />;
+          case 'TaskManager':
+            return <TaskManager />;
+          case 'About':
+            return <About />;
+          case 'Settings':
+            return <Settings />;
+          case 'Resume':
+            return <Resume />;
+          case 'Portfolio':
+            return <Portfolio />;
+          case 'Skills':
+            return <Skills />;
+          case 'Contact':
+            return <Contact />;
+          default:
+            return (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gradient-to-br from-gray-900 to-gray-800">
+                <div className="text-center">
+                  <p className="text-lg font-semibold mb-2 text-white">Component not found</p>
+                  <p className="text-sm text-gray-400">{window.component}</p>
+                </div>
+              </div>
+            );
+        }
+      })();
+
+      return (
+        <Suspense
+          fallback={
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
               <div className="text-center">
-                <p className="text-lg font-semibold mb-2">Component not found</p>
-                <p className="text-sm">{window.component}</p>
+                <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+                <p className="text-sm text-white">Loading {window.title}...</p>
               </div>
             </div>
-          );
-      }
+          }
+        >
+          {componentContent}
+        </Suspense>
+      );
     }
 
     if (window.type === 'static' && window.content) {
       return (
-        <div className="w-full h-full bg-white p-6 overflow-y-auto">
-          <div className="prose prose-sm max-w-none">{window.content}</div>
+        <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 p-6 overflow-y-auto">
+          <div className="prose prose-sm max-w-none text-white">{window.content}</div>
         </div>
       );
     }
 
     return (
-      <div className="w-full h-full flex items-center justify-center text-gray-500 bg-white">
-        No content available
+      <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gradient-to-br from-gray-900 to-gray-800">
+        <p className="text-white">No content available</p>
       </div>
     );
   };

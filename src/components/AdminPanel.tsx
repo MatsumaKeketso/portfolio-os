@@ -6,10 +6,8 @@ import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardBody } from './ui/card';
-import { useTheme } from '../theme';
 
 export function AdminPanel() {
-  const { theme } = useTheme();
   const {
     apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
@@ -240,31 +238,22 @@ export function AdminPanel() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 flex items-center justify-center p-4"
-        style={{
-          zIndex: theme.zIndex.modalOverlay,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: `blur(${theme.blur.sm})`,
-        }}
+        className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-[10000]"
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: Number(theme.transitions.duration.normal.replace('ms', '')) / 1000 }}
-          className="w-full max-w-6xl max-h-[90vh] overflow-hidden"
-          style={{
-            backgroundColor: theme.palette.background.dark,
-            borderRadius: theme.borderRadius['2xl'],
-            boxShadow: theme.shadows['2xl'],
-            borderWidth: '1px',
-            borderColor: theme.palette.glass.border.dark,
-          }}
+          initial={{ scale: 0.95, y: 20, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.95, y: 20, opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-6xl max-h-[90vh] flex flex-col"
         >
-          <div className="p-6 text-white" style={{
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`
-          }}>
-            <div className="flex items-center justify-between">
+          {/* Top gradient accent line - Netflix style */}
+          <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
+
+          <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 overflow-hidden flex flex-col shadow-2xl">
+            {/* Header */}
+            <div className="shrink-0 px-6 py-4 border-b bg-gradient-to-r from-transparent via-gray-700/30 to-transparent" style={{borderImage: 'linear-gradient(to right, transparent, rgb(55 65 81 / 0.5), transparent) 1'}}>
+              <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                   <Icons.Shield className="w-6 h-6" />
@@ -316,7 +305,7 @@ export function AdminPanel() {
                 size="md"
                 className={
                   activeTab === 'apps'
-                    ? 'bg-white text-blue-600 hover:bg-white/90 border-none'
+                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
                     : 'bg-white/20 text-white hover:bg-white/30 border-none'
                 }
               >
@@ -329,7 +318,7 @@ export function AdminPanel() {
                 size="md"
                 className={
                   activeTab === 'backgrounds'
-                    ? 'bg-white text-blue-600 hover:bg-white/90 border-none'
+                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
                     : 'bg-white/20 text-white hover:bg-white/30 border-none'
                 }
               >
@@ -337,9 +326,10 @@ export function AdminPanel() {
                 Backgrounds
               </Button>
             </div>
-          </div>
+            </div>
 
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+            {/* Content Area - Scrollable */}
+            <div className="flex-1 p-6 overflow-y-auto">
             {activeTab === 'apps' && (
               <>
                 <div className="mb-6 grid grid-cols-3 gap-3">
@@ -362,9 +352,8 @@ export function AdminPanel() {
                   setShowAddForm(false);
                   setShowQuickAdd(false);
                 }}
-                variant="primary"
+                variant="tertiary"
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
                 <Icons.Package className="w-5 h-5" />
                 Bulk Import
@@ -387,7 +376,7 @@ export function AdminPanel() {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
-                className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 rounded-xl p-6 mb-6 border border-green-700"
+                className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-md rounded p-6 mb-6 border-b border-green-500/30"
               >
                 <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
                   <Icons.Zap className="w-5 h-5" />
@@ -435,29 +424,28 @@ export function AdminPanel() {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
-                className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-xl p-6 mb-6 border border-purple-700"
+                className="bg-gradient-to-br from-tertiary-900/30 to-primary-900/30 backdrop-blur-md rounded p-6 mb-6 border-b border-tertiary-500/30"
               >
                 <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
                   <Icons.Package className="w-5 h-5" />
                   Bulk Import Apps
                 </h3>
-                <p className="text-purple-100 text-sm mb-4">
+                <p className="text-tertiary-100 text-sm mb-4">
                   Add multiple apps at once. Enter one URL per line. Optional format: <code className="bg-black/30 px-1 rounded">URL | Name | Icon</code>
                 </p>
                 <div className="space-y-3">
                   <textarea
                     value={bulkURLs}
                     onChange={(e) => setBulkURLs(e.target.value)}
-                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-purple-600 focus:outline-none focus:border-purple-400 placeholder-gray-400 font-mono text-sm"
+                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-tertiary-600 focus:outline-none focus:border-tertiary-400 placeholder-gray-400 font-mono text-sm"
                     placeholder={"https://example1.com\nhttps://example2.com | Custom Name | gamepad-2\nhttps://example3.com | Another App"}
                     rows={6}
                     autoFocus
                   />
                   <Button
                     onClick={handleBulkImport}
-                    variant="primary"
+                    variant="tertiary"
                     size="md"
-                    className="w-full bg-purple-600 hover:bg-purple-700"
                   >
                     Import All Apps
                   </Button>
@@ -470,7 +458,7 @@ export function AdminPanel() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700"
+                className="bg-gray-900/70 backdrop-blur-md rounded p-6 mb-6 border-b border-white/10"
               >
                 <h3 className="text-white text-lg font-semibold mb-4">
                   {editingApp ? 'Edit App' : 'New App'}
@@ -493,7 +481,7 @@ export function AdminPanel() {
                       <select
                         value={formData.icon}
                         onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-primary-500"
                       >
                         {iconOptions.map((icon) => (
                           <option key={icon} value={icon}>{icon}</option>
@@ -507,7 +495,7 @@ export function AdminPanel() {
                     <select
                       value={formData.type}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                      className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-primary-500"
                     >
                       <option value="component">React Component</option>
                       <option value="iframe">IFrame URL</option>
@@ -626,8 +614,8 @@ export function AdminPanel() {
               </motion.div>
             )}
 
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="bg-gray-700/50 px-4 py-3 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-300 uppercase">
+            <div className="bg-gray-900/70 backdrop-blur-md rounded border-b border-white/10 overflow-hidden shadow-xl">
+              <div className="bg-white/5 backdrop-blur-sm px-4 py-3 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-300 uppercase border-b border-white/10">
                 <div className="col-span-3">Name</div>
                 <div className="col-span-2">Type</div>
                 <div className="col-span-2">Taskbar</div>
@@ -635,13 +623,13 @@ export function AdminPanel() {
                 <div className="col-span-3">Actions</div>
               </div>
 
-              <div className="divide-y divide-gray-700">
+              <div className="divide-y divide-white/10">
                 {apps.map((app) => {
                   const Icon = getIcon(app.icon);
                   return (
-                    <div key={app.id} className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-gray-700/30 transition-colors">
+                    <div key={app.id} className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/5 transition-colors">
                       <div className="col-span-3 flex items-center gap-2">
-                        <Icon className="w-5 h-5 text-blue-400" />
+                        <Icon className="w-5 h-5 text-primary-400" />
                         <span className="text-white text-sm font-medium truncate">{app.name}</span>
                       </div>
                       <div className="col-span-2">
@@ -719,7 +707,7 @@ export function AdminPanel() {
                         key={bg.id}
                         className={`relative rounded-xl overflow-hidden border-4 transition-all cursor-pointer group ${
                           isSelected
-                            ? 'border-blue-500 shadow-lg shadow-blue-500/50'
+                            ? 'border-primary-500 shadow-lg shadow-primary-500/50'
                             : 'border-gray-700 hover:border-gray-500'
                         }`}
                         onClick={() => setSelectedBackground(bg.id)}
@@ -734,7 +722,7 @@ export function AdminPanel() {
                           }}
                         />
 
-                        <div className="bg-gray-800/95 p-3">
+                        <div className="bg-gray-900/80 backdrop-blur-sm p-3 border-t border-white/10">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <h3 className="text-white font-semibold text-sm truncate">
@@ -745,7 +733,7 @@ export function AdminPanel() {
                               )}
                             </div>
                             {isSelected && (
-                              <Icons.Check className="w-5 h-5 text-blue-400 flex-shrink-0 ml-2" />
+                              <Icons.Check className="w-5 h-5 text-primary-400 flex-shrink-0 ml-2" />
                             )}
                           </div>
                         </div>
@@ -776,6 +764,7 @@ export function AdminPanel() {
                 )}
               </>
             )}
+            </div>
           </div>
         </motion.div>
 
@@ -792,29 +781,40 @@ export function AdminPanel() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col"
+              className="w-full max-w-6xl max-h-[90vh]"
             >
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">Preview</h3>
-                  <p className="text-xs text-blue-100">{previewURL}</p>
+              <Surface
+                variant="panel"
+                elevation="highest"
+                blur="lg"
+                border="default"
+                className="flex flex-col h-full overflow-hidden"
+              >
+                <SurfaceHeader className="bg-gradient-to-r from-primary-600 to-tertiary-600 border-b border-white/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-white">Preview</h3>
+                      <p className="text-xs text-white/80">{previewURL}</p>
+                    </div>
+                    <Button
+                      onClick={() => setPreviewURL(null)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-white hover:bg-white/20"
+                    >
+                      <Icons.X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </SurfaceHeader>
+                <div className="flex-1 bg-white overflow-hidden">
+                  <iframe
+                    src={previewURL}
+                    className="w-full h-full"
+                    title="App Preview"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  />
                 </div>
-                <Button
-                  onClick={() => setPreviewURL(null)}
-                  variant="ghost"
-                  size="icon"
-                >
-                  <Icons.X className="w-5 h-5" />
-                </Button>
-              </div>
-              <div className="flex-1 bg-white">
-                <iframe
-                  src={previewURL}
-                  className="w-full h-full"
-                  title="App Preview"
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
-              </div>
+              </Surface>
             </motion.div>
           </motion.div>
         )}

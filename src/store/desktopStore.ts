@@ -155,6 +155,66 @@ const defaultApps: App[] = [
     desktopPosition: { x: 350, y: 150 },
     defaultSize: { width: 600, height: 500 },
     description: 'Software Developer from Johannesburg'
+  },
+  {
+    id: 'settings',
+    name: 'Settings',
+    icon: 'settings',
+    type: 'component',
+    component: 'Settings',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 450, y: 50 },
+    defaultSize: { width: 700, height: 600 },
+    description: 'Portfolio settings and preferences'
+  },
+  {
+    id: 'resume',
+    name: 'Resume',
+    icon: 'file-text',
+    type: 'component',
+    component: 'Resume',
+    pinnedToTaskbar: true,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 550, y: 50 },
+    defaultSize: { width: 800, height: 700 },
+    description: 'Professional resume and CV'
+  },
+  {
+    id: 'portfolio',
+    name: 'Portfolio',
+    icon: 'briefcase',
+    type: 'component',
+    component: 'Portfolio',
+    pinnedToTaskbar: true,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 550, y: 150 },
+    defaultSize: { width: 900, height: 700 },
+    description: 'Portfolio projects showcase'
+  },
+  {
+    id: 'skills',
+    name: 'Skills',
+    icon: 'zap',
+    type: 'component',
+    component: 'Skills',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 650, y: 50 },
+    defaultSize: { width: 700, height: 600 },
+    description: 'Skills and technologies showcase'
+  },
+  {
+    id: 'contact',
+    name: 'Contact',
+    icon: 'mail',
+    type: 'component',
+    component: 'Contact',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 650, y: 150 },
+    defaultSize: { width: 500, height: 400 },
+    description: 'Contact information and links'
   }
 ];
 
@@ -381,7 +441,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   addBackground: (background) => set((state) => {
     const newBackgrounds = [...state.backgrounds, background];
-    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(newBackgrounds));
+    // Only save custom backgrounds to localStorage (not defaults)
+    const customBackgrounds = newBackgrounds.filter(b => !b.id.startsWith('default-'));
+    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(customBackgrounds));
+    console.log('Saved backgrounds to localStorage:', customBackgrounds.length);
     return { backgrounds: newBackgrounds };
   }),
 
@@ -390,7 +453,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (backgroundId.startsWith('default-')) return state;
 
     const newBackgrounds = state.backgrounds.filter(b => b.id !== backgroundId);
-    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(newBackgrounds));
+    // Only save custom backgrounds to localStorage (not defaults)
+    const customBackgrounds = newBackgrounds.filter(b => !b.id.startsWith('default-'));
+    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(customBackgrounds));
+    console.log('Saved backgrounds after removal:', customBackgrounds.length);
 
     // If removed background was selected, switch to default
     const newSelectedId = state.selectedBackgroundId === backgroundId

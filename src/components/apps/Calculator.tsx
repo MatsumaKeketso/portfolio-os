@@ -75,13 +75,16 @@ export function Calculator() {
   );
 
   return (
-    <div className="w-full h-full bg-gray-900 p-4 flex flex-col">
-      <div className="bg-gray-800 rounded-lg p-6 mb-4 text-right">
+    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl p-4 flex flex-col">
+      <div className="bg-white/5 backdrop-blur-md rounded p-6 text-right border border-gray-700/50 shadow-lg">
         <div className="text-gray-400 text-sm mb-1 h-6">
           {previousValue !== null && operation && `${previousValue} ${operation}`}
         </div>
         <div className="text-white text-4xl font-bold truncate">{display}</div>
       </div>
+
+      {/* Gradient divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-4" />
 
       <div className="grid grid-cols-4 gap-3 flex-1">
         <Button onClick={handleClear} className="bg-red-600 hover:bg-red-700 text-white">
@@ -129,7 +132,7 @@ export function Calculator() {
         <Button onClick={() => handleNumber('3')} className="bg-gray-800 hover:bg-gray-700 text-white">
           3
         </Button>
-        <Button onClick={handleEquals} className="bg-blue-600 hover:bg-blue-700 text-white row-span-2">
+        <Button onClick={handleEquals} className="bg-primary-600 hover:bg-primary-700 text-white row-span-2">
           =
         </Button>
 

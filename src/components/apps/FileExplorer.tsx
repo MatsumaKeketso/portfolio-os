@@ -451,38 +451,38 @@ export function FileExplorer() {
   };
 
   return (
-    <div className="w-full h-full bg-white flex flex-col">
-      <div className="border-b border-gray-200 p-3 flex items-center gap-2 flex-wrap">
-        <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-gray-100 rounded" title="Back">
+    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col border-b border-white/10">
+      <div className="border-b border-white/10 p-3 flex items-center gap-2 flex-wrap backdrop-blur-sm bg-white/5">
+        <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Back">
           <Icons.ChevronLeft className="w-4 h-4" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded" title="Forward">
+        <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Forward">
           <Icons.ChevronRight className="w-4 h-4" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
+        <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors">
           <Icons.RefreshCw className="w-4 h-4" />
         </button>
-        <div className="flex-1 bg-gray-50 px-3 py-1.5 rounded border border-gray-300 text-sm truncate">
+        <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white truncate">
           {pathString}
         </div>
         <div className="flex gap-1">
           <button
             onClick={() => setShowNewDialog('folder')}
-            className="p-1.5 hover:bg-gray-100 rounded"
+            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
             title="New Folder"
           >
             <Icons.FolderPlus className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowNewDialog('file')}
-            className="p-1.5 hover:bg-gray-100 rounded"
+            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
             title="New File"
           >
             <Icons.FilePlus className="w-4 h-4" />
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 hover:bg-gray-100 rounded"
+            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
             title="Upload"
           >
             <Icons.Upload className="w-4 h-4" />
@@ -507,8 +507,8 @@ export function FileExplorer() {
         >
           {currentFiles.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <Icons.FolderOpen className="w-16 h-16 mb-4 opacity-50" />
-              <p>This folder is empty</p>
+              <Icons.FolderOpen className="w-16 h-16 mb-4 opacity-30" />
+              <p className="text-white/50">This folder is empty</p>
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-4">
@@ -530,17 +530,17 @@ export function FileExplorer() {
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
                     whileHover={{ scale: 1.05 }}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${
                       isSelected
-                        ? 'bg-blue-50 border-2 border-blue-500'
-                        : 'hover:bg-gray-50 border-2 border-transparent'
-                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-blue-500 bg-blue-100' : ''}`}
+                        ? 'bg-primary-500/20 border-2 border-primary-500'
+                        : 'hover:bg-white/10 border-2 border-transparent'
+                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     {file.type === 'image' && file.dataUrl ? (
                       <img src={file.dataUrl} alt={file.name} className="w-12 h-12 object-cover rounded" />
                     ) : (
                       <FileIcon className={`w-12 h-12 ${
-                        file.type === 'folder' ? 'text-yellow-500' : 'text-blue-500'
+                        file.type === 'folder' ? 'text-yellow-500' : 'text-primary-500'
                       }`} />
                     )}
                     {renamingFileId === file.id ? (
@@ -556,10 +556,10 @@ export function FileExplorer() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                         autoFocus
-                        className="text-xs text-center w-full bg-white border border-blue-500 rounded px-1"
+                        className="text-xs text-center w-full bg-gray-700/70 text-white border border-primary-500 rounded px-1 focus:outline-none"
                       />
                     ) : (
-                      <span className="text-xs text-center line-clamp-2">{file.name}</span>
+                      <span className="text-xs text-center line-clamp-2 text-white">{file.name}</span>
                     )}
                   </motion.button>
                 );
@@ -574,49 +574,49 @@ export function FileExplorer() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="w-64 border-l border-gray-200 p-4 bg-gray-50 overflow-y-auto"
+            className="w-64 border-l border-white/10 p-4 bg-white/5 backdrop-blur-md overflow-y-auto"
           >
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
               <Icons.Info className="w-4 h-4" />
               Properties
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-gray-600">Name</label>
-                <p className="text-sm text-gray-900 break-words">{selectedFile.name}</p>
+                <label className="text-xs font-semibold text-gray-400">Name</label>
+                <p className="text-sm text-white break-words">{selectedFile.name}</p>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-600">Type</label>
-                <p className="text-sm text-gray-900 capitalize">{selectedFile.type}</p>
+                <label className="text-xs font-semibold text-gray-400">Type</label>
+                <p className="text-sm text-white capitalize">{selectedFile.type}</p>
               </div>
 
               {selectedFile.size && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-600">Size</label>
-                  <p className="text-sm text-gray-900">{formatFileSize(selectedFile.size)}</p>
+                  <label className="text-xs font-semibold text-gray-400">Size</label>
+                  <p className="text-sm text-white">{formatFileSize(selectedFile.size)}</p>
                 </div>
               )}
 
               <div>
-                <label className="text-xs font-semibold text-gray-600">Created</label>
-                <p className="text-sm text-gray-900">
+                <label className="text-xs font-semibold text-gray-400">Created</label>
+                <p className="text-sm text-white">
                   {new Date(selectedFile.createdAt).toLocaleDateString()}
                 </p>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-600">Modified</label>
-                <p className="text-sm text-gray-900">
+                <label className="text-xs font-semibold text-gray-400">Modified</label>
+                <p className="text-sm text-white">
                   {new Date(selectedFile.modifiedAt).toLocaleDateString()}
                 </p>
               </div>
 
               {selectedFile.type === 'document' && selectedFile.content && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-600">Preview</label>
-                  <p className="text-xs text-gray-700 bg-white p-2 rounded max-h-24 overflow-y-auto">
+                  <label className="text-xs font-semibold text-gray-400">Preview</label>
+                  <p className="text-xs text-gray-300 bg-gray-700/40 p-2 rounded max-h-24 overflow-y-auto border border-gray-600/50">
                     {selectedFile.content.substring(0, 200)}
                     {selectedFile.content.length > 200 && '...'}
                   </p>
@@ -631,13 +631,13 @@ export function FileExplorer() {
                     }
                   }}
                   disabled={!['document', 'image'].includes(selectedFile.type)}
-                  className="flex-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-xs rounded transition-all"
+                  className="flex-1 px-2 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600/50 disabled:cursor-not-allowed text-white text-xs rounded transition-all"
                 >
                   Open
                 </button>
                 <button
                   onClick={() => handleDeleteMultiple()}
-                  className="flex-1 px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-all"
+                  className="flex-1 px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-xs rounded transition-all"
                 >
                   Delete
                 </button>
@@ -661,9 +661,13 @@ export function FileExplorer() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4"
+              className="max-w-sm w-full mx-4"
             >
-              <h2 className="text-lg font-semibold mb-4">
+              {/* Top gradient accent line */}
+              <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
+
+              <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-6">
+                <h2 className="text-lg font-semibold mb-4 text-white">
                 {showNewDialog === 'folder' ? 'New Folder' : 'New Text File'}
               </h2>
 
@@ -678,7 +682,7 @@ export function FileExplorer() {
                   }
                 }}
                 autoFocus
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500"
               />
 
               {showNewDialog === 'file' && (
@@ -686,23 +690,24 @@ export function FileExplorer() {
                   placeholder="File content (optional)"
                   value={newFileContent}
                   onChange={(e) => setNewFileContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-blue-500 resize-none h-24"
+                  className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500 resize-none h-24"
                 />
               )}
 
               <div className="flex gap-3">
                 <button
                   onClick={() => (showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile())}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-all"
                 >
                   Create
                 </button>
                 <button
                   onClick={() => setShowNewDialog(null)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition-all"
                 >
                   Cancel
                 </button>
+              </div>
               </div>
             </motion.div>
           </motion.div>
@@ -720,24 +725,32 @@ export function FileExplorer() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col"
+              className="max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col"
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold">{previewFile.name}</h2>
-                <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-gray-100 rounded">
+              {/* Top gradient accent line */}
+              <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
+
+              <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
+                <div className="shrink-0 flex items-center justify-between p-4">
+                <h2 className="text-lg font-semibold text-white">{previewFile.name}</h2>
+                <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/10 rounded text-white transition-colors">
                   <Icons.X className="w-5 h-5" />
                 </button>
               </div>
 
+              {/* Gradient divider */}
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+
               <div className="flex-1 overflow-auto p-4">
                 {previewFile.type === 'document' && (
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-700">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">
                     {previewFile.content}
                   </pre>
                 )}
                 {previewFile.type === 'image' && previewFile.dataUrl && (
-                  <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto" />
+                  <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto rounded" />
                 )}
+              </div>
               </div>
             </motion.div>
           </motion.div>

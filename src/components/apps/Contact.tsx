@@ -1,0 +1,260 @@
+import * as Icons from 'lucide-react';
+import { useUserStore } from '../../store/userStore';
+import { useDesktopStore } from '../../store/desktopStore';
+import { Button } from '../ui/button';
+
+export function Contact() {
+  const { profile } = useUserStore();
+  const { openWindow, apps } = useDesktopStore();
+
+  const openAboutApp = () => {
+    const aboutApp = apps.find(app => app.id === 'about');
+    if (aboutApp) {
+      openWindow(aboutApp);
+    }
+  };
+
+  const getSocialIcon = (platform: string) => {
+    const platformLower = platform.toLowerCase();
+    if (platformLower.includes('github')) return Icons.Github;
+    if (platformLower.includes('linkedin')) return Icons.Linkedin;
+    if (platformLower.includes('twitter') || platformLower.includes('x.com')) return Icons.Twitter;
+    if (platformLower.includes('facebook')) return Icons.Facebook;
+    if (platformLower.includes('instagram')) return Icons.Instagram;
+    if (platformLower.includes('youtube')) return Icons.Youtube;
+    if (platformLower.includes('discord')) return Icons.MessageCircle;
+    return Icons.Link;
+  };
+
+  const socialLinks = [
+    ...(profile.social.github ? [{ platform: 'GitHub', url: profile.social.github }] : []),
+    ...(profile.social.linkedin ? [{ platform: 'LinkedIn', url: profile.social.linkedin }] : []),
+    ...(profile.social.twitter ? [{ platform: 'Twitter', url: profile.social.twitter }] : []),
+    ...(profile.social.website ? [{ platform: 'Website', url: profile.social.website }] : []),
+    ...profile.social.custom.map(link => ({ platform: link.name, url: link.url }))
+  ];
+
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Icons.Mail className="w-6 h-6" />
+              Contact Information
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">Get in touch</p>
+          </div>
+
+          <Button variant="secondary" size="sm" onClick={openAboutApp}>
+            <Icons.Edit className="w-4 h-4 mr-2" />
+            Edit Contact
+          </Button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Profile Card */}
+          <div className="bg-gradient-to-br from-primary-900/30 to-tertiary-900/30 backdrop-blur-lg rounded p-8 border border-primary-500/20">
+            <div className="flex items-start gap-6">
+              {/* Photo */}
+              {profile.personal.photo ? (
+                <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-white/20">
+                  <img
+                    src={profile.personal.photo}
+                    alt={profile.personal.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-600 to-tertiary-600 flex items-center justify-center flex-shrink-0 border-4 border-white/20">
+                  <Icons.User className="w-12 h-12 text-white" />
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-white mb-1">{profile.personal.name}</h2>
+                <p className="text-xl text-primary-300 mb-3">{profile.personal.title}</p>
+                {profile.personal.location && (
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Icons.MapPin className="w-4 h-4" />
+                    <span>{profile.personal.location}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Methods */}
+          <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <Icons.MessageSquare className="w-5 h-5" />
+              Direct Contact
+            </h3>
+
+            <div className="space-y-3">
+              {/* Email */}
+              {profile.preferences.showEmail && profile.personal.email ? (
+                <a
+                  href={`mailto:${profile.personal.email}`}
+                  className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all border border-white/10 hover:border-primary-500/50 group"
+                >
+                  <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center group-hover:bg-primary-500/30 transition-all">
+                    <Icons.Mail className="w-6 h-6 text-primary-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-slate-400 text-sm">Email</div>
+                    <div className="text-white font-medium">{profile.personal.email}</div>
+                  </div>
+                  <Icons.ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-primary-400 transition-colors" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10 opacity-50">
+                  <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
+                    <Icons.Mail className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-slate-400 text-sm">Email</div>
+                    <div className="text-slate-500">Hidden for privacy</div>
+                  </div>
+                  <Icons.EyeOff className="w-5 h-5 text-slate-500" />
+                </div>
+              )}
+
+              {/* Phone */}
+              {profile.preferences.showPhone && profile.personal.phone ? (
+                <a
+                  href={`tel:${profile.personal.phone}`}
+                  className="flex items-center gap-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all border border-white/10 hover:border-green-500/50 group"
+                >
+                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-all">
+                    <Icons.Phone className="w-6 h-6 text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-slate-400 text-sm">Phone</div>
+                    <div className="text-white font-medium">{profile.personal.phone}</div>
+                  </div>
+                  <Icons.ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-green-400 transition-colors" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10 opacity-50">
+                  <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
+                    <Icons.Phone className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-slate-400 text-sm">Phone</div>
+                    <div className="text-slate-500">Hidden for privacy</div>
+                  </div>
+                  <Icons.EyeOff className="w-5 h-5 text-slate-500" />
+                </div>
+              )}
+            </div>
+
+            {(!profile.preferences.showEmail && !profile.preferences.showPhone) && (
+              <div className="mt-4 p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
+                <p className="text-orange-300 text-sm flex items-center gap-2">
+                  <Icons.Info className="w-4 h-4" />
+                  Direct contact methods are hidden. You can enable them in Settings.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Social Links */}
+          {socialLinks.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Icons.Share2 className="w-5 h-5" />
+                Social & Web
+              </h3>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                {socialLinks.map((link, index) => {
+                  const IconComponent = getSocialIcon(link.platform);
+                  return (
+                    <a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all border border-white/10 hover:border-tertiary-500/50 group"
+                    >
+                      <div className="w-10 h-10 bg-tertiary-500/20 rounded-lg flex items-center justify-center group-hover:bg-tertiary-500/30 transition-all">
+                        <IconComponent className="w-5 h-5 text-tertiary-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-medium truncate">{link.platform}</div>
+                        <div className="text-slate-400 text-xs truncate">{link.url}</div>
+                      </div>
+                      <Icons.ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-tertiary-400 transition-colors flex-shrink-0" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Bio */}
+          {profile.personal.bio.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Icons.User className="w-5 h-5" />
+                About
+              </h3>
+              <div className="space-y-3">
+                {profile.personal.bio.map((paragraph, index) => (
+                  <p key={index} className="text-slate-300 leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Call to Action */}
+          <div className="bg-gradient-to-br from-tertiary-900/30 to-tertiary-700/30 backdrop-blur-lg rounded p-6 border border-tertiary-500/20">
+            <div className="flex items-start gap-4">
+              <Icons.MessageCircle className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
+              <div>
+                <h4 className="text-white font-semibold mb-2">Let's Connect!</h4>
+                <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                  I'm always interested in hearing about new opportunities, collaborations, or just having a chat about technology and innovation.
+                </p>
+                <div className="flex gap-2">
+                  {profile.preferences.showEmail && profile.personal.email && (
+                    <Button
+                      asChild
+                      variant="primary"
+                      size="sm"
+                    >
+                      <a href={`mailto:${profile.personal.email}`}>
+                        <Icons.Mail className="w-4 h-4 mr-2" />
+                        Send Email
+                      </a>
+                    </Button>
+                  )}
+                  {profile.social.linkedin && (
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                    >
+                      <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer">
+                        <Icons.Linkedin className="w-4 h-4 mr-2" />
+                        Connect on LinkedIn
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

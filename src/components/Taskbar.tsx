@@ -22,13 +22,12 @@ export function Taskbar() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/95 backdrop-blur-xl border-t border-gray-700/50 flex items-center justify-center px-2 z-[10000]">
+    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/70 backdrop-blur-md border-t border-white/10 flex items-center justify-center px-2 z-[10000]">
       <div className="flex items-center gap-1">
         <button
           onClick={toggleStartMenu}
-          className={`w-10 h-10 rounded flex items-center justify-center transition-all ${
-            isStartMenuOpen ? 'bg-blue-600' : 'hover:bg-white/10'
-          }`}
+          className={`w-10 h-10 rounded flex items-center justify-center transition-all ${isStartMenuOpen ? 'bg-primary-600' : 'hover:bg-white/10'
+            }`}
         >
           <Icons.Grid3x3 className="w-5 h-5 text-white" />
         </button>
@@ -50,14 +49,13 @@ export function Taskbar() {
                   openWindow(app);
                 }
               }}
-              className={`w-10 h-10 rounded flex items-center justify-center transition-all relative ${
-                isOpen ? 'bg-white/20' : 'hover:bg-white/10'
-              }`}
+              className={`w-10 h-10 rounded flex items-center justify-center transition-all relative ${isOpen ? 'bg-white/20' : 'hover:bg-white/10'
+                }`}
               title={app.name}
             >
               <Icon className="w-5 h-5 text-white" />
               {isOpen && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500" />
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
               )}
             </button>
           );
@@ -74,7 +72,7 @@ export function Taskbar() {
               title={window.title}
             >
               <Icon className="w-5 h-5 text-white" />
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500" />
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
             </button>
           );
         })}

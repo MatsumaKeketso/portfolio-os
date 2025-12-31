@@ -24,19 +24,19 @@ const inputVariants = cva(
       variant: {
         // Glass-morphism input (StartMenu, AdminPanel)
         glass:
-          'bg-gray-700/50 border border-gray-600/50 text-white backdrop-blur-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
+          'bg-gray-700/50 border border-gray-600/50 text-white backdrop-blur-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
 
         // Solid input (standard forms)
         solid:
-          'bg-gray-700 border border-gray-600 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
+          'bg-gray-700 border border-gray-600 text-white focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500',
 
         // Light theme input
         light:
-          'bg-white border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
+          'bg-white border border-gray-200 text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
 
         // Search variant with icon spacing
         search:
-          'bg-gray-700/50 border border-gray-600/50 text-white pl-10 backdrop-blur-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
+          'bg-gray-700/50 border border-gray-600/50 text-white pl-10 backdrop-blur-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
       },
 
       size: {
