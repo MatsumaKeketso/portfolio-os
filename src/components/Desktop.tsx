@@ -3,51 +3,59 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useFileStore } from '../store/fileStore';
+import { useAuthStore } from '../store/authStore';
 import { Taskbar } from './Taskbar';
 import { StartMenu } from './StartMenu';
 import { DesktopIcons } from './DesktopIcons';
 import { WindowManager } from './WindowManager';
 import { AdminPanel } from './AdminPanel';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { PWAInstallPrompt } from './PWAInstallPrompt';
+import { LoginModal } from './LoginModal';
+import { WelcomeScreen } from './WelcomeScreen';
 
 export function Desktop() {
   const {
     setStartMenuOpen,
     toggleAdminMode,
-    setAdminMode,
     getSelectedBackground,
     backgrounds,
     selectedBackgroundId,
     setSelectedBackground
   } = useDesktopStore();
   const fileStore = useFileStore();
+  const { isAuthenticated, checkSession } = useAuthStore();
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const selectedBackground = getSelectedBackground();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === '1') {
-      setAdminMode(true);
-    }
-  }, [setAdminMode]);
+    // Check authentication session on mount
+    checkSession();
+  }, [checkSession]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
         e.preventDefault();
-        toggleAdminMode();
+        if (isAuthenticated) {
+          toggleAdminMode();
+        } else {
+          setShowLoginModal(true);
+        }
       }
 
       if (e.key === 'Escape') {
         setStartMenuOpen(false);
+        setShowLoginModal(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [toggleAdminMode, setStartMenuOpen]);
+  }, [isAuthenticated, toggleAdminMode, setStartMenuOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -178,9 +186,15 @@ export function Desktop() {
           <StartMenu />
         </div>
 
-        <AdminPanel />
+        {isAuthenticated && <AdminPanel />}
 
         <KeyboardShortcutsHelp />
+
+        <PWAInstallPrompt />
+
+        <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+
+        <WelcomeScreen />
 
         {/* Desktop Context Menu */}
         <AnimatePresence>
@@ -208,13 +222,17 @@ export function Desktop() {
               </button>
               <button
                 onClick={() => {
-                  toggleAdminMode();
+                  if (isAuthenticated) {
+                    toggleAdminMode();
+                  } else {
+                    setShowLoginModal(true);
+                  }
                   setContextMenu(null);
                 }}
                 className="w-full px-4 py-2 text-left text-white hover:bg-primary-600 transition-colors flex items-center gap-3"
               >
                 <Icons.Settings className="w-4 h-4" />
-                Settings
+                {isAuthenticated ? 'Admin Panel' : 'Admin Login'}
               </button>
             </motion.div>
           )}

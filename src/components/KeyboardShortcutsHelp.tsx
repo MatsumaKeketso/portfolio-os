@@ -10,14 +10,20 @@ interface Shortcut {
 
 const shortcuts: Shortcut[] = [
   // System
-  { keys: ['Ctrl', 'Shift', 'A'], description: 'Toggle Admin Mode', category: 'System' },
-  { keys: ['Esc'], description: 'Close Start Menu', category: 'System' },
+  { keys: ['Ctrl', 'Shift', 'A'], description: 'Admin Login / Toggle Admin Panel', category: 'System' },
+  { keys: ['Esc'], description: 'Close Menus & Dialogs', category: 'System' },
   { keys: ['?'], description: 'Show/Hide Keyboard Shortcuts', category: 'System' },
+  { keys: ['Right-click'], description: 'Desktop Context Menu', category: 'System' },
 
   // Window Management
   { keys: ['Alt', 'F4'], description: 'Close Active Window', category: 'Windows' },
   { keys: ['Win', 'D'], description: 'Minimize All Windows', category: 'Windows' },
   { keys: ['Alt', 'Tab'], description: 'Switch Between Windows', category: 'Windows' },
+
+  // Desktop
+  { keys: ['Double-click'], description: 'Open Desktop Icon', category: 'Desktop' },
+  { keys: ['Hover'], description: 'Preview Icon Details', category: 'Desktop' },
+  { keys: ['Drag'], description: 'Reorder Desktop Icons', category: 'Desktop' },
 
   // Navigation
   { keys: ['Ctrl', 'O'], description: 'Open File Explorer', category: 'Navigation' },
@@ -75,8 +81,10 @@ export function KeyboardShortcutsHelp() {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-16 right-4 z-[10001] w-12 h-12 rounded-full bg-primary-500 hover:bg-primary-600 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 group"
         title="Keyboard Shortcuts (Press ?)"
+        aria-label="Open keyboard shortcuts help"
+        aria-keyshortcuts="?"
       >
-        <Icons.Keyboard className="w-6 h-6" />
+        <Icons.Keyboard className="w-6 h-6" aria-hidden="true" />
         <span className="absolute -top-10 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
           Press ? for shortcuts
         </span>
@@ -91,6 +99,9 @@ export function KeyboardShortcutsHelp() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[15001] flex items-center justify-center p-4"
             onClick={() => setIsOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shortcuts-title"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -106,8 +117,8 @@ export function KeyboardShortcutsHelp() {
                 {/* Header */}
                 <div className="shrink-0 px-6 py-4 flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                      <Icons.Keyboard className="w-6 h-6 text-primary-400" />
+                    <h2 id="shortcuts-title" className="text-2xl font-bold text-white flex items-center gap-2">
+                      <Icons.Keyboard className="w-6 h-6 text-primary-400" aria-hidden="true" />
                       Keyboard Shortcuts
                     </h2>
                     <p className="text-primary-100 text-sm mt-1">
@@ -117,8 +128,9 @@ export function KeyboardShortcutsHelp() {
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-2 hover:bg-white/20 rounded-lg transition-all"
+                    aria-label="Close keyboard shortcuts help"
                   >
-                    <Icons.X className="w-6 h-6 text-white" />
+                    <Icons.X className="w-6 h-6 text-white" aria-hidden="true" />
                   </button>
                 </div>
 

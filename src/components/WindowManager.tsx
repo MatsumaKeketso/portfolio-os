@@ -3,6 +3,7 @@ import { useState, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { Window } from './Window';
+import { ErrorBoundary } from './ErrorBoundary';
 
 // Lazy load all apps for code splitting
 const Calculator = lazy(() => import('./apps/Calculator').then(m => ({ default: m.Calculator })));
@@ -114,18 +115,20 @@ export function WindowManager() {
       })();
 
       return (
-        <Suspense
-          fallback={
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
-                <p className="text-sm text-white">Loading {window.title}...</p>
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+                  <p className="text-sm text-white">Loading {window.title}...</p>
+                </div>
               </div>
-            </div>
-          }
-        >
-          {componentContent}
-        </Suspense>
+            }
+          >
+            {componentContent}
+          </Suspense>
+        </ErrorBoundary>
       );
     }
 

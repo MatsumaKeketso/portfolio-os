@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { useAuthStore } from '../store/authStore';
 import { CustomizationSettings } from './CustomizationSettings';
+import { LoginModal } from './LoginModal';
 
 export function StartMenu() {
   const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode } = useDesktopStore();
+  const { isAuthenticated, logout } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomization, setShowCustomization] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
@@ -43,7 +47,7 @@ export function StartMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-16 left-1/2 -translate-x-1/2 w-[600px] h-[650px] z-[9999] flex flex-col"
+            className="fixed bottom-16 left-2 w-[600px] h-[650px] z-[9999] flex flex-col"
           >
             {/* Top gradient accent line - Netflix style */}
             <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
@@ -124,27 +128,67 @@ export function StartMenu() {
                     <Icons.User className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="text-white text-sm font-medium">Portfolio Admin</div>
-                    {isAdminMode && (
+                    <div className="text-white text-sm font-medium">
+                      {isAuthenticated ? 'Portfolio Admin' : 'Visitor'}
+                    </div>
+                    {isAuthenticated && isAdminMode && (
                       <div className="text-green-400 text-xs">Admin Mode Active</div>
+                    )}
+                    {isAuthenticated && !isAdminMode && (
+                      <div className="text-blue-400 text-xs">Authenticated</div>
+                    )}
+                    {!isAuthenticated && (
+                      <div className="text-gray-400 text-xs">View Only</div>
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowCustomization(true)}
-                  className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-all"
-                  title="Customization Settings"
-                >
-                  <Icons.Settings className="w-4 h-4 text-white" />
-                </button>
+                <div className="flex items-center gap-1">
+                  {isAuthenticated && (
+                    <button
+                      onClick={() => setShowCustomization(true)}
+                      className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-all"
+                      title="Customization Settings"
+                    >
+                      <Icons.Settings className="w-4 h-4 text-white" />
+                    </button>
+                  )}
+                  {isAuthenticated ? (
+                    <button
+                      onClick={() => {
+                        logout();
+                        setStartMenuOpen(false);
+                      }}
+                      className="w-8 h-8 rounded-lg hover:bg-red-500/20 flex items-center justify-center transition-all"
+                      title="Logout"
+                    >
+                      <Icons.LogOut className="w-4 h-4 text-red-400" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowLoginModal(true)}
+                      className="w-8 h-8 rounded-lg hover:bg-green-500/20 flex items-center justify-center transition-all"
+                      title="Admin Login"
+                    >
+                      <Icons.LogIn className="w-4 h-4 text-green-400" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Customization Settings Modal */}
-          <CustomizationSettings
-            isOpen={showCustomization}
-            onClose={() => setShowCustomization(false)}
+          {/* Customization Settings Modal - Only accessible when authenticated */}
+          {isAuthenticated && (
+            <CustomizationSettings
+              isOpen={showCustomization}
+              onClose={() => setShowCustomization(false)}
+            />
+          )}
+
+          {/* Login Modal */}
+          <LoginModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
           />
         </>
       )}

@@ -148,24 +148,77 @@ export function DesktopIcons() {
     setHoverPosition(null);
   };
 
+  // Smart positioning for hover card to avoid screen edges
+  const getSmartCardPosition = (iconPos: { x: number; y: number }) => {
+    const CARD_WIDTH = 340;
+    const CARD_HEIGHT = 400; // Approximate card height
+    const CARD_MARGIN = 24; // Spacing from icon
+    const SCREEN_PADDING = 16; // Min distance from screen edge
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let cardX = iconPos.x + ICON_WIDTH + CARD_MARGIN; // Default: right of icon
+    let cardY = iconPos.y - 20; // Default: slightly above icon
+
+    // Horizontal positioning
+    const spaceOnRight = viewportWidth - (iconPos.x + ICON_WIDTH);
+    const spaceOnLeft = iconPos.x;
+
+    if (spaceOnRight < CARD_WIDTH + CARD_MARGIN + SCREEN_PADDING) {
+      // Not enough space on right, try left
+      if (spaceOnLeft > CARD_WIDTH + CARD_MARGIN + SCREEN_PADDING) {
+        cardX = iconPos.x - CARD_WIDTH - CARD_MARGIN;
+      } else {
+        // Not enough space on either side, center it
+        cardX = Math.max(SCREEN_PADDING, Math.min(
+          viewportWidth - CARD_WIDTH - SCREEN_PADDING,
+          iconPos.x + ICON_WIDTH / 2 - CARD_WIDTH / 2
+        ));
+      }
+    }
+
+    // Vertical positioning
+    const spaceBelow = viewportHeight - iconPos.y - 48; // 48 = taskbar height
+    const spaceAbove = iconPos.y;
+
+    if (cardY + CARD_HEIGHT > viewportHeight - 48 - SCREEN_PADDING) {
+      // Card would overflow bottom, try to adjust
+      if (spaceAbove > CARD_HEIGHT + SCREEN_PADDING) {
+        // Show above icon if there's space
+        cardY = iconPos.y - CARD_HEIGHT + ICON_HEIGHT;
+      } else {
+        // Not enough space above or below, align to bottom
+        cardY = viewportHeight - 48 - CARD_HEIGHT - SCREEN_PADDING;
+      }
+    }
+
+    // Ensure card never goes above screen
+    cardY = Math.max(SCREEN_PADDING, cardY);
+
+    return { x: cardX, y: cardY };
+  };
+
   return (
     <div ref={containerRef} className="absolute inset-0 p-4 select-none">
       {/* No overlay - just reduce opacity of other icons */}
 
       {/* Netflix-Style Preview Card */}
       <AnimatePresence>
-        {hoveredApp && hoverPosition && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="absolute z-20 pointer-events-none"
-            style={{
-              left: `${hoverPosition.x + ICON_WIDTH + 24}px`,
-              top: `${hoverPosition.y - 20}px`,
-            }}
-          >
+        {hoveredApp && hoverPosition && (() => {
+          const smartPos = getSmartCardPosition(hoverPosition);
+          return (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute z-20 pointer-events-none"
+              style={{
+                left: `${smartPos.x}px`,
+                top: `${smartPos.y}px`,
+              }}
+            >
             {/* Netflix-style card */}
             <div className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-700/50 w-[340px]">
               {/* Top gradient accent - Updated to primary/tertiary colors */}
@@ -242,7 +295,8 @@ export function DesktopIcons() {
               </div>
             </div>
           </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
       {displayApps.map((app, index) => {
         const Icon = getIcon(app.icon);

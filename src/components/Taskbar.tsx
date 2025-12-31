@@ -22,7 +22,7 @@ export function Taskbar() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/70 backdrop-blur-md border-t border-white/10 flex items-center justify-center px-2 z-[10000]">
+    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/70 backdrop-blur-md border-t border-white/10 flex items-center justify-between px-2 z-[10000]">
       <div className="flex items-center gap-1">
         <button
           onClick={toggleStartMenu}
@@ -78,7 +78,7 @@ export function Taskbar() {
         })}
       </div>
 
-      <div className="absolute right-2 flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-white text-xs">
           <Icons.Wifi className="w-4 h-4" />
           <Icons.Volume2 className="w-4 h-4" />
