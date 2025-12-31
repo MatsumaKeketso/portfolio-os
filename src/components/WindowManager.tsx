@@ -71,7 +71,7 @@ export function WindowManager() {
         case 'Calculator':
           return <Calculator />;
         case 'Notepad':
-          return <Notepad />;
+          return <Notepad window={window} />;
         case 'FileExplorer':
           return <FileExplorer />;
         case 'Browser':

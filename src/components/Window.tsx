@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
+import { BorderGlow } from './aceternity/ui/border-glow';
+import { useTheme } from '../theme';
+import { Button } from './ui/button';
 
 interface WindowProps {
   window: WindowState;
@@ -15,6 +18,7 @@ export function Window({ window, children }: WindowProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const { theme } = useTheme();
 
   const {
     closeWindow,
@@ -98,59 +102,92 @@ export function Window({ window, children }: WindowProps) {
         height: `${window.size.height}px`
       };
 
+  // Get window config from theme
+  const windowConfig = theme.components.Window;
+
   return (
     <motion.div
       ref={windowRef}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.15 }}
-      className="absolute bg-gray-900/95 backdrop-blur-xl rounded-lg overflow-hidden shadow-2xl border border-gray-700/50 flex flex-col"
+      transition={{ duration: Number(theme.transitions.duration.normal.replace('ms', '')) / 1000 }}
+      className={`absolute flex flex-col overflow-hidden ${windowConfig.borderRadius} ${windowConfig.shadow} ${windowConfig.backdrop}`}
       style={{
         ...windowStyle,
         zIndex: window.zIndex,
+        backgroundColor: theme.palette.glass.dark,
+        borderWidth: windowConfig.border.width,
+        borderColor: theme.palette.glass.border.dark,
       }}
       onMouseDown={() => bringToFront(window.id)}
     >
+      {/* Border Glow Effect */}
+      {windowConfig.glow.enabled && (
+        <BorderGlow
+          glowColor={windowConfig.glow.color}
+          glowSize={windowConfig.glow.size}
+          borderRadius={theme.borderRadius.lg}
+          className="absolute inset-0 pointer-events-none"
+        />
+      )}
+
+      {/* Window Header/Chrome */}
       <div
         ref={headerRef}
         onMouseDown={handleMouseDown}
-        className="h-10 bg-gray-800/80 border-b border-gray-700/50 flex items-center justify-between px-3 cursor-move select-none"
+        className={`flex items-center justify-between px-3 cursor-move select-none ${windowConfig.chrome.background} ${windowConfig.chrome.border}`}
+        style={{ height: windowConfig.chrome.height }}
       >
         <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-white" />
-          <span className="text-white text-sm font-medium">{window.title}</span>
+          <Icon className="w-4 h-4" style={{ color: theme.palette.text.primary }} />
+          <span className="text-sm font-medium" style={{ color: theme.palette.text.primary }}>
+            {window.title}
+          </span>
         </div>
+
+        {/* Window Control Buttons */}
         <div className="flex items-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => minimizeWindow(window.id)}
-            className="w-8 h-8 rounded hover:bg-white/10 flex items-center justify-center transition-all"
+            className="hover:bg-white/10"
           >
-            <Icons.Minus className="w-4 h-4 text-white" />
-          </button>
-          <button
+            <Icons.Minus className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => maximizeWindow(window.id)}
-            className="w-8 h-8 rounded hover:bg-white/10 flex items-center justify-center transition-all"
+            className="hover:bg-white/10"
           >
             {window.isMaximized ? (
-              <Icons.Minimize2 className="w-3.5 h-3.5 text-white" />
+              <Icons.Minimize2 className="w-3.5 h-3.5" />
             ) : (
-              <Icons.Square className="w-3.5 h-3.5 text-white" />
+              <Icons.Square className="w-3.5 h-3.5" />
             )}
-          </button>
-          <button
+          </Button>
+
+          <Button
+            variant="ghostDanger"
+            size="icon"
             onClick={() => closeWindow(window.id)}
-            className="w-8 h-8 rounded hover:bg-red-500 flex items-center justify-center transition-all"
           >
-            <Icons.X className="w-4 h-4 text-white" />
-          </button>
+            <Icons.X className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden bg-white relative">
+      {/* Window Body */}
+      <div
+        className={`flex-1 overflow-hidden relative ${windowConfig.body.background}`}
+      >
         {children}
       </div>
 
+      {/* Resize Handle */}
       {!window.isMaximized && (
         <div
           onMouseDown={handleResizeMouseDown}

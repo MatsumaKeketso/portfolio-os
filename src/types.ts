@@ -21,6 +21,7 @@ export interface WindowState {
   component?: string;
   url?: string;
   content?: string;
+  fileId?: string; // For tracking which file is being edited
   position: { x: number; y: number };
   size: { width: number; height: number };
   isMinimized: boolean;

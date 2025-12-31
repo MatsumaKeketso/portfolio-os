@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
@@ -18,6 +19,8 @@ export function DesktopIcons() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [hoveredApp, setHoveredApp] = useState<App | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -133,11 +136,119 @@ export function DesktopIcons() {
   // Get apps in their display order (reordered if dragging)
   const displayApps = getReorderedApps();
 
+  const handleIconHover = (app: App, position: { x: number; y: number }) => {
+    if (!draggingAppId) {
+      setHoveredApp(app);
+      setHoverPosition(position);
+    }
+  };
+
+  const handleIconLeave = () => {
+    setHoveredApp(null);
+    setHoverPosition(null);
+  };
+
   return (
     <div ref={containerRef} className="absolute inset-0 p-4 select-none">
+      {/* No overlay - just reduce opacity of other icons */}
+
+      {/* Netflix-Style Preview Card */}
+      <AnimatePresence>
+        {hoveredApp && hoverPosition && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="absolute z-20 pointer-events-none"
+            style={{
+              left: `${hoverPosition.x + ICON_WIDTH + 24}px`,
+              top: `${hoverPosition.y - 20}px`,
+            }}
+          >
+            {/* Netflix-style card */}
+            <div className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-700/50 w-[340px]">
+              {/* Top gradient accent */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500" />
+
+              {/* Card content */}
+              <div className="p-6">
+                {/* Logo/Icon at top */}
+                <div className="flex justify-center mb-5">
+                  {(() => {
+                    const Icon = getIcon(hoveredApp.icon);
+                    return (
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30 blur-2xl" />
+                        <Icon className="relative w-16 h-16 text-white drop-shadow-2xl" />
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* App name - Netflix style */}
+                <h3 className="text-white text-2xl font-bold text-center mb-3 tracking-tight">
+                  {hoveredApp.name}
+                </h3>
+
+                {/* Description */}
+                <p className="text-gray-300 text-sm text-center leading-relaxed mb-5 min-h-[40px]">
+                  {hoveredApp.description || 'No description available'}
+                </p>
+
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
+
+                {/* Details section */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2.5 text-gray-400 text-xs">
+                    <Icons.Layers className="w-4 h-4 text-blue-400" />
+                    <span>{hoveredApp.type === 'component' ? 'Built-in Application' : hoveredApp.type === 'iframe' ? 'Web Application' : 'Static Application'}</span>
+                  </div>
+
+                  {hoveredApp.url && (
+                    <div className="flex items-center gap-2.5 text-gray-400 text-xs">
+                      <Icons.Link className="w-4 h-4 text-purple-400" />
+                      <span className="truncate">{hoveredApp.url}</span>
+                    </div>
+                  )}
+
+                  {/* Badges */}
+                  {(hoveredApp.pinnedToTaskbar || hoveredApp.pinnedToDesktop) && (
+                    <div className="flex gap-2 pt-2">
+                      {hoveredApp.pinnedToTaskbar && (
+                        <span className="px-2.5 py-1 bg-blue-500/15 text-blue-300 border border-blue-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
+                          <Icons.Pin className="w-3 h-3" />
+                          Taskbar
+                        </span>
+                      )}
+                      {hoveredApp.pinnedToDesktop && (
+                        <span className="px-2.5 py-1 bg-purple-500/15 text-purple-300 border border-purple-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
+                          <Icons.Monitor className="w-3 h-3" />
+                          Desktop
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Call to action */}
+                <div className="mt-5 pt-4 border-t border-gray-700/50">
+                  <div className="flex items-center justify-center gap-2 text-gray-400 text-xs">
+                    <Icons.MousePointerClick className="w-4 h-4" />
+                    <span>Double-click to open</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {displayApps.map((app, index) => {
         const Icon = getIcon(app.icon);
         const isDragging = draggingAppId === app.id;
+        const isHovered = hoveredApp?.id === app.id;
+        const isOtherHovered = hoveredApp && hoveredApp.id !== app.id;
 
         // Calculate position based on index
         const gridPos = indexToGridPosition(index);
@@ -147,7 +258,7 @@ export function DesktopIcons() {
         const position = isDragging ? dragPosition : calculatedPos;
 
         return (
-          <button
+          <motion.button
             key={app.id}
             style={{
               position: 'absolute',
@@ -156,25 +267,36 @@ export function DesktopIcons() {
               width: `${ICON_WIDTH}px`,
               height: `${ICON_HEIGHT}px`,
               cursor: isDragging ? 'grabbing' : 'pointer',
-              zIndex: isDragging ? 1000 : 1,
+              zIndex: isHovered ? 30 : isDragging ? 1000 : isOtherHovered ? 5 : 10,
               transition: isDragging ? 'none' : 'all 0.2s ease-out',
             }}
+            animate={{
+              opacity: isOtherHovered ? 0.3 : 1,
+              scale: isHovered ? 1.1 : 1,
+            }}
+            transition={{ duration: 0.2 }}
             onMouseDown={(e) => handleMouseDown(e, app.id, calculatedPos)}
+            onMouseEnter={() => handleIconHover(app, position)}
+            onMouseLeave={handleIconLeave}
             onDoubleClick={(e) => {
               e.stopPropagation();
               if (!isDragging) openWindow(app);
             }}
             className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${
-              isDragging ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
+              isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
             }`}
           >
             <div className="w-12 h-12 flex items-center justify-center">
-              <Icon className="w-10 h-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
+              <Icon className={`w-10 h-10 text-white drop-shadow-lg transition-transform ${
+                isHovered ? 'scale-110' : 'group-hover:scale-110'
+              }`} />
             </div>
-            <span className="text-white text-xs text-center drop-shadow-lg line-clamp-2 px-1">
+            <span className={`text-white text-xs text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${
+              isHovered ? 'font-bold' : ''
+            }`}>
               {app.name}
             </span>
-          </button>
+          </motion.button>
         );
       })}
     </div>

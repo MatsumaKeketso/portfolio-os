@@ -1,7 +1,12 @@
 import { Desktop } from './components/Desktop';
+import { ThemeProvider } from './theme';
 
 function App() {
-  return <Desktop />;
+  return (
+    <ThemeProvider>
+      <Desktop />
+    </ThemeProvider>
+  );
 }
 
 export default App;

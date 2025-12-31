@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useFileStore } from '../../store/fileStore';
+import { useDesktopStore } from '../../store/desktopStore';
 import { FileItem } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
 
 export function FileExplorer() {
   const fileStore = useFileStore();
+  const { openWindow } = useDesktopStore();
   const [showNewDialog, setShowNewDialog] = useState<'folder' | 'file' | null>(null);
   const [newName, setNewName] = useState('');
   const [newFileContent, setNewFileContent] = useState('');
@@ -149,6 +151,24 @@ export function FileExplorer() {
     e.stopPropagation();
     if (file.type === 'folder') {
       handleFolderDouble(file);
+    } else if (file.type === 'file' || file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
+      // Open text files in Notepad
+      openWindow(
+        {
+          id: 'notepad',
+          name: 'Notepad',
+          icon: 'file-text',
+          type: 'component',
+          component: 'Notepad',
+          defaultSize: { width: 600, height: 400 },
+          description: 'Simple text editor',
+        },
+        {
+          fileId: file.id,
+          content: file.content || '',
+          title: file.name,
+        }
+      );
     } else if (file.type === 'document' || file.type === 'image') {
       setPreviewFile(file);
     }

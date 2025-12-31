@@ -3,8 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardHeader, CardTitle, CardDescription, CardBody } from './ui/card';
+import { useTheme } from '../theme';
 
 export function AdminPanel() {
+  const { theme } = useTheme();
   const {
     apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
@@ -235,15 +240,30 @@ export function AdminPanel() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[15000] flex items-center justify-center p-4"
+        className="fixed inset-0 flex items-center justify-center p-4"
+        style={{
+          zIndex: theme.zIndex.modalOverlay,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: `blur(${theme.blur.sm})`,
+        }}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-gray-700"
+          transition={{ duration: Number(theme.transitions.duration.normal.replace('ms', '')) / 1000 }}
+          className="w-full max-w-6xl max-h-[90vh] overflow-hidden"
+          style={{
+            backgroundColor: theme.palette.background.dark,
+            borderRadius: theme.borderRadius['2xl'],
+            boxShadow: theme.shadows['2xl'],
+            borderWidth: '1px',
+            borderColor: theme.palette.glass.border.dark,
+          }}
         >
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+          <div className="p-6 text-white" style={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`
+          }}>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -255,16 +275,27 @@ export function AdminPanel() {
               <div className="flex items-center gap-2">
                 {activeTab === 'apps' && (
                   <>
-                    <button
+                    <Button
                       onClick={handleExport}
-                      className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all"
+                      variant="secondary"
+                      size="sm"
+                      className="bg-white/20 hover:bg-white/30 border-none"
                     >
                       <Icons.Download className="w-4 h-4" />
                       Export
-                    </button>
-                    <label className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-all cursor-pointer">
-                      <Icons.Upload className="w-4 h-4" />
-                      Import
+                    </Button>
+                    <label className="cursor-pointer">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="bg-white/20 hover:bg-white/30 border-none"
+                        asChild
+                      >
+                        <span>
+                          <Icons.Upload className="w-4 h-4" />
+                          Import
+                        </span>
+                      </Button>
                       <input
                         type="file"
                         accept=".json"
@@ -279,28 +310,32 @@ export function AdminPanel() {
 
             {/* Tabs */}
             <div className="flex gap-2 mt-4">
-              <button
+              <Button
                 onClick={() => setActiveTab('apps')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                variant="secondary"
+                size="md"
+                className={
                   activeTab === 'apps'
-                    ? 'bg-white text-blue-600'
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
+                    ? 'bg-white text-blue-600 hover:bg-white/90 border-none'
+                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
+                }
               >
                 <Icons.Grid3x3 className="w-4 h-4 inline mr-2" />
                 Apps
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setActiveTab('backgrounds')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                variant="secondary"
+                size="md"
+                className={
                   activeTab === 'backgrounds'
-                    ? 'bg-white text-blue-600'
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
+                    ? 'bg-white text-blue-600 hover:bg-white/90 border-none'
+                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
+                }
               >
                 <Icons.Image className="w-4 h-4 inline mr-2" />
                 Backgrounds
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -308,39 +343,44 @@ export function AdminPanel() {
             {activeTab === 'apps' && (
               <>
                 <div className="mb-6 grid grid-cols-3 gap-3">
-              <button
+              <Button
                 onClick={() => {
                   setShowQuickAdd(!showQuickAdd);
                   setShowAddForm(false);
                   setShowBulkImport(false);
                 }}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+                variant="success"
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
                 <Icons.Zap className="w-5 h-5" />
                 Quick Add URL
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   setShowBulkImport(!showBulkImport);
                   setShowAddForm(false);
                   setShowQuickAdd(false);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+                variant="primary"
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
                 <Icons.Package className="w-5 h-5" />
                 Bulk Import
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   setShowAddForm(!showAddForm);
                   setShowQuickAdd(false);
                   setShowBulkImport(false);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold"
+                variant="primary"
+                size="lg"
               >
                 <Icons.Plus className="w-5 h-5" />
                 Advanced Add
-              </button>
+              </Button>
             </div>
 
             {showQuickAdd && (
@@ -357,29 +397,34 @@ export function AdminPanel() {
                   Paste any website URL to instantly add it as an iframe app. We'll auto-detect the name and set optimal defaults.
                 </p>
                 <div className="space-y-3">
-                  <input
+                  <Input
                     type="text"
                     value={quickURL}
                     onChange={(e) => setQuickURL(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-green-600 focus:outline-none focus:border-green-400 placeholder-gray-400"
+                    variant="solid"
+                    size="lg"
+                    className="border-green-600 focus:border-green-400"
                     placeholder="https://example.com or example.com"
                     autoFocus
                   />
                   <div className="flex gap-2">
-                    <button
+                    <Button
                       onClick={handleQuickAdd}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all font-semibold"
+                      variant="success"
+                      size="md"
+                      className="flex-1"
                     >
                       Add App
-                    </button>
+                    </Button>
                     {quickURL && (
-                      <button
+                      <Button
                         onClick={() => handleURLPreview(quickURL)}
-                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all"
+                        variant="secondary"
+                        size="md"
                       >
                         <Icons.Eye className="w-4 h-4" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -408,12 +453,14 @@ export function AdminPanel() {
                     rows={6}
                     autoFocus
                   />
-                  <button
+                  <Button
                     onClick={handleBulkImport}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all font-semibold"
+                    variant="primary"
+                    size="md"
+                    className="w-full bg-purple-600 hover:bg-purple-700"
                   >
                     Import All Apps
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -432,11 +479,11 @@ export function AdminPanel() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-white text-sm mb-2 block">App Name</label>
-                      <input
+                      <Input
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                        variant="solid"
                         placeholder="My App"
                         required
                       />
@@ -471,11 +518,11 @@ export function AdminPanel() {
                   {formData.type === 'component' && (
                     <div>
                       <label className="text-white text-sm mb-2 block">Component Name</label>
-                      <input
+                      <Input
                         type="text"
                         value={formData.component}
                         onChange={(e) => setFormData({ ...formData, component: e.target.value })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                        variant="solid"
                         placeholder="MyComponent"
                       />
                     </div>
@@ -484,11 +531,11 @@ export function AdminPanel() {
                   {formData.type === 'iframe' && (
                     <div>
                       <label className="text-white text-sm mb-2 block">URL</label>
-                      <input
+                      <Input
                         type="url"
                         value={formData.url}
                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                        variant="solid"
                         placeholder="https://example.com"
                         required
                       />
@@ -498,11 +545,11 @@ export function AdminPanel() {
 
                   <div>
                     <label className="text-white text-sm mb-2 block">Description</label>
-                    <input
+                    <Input
                       type="text"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                      variant="solid"
                       placeholder="Brief description"
                     />
                   </div>
@@ -531,46 +578,49 @@ export function AdminPanel() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-white text-sm mb-2 block">Width (px)</label>
-                      <input
+                      <Input
                         type="number"
                         value={formData.defaultSize?.width}
                         onChange={(e) => setFormData({
                           ...formData,
                           defaultSize: { ...formData.defaultSize, width: parseInt(e.target.value) || 800 }
                         })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
-                        min="300"
+                        variant="solid"
+                        min={300}
                       />
                     </div>
                     <div>
                       <label className="text-white text-sm mb-2 block">Height (px)</label>
-                      <input
+                      <Input
                         type="number"
                         value={formData.defaultSize?.height}
                         onChange={(e) => setFormData({
                           ...formData,
                           defaultSize: { ...formData.defaultSize, height: parseInt(e.target.value) || 600 }
                         })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
-                        min="200"
+                        variant="solid"
+                        min={200}
                       />
                     </div>
                   </div>
 
                   <div className="flex gap-3">
-                    <button
+                    <Button
                       type="submit"
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all font-semibold"
+                      variant="primary"
+                      size="md"
+                      className="flex-1"
                     >
                       {editingApp ? 'Update App' : 'Create App'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all"
+                      variant="secondary"
+                      size="md"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </motion.div>
@@ -614,18 +664,22 @@ export function AdminPanel() {
                         )}
                       </div>
                       <div className="col-span-3 flex gap-2">
-                        <button
+                        <Button
                           onClick={() => handleEdit(app)}
-                          className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded text-white transition-all"
+                          variant="primary"
+                          size="icon"
+                          className="w-8 h-8"
                         >
                           <Icons.Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => removeApp(app.id)}
-                          className="p-1.5 bg-red-600 hover:bg-red-700 rounded text-white transition-all"
+                          variant="danger"
+                          size="icon"
+                          className="w-8 h-8"
                         >
                           <Icons.Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   );
@@ -697,15 +751,17 @@ export function AdminPanel() {
                         </div>
 
                         {!isDefault && (
-                          <button
+                          <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               removeBackground(bg.id);
                             }}
-                            className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            variant="danger"
+                            size="icon"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
                           >
                             <Icons.Trash2 className="w-4 h-4 text-white" />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     );
@@ -743,12 +799,13 @@ export function AdminPanel() {
                   <h3 className="font-semibold">Preview</h3>
                   <p className="text-xs text-blue-100">{previewURL}</p>
                 </div>
-                <button
+                <Button
                   onClick={() => setPreviewURL(null)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-all"
+                  variant="ghost"
+                  size="icon"
                 >
                   <Icons.X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
               <div className="flex-1 bg-white">
                 <iframe

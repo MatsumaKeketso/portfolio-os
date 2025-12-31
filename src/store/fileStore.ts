@@ -59,6 +59,7 @@ interface FileStoreState extends FileSystemState {
   addFile: (file: FileItem) => void;
   removeFile: (fileId: string) => void;
   updateFile: (fileId: string, updates: Partial<FileItem>) => void;
+  updateFileContent: (fileId: string, content: string) => void;
   navigateToFolder: (folderId: string | null) => void;
   navigateUp: () => void;
   getCurrentFolderFiles: () => FileItem[];
@@ -177,6 +178,16 @@ export const useFileStore = create<FileStoreState>((set, get) => ({
   updateFile: (fileId, updates) => set((state) => {
     const newFiles = state.files.map(f =>
       f.id === fileId ? { ...f, ...updates, modifiedAt: Date.now() } : f
+    );
+    localStorage.setItem('portfolioOS_files', JSON.stringify(newFiles));
+    return { files: newFiles };
+  }),
+
+  updateFileContent: (fileId, content) => set((state) => {
+    const newFiles = state.files.map(f =>
+      f.id === fileId
+        ? { ...f, content, size: content.length, modifiedAt: Date.now() }
+        : f
     );
     localStorage.setItem('portfolioOS_files', JSON.stringify(newFiles));
     return { files: newFiles };

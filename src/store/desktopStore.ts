@@ -6,6 +6,8 @@ interface DesktopBackground {
   name: string;
   url: string;
   thumbnail?: string;
+  type?: 'gradient' | 'image' | 'aurora' | 'beams' | 'grid';
+  config?: Record<string, any>;
 }
 
 interface DesktopStore {
@@ -23,7 +25,7 @@ interface DesktopStore {
   updateAppPosition: (appId: string, position: { x: number; y: number }) => void;
   reorderApps: (reorderedApps: App[]) => void;
 
-  openWindow: (app: App) => void;
+  openWindow: (app: App, fileData?: { fileId: string; content: string; title: string }) => void;
   closeWindow: (windowId: string) => void;
   minimizeWindow: (windowId: string) => void;
   maximizeWindow: (windowId: string) => void;
@@ -173,22 +175,47 @@ const defaultBackgrounds: DesktopBackground[] = [
     id: 'default-blue',
     name: 'Windows Blue',
     url: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    type: 'gradient',
   },
   {
     id: 'default-dark',
     name: 'Dark Space',
     url: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+    type: 'gradient',
   },
   {
     id: 'default-sunset',
     name: 'Sunset',
     url: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
+    type: 'gradient',
   },
   {
     id: 'default-forest',
     name: 'Forest',
     url: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
-  }
+    type: 'gradient',
+  },
+  {
+    id: 'default-aurora',
+    name: 'Aurora Dreams',
+    url: '',
+    type: 'aurora',
+    config: { colors: ['#667eea', '#764ba2', '#f093fb'] },
+  },
+  {
+    id: 'default-beams',
+    name: 'Energy Beams',
+    url: '',
+    type: 'beams',
+    config: { color: '#667eea', opacity: 0.3 },
+  },
+  {
+    id: 'default-grid',
+    name: 'Cyber Grid',
+    url: '',
+    type: 'grid',
+    config: { dotColor: '#667eea', spacing: 30 },
+  },
 ];
 
 const loadBackgroundsFromStorage = (): DesktopBackground[] => {
@@ -254,8 +281,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     return { apps: newApps };
   }),
 
-  openWindow: (app) => set((state) => {
-    const existingWindow = state.windows.find(w => w.appId === app.id);
+  openWindow: (app, fileData) => set((state) => {
+    // If opening a file, check if we already have this specific file open
+    const existingWindow = fileData
+      ? state.windows.find(w => w.fileId === fileData.fileId)
+      : state.windows.find(w => w.appId === app.id && !w.fileId);
+
     if (existingWindow) {
       return {
         windows: state.windows.map(w =>
@@ -268,11 +299,13 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const newWindow: WindowState = {
       id: `${app.id}-${Date.now()}`,
       appId: app.id,
-      title: app.name,
+      title: fileData?.title || app.name,
       icon: app.icon,
       type: app.type,
       component: app.component,
       url: app.url,
+      content: fileData?.content,
+      fileId: fileData?.fileId,
       position: { x: 100 + state.windows.length * 30, y: 100 + state.windows.length * 30 },
       size: app.defaultSize || { width: 800, height: 600 },
       isMinimized: false,
