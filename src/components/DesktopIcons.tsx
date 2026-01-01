@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
-import { theme } from '../theme';
 
 interface GridPosition {
   row: number;
@@ -256,7 +255,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="fixed inset-0 pointer-events-none"
-              style={{ zIndex: 0 }}
+              style={{ zIndex: 5 }}
             >
               {/* Gradient Background with Theme Colors */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-tertiary-500/20 to-secondary-500/20" />
@@ -370,9 +369,23 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
             className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
               }`}
           >
-            <div className={`w-${SIZES[iconSize].icon + 2} h-${SIZES[iconSize].icon + 2} flex items-center justify-center`}>
-              {renderIcon(app, `w-${SIZES[iconSize].icon} h-${SIZES[iconSize].icon} text-white drop-shadow-lg transition-transform ${isHovered ? 'scale-110' : 'group-hover:scale-110'
-                }`)}
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: `${SIZES[iconSize].icon * 4 + 8}px`,
+                height: `${SIZES[iconSize].icon * 4 + 8}px`,
+              }}
+            >
+              <div
+                className={`text-white drop-shadow-lg transition-transform ${isHovered ? 'scale-110' : 'group-hover:scale-110'
+                  }`}
+                style={{
+                  width: `${SIZES[iconSize].icon * 4}px`,
+                  height: `${SIZES[iconSize].icon * 4}px`,
+                }}
+              >
+                {renderIcon(app, "w-full h-full")}
+              </div>
             </div>
             <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${isHovered ? 'font-bold' : ''
               }`}>

@@ -14,6 +14,9 @@ import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { LoginModal } from './LoginModal';
 import { WelcomeScreen } from './WelcomeScreen';
 import { NotificationContainer } from './NotificationContainer';
+import { Timeline } from './Timeline';
+
+import { useUserStore } from '../store/userStore';
 
 export function Desktop() {
   const {
@@ -25,6 +28,7 @@ export function Desktop() {
     setSelectedBackground,
     systemPreferences,
     setIconSize,
+    windows,
   } = useDesktopStore();
   const fileStore = useFileStore();
   const { isAuthenticated, checkSession } = useAuthStore();
@@ -34,11 +38,20 @@ export function Desktop() {
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(true);
+
+  // Auto-hide timeline when a window is maximized
+  const hasMaximizedWindow = windows.some(w => w.isMaximized && !w.isMinimized);
+
+  const { fetchProfile } = useUserStore();
 
   useEffect(() => {
     // Check authentication session on mount
     checkSession();
-  }, [checkSession]);
+    // Fetch profile data from Supabase
+    fetchProfile();
+  }, [checkSession, fetchProfile]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -177,9 +190,26 @@ export function Desktop() {
       )}
 
       <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
-        <div className="flex-1 relative desktop-area">
-          <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
-          <WindowManager />
+        <div className="flex-1 relative desktop-area flex gap-4 pr-4">
+          {/* Left side: Desktop Icons and Windows */}
+          <div className="flex-1 relative">
+            <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
+            <WindowManager />
+          </div>
+
+          {/* Right side: Timeline - Hidden when window is maximized */}
+          {!hasMaximizedWindow && showTimeline && (
+            <div
+              className={`flex-shrink-0 relative transition-all duration-300 ease-in-out ${isTimelineExpanded ? 'w-[80%]' : 'w-[400px]'
+                }`}
+              style={{ zIndex: 1 }}
+            >
+              <Timeline
+                isExpanded={isTimelineExpanded}
+                onToggleExpand={() => setIsTimelineExpanded(!isTimelineExpanded)}
+              />
+            </div>
+          )}
         </div>
 
         <div className="taskbar">
@@ -272,6 +302,17 @@ export function Desktop() {
               <div className="h-px bg-gray-700 my-2" />
 
               {/* Actions */}
+              <button
+                onClick={() => {
+                  setShowTimeline(!showTimeline);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
+              >
+                <Icons.Calendar className="w-4 h-4" />
+                {showTimeline ? 'Hide Timeline' : 'Show Timeline'}
+              </button>
+
               <button
                 onClick={() => {
                   window.location.reload();

@@ -133,27 +133,24 @@ export function TaskManager() {
         <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
           <button
             onClick={() => setActiveTab('processes')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${
-              activeTab === 'processes' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'processes' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.List className="w-3.5 h-3.5" />
             Processes
           </button>
           <button
             onClick={() => setActiveTab('performance')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${
-              activeTab === 'performance' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'performance' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.Activity className="w-3.5 h-3.5" />
             Performance
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${
-              activeTab === 'details' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'details' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.Info className="w-3.5 h-3.5" />
             Details
@@ -272,13 +269,12 @@ export function TaskManager() {
                         <span className="text-sm font-medium text-white truncate">{process.name}</span>
                       </div>
                       <div className="col-span-2">
-                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                          process.status === 'Running'
+                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${process.status === 'Running'
                             ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                             : process.status === 'Minimized'
-                            ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                            : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-                        }`}>
+                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                              : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                          }`}>
                           {process.status}
                         </span>
                       </div>
@@ -393,7 +389,7 @@ export function TaskManager() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between py-2 border-b border-white/5">
                 <span className="text-gray-400">Operating System:</span>
-                <span className="text-white">PortfolioOS v1.0</span>
+                <span className="text-white">GenOS v1.0</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-white/5">
                 <span className="text-gray-400">Total Memory:</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
 
@@ -9,6 +10,7 @@ type TemplateType = 'classic' | 'modern' | 'minimalist';
 export function Resume() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
   const { profile } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -457,10 +459,12 @@ export function Resume() {
                 </select>
               </div>
 
-              <Button variant="secondary" size="sm" onClick={openAboutApp}>
-                <Icons.Edit className="w-4 h-4 mr-2" />
-                Edit Resume
-              </Button>
+              {isAuthenticated && (
+                <Button variant="secondary" size="sm" onClick={openAboutApp}>
+                  <Icons.Edit className="w-4 h-4 mr-2" />
+                  Edit Resume
+                </Button>
+              )}
 
               <Button variant="primary" size="sm" onClick={handlePrint}>
                 <Icons.Printer className="w-4 h-4 mr-2" />

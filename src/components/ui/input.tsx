@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils'
 
 /**
  * Input component with Aceternity UI styling
- * Provides multiple variants for different contexts in PortfolioOS
+ * Provides multiple variants for different contexts in GenOS
  *
  * @example Glass-morphism input (StartMenu search)
  * <Input variant="glass" placeholder="Search apps..." />
@@ -54,7 +54,7 @@ const inputVariants = cva(
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
-    VariantProps<typeof inputVariants> {}
+  VariantProps<typeof inputVariants> { }
 
 /**
  * Input component

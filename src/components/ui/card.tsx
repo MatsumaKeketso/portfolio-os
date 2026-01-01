@@ -5,7 +5,7 @@ import { BorderGlow } from '../aceternity/ui/border-glow'
 
 /**
  * Card component with Framer-inspired styling
- * Provides multiple glass-morphism and solid variants for PortfolioOS
+ * Provides multiple glass-morphism and solid variants for GenOS
  *
  * @example Hover card (desktop icon style)
  * <Card variant="hover">
@@ -93,7 +93,7 @@ const cardVariants = cva(
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {
+  VariantProps<typeof cardVariants> {
   borderGlow?: boolean
   glowColor?: string
   glowSize?: number

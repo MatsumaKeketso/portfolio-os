@@ -105,10 +105,10 @@ export function WelcomeScreen() {
                     <Icons.Sparkles className="w-10 h-10 text-white" />
                   </div>
                   <h1 className="text-4xl font-bold text-white mb-3">
-                    Welcome to PortfolioOS
+                    Welcome to GenOS
                   </h1>
                   <p className="text-gray-300 text-lg">
-                    An interactive desktop experience for exploring my portfolio
+                    An interactive desktop experience for exploring Keketso's portfolio
                   </p>
                 </div>
 
@@ -271,11 +271,10 @@ export function WelcomeScreen() {
                 {[0, 1, 2].map((step) => (
                   <div
                     key={step}
-                    className={`h-2 rounded-full transition-all ${
-                      step === currentStep
-                        ? 'w-8 bg-gradient-to-r from-primary-500 to-tertiary-500'
-                        : 'w-2 bg-gray-700'
-                    }`}
+                    className={`h-2 rounded-full transition-all ${step === currentStep
+                      ? 'w-8 bg-gradient-to-r from-primary-500 to-tertiary-500'
+                      : 'w-2 bg-gray-700'
+                      }`}
                   />
                 ))}
               </div>

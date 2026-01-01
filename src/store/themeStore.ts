@@ -139,6 +139,19 @@ const presets = [
 // Storage key
 const THEME_STORAGE_KEY = 'portfolioOS_theme';
 
+// Cyberpunk as default theme
+const cyberpunkTheme: ThemeSettings = {
+  colors: {
+    primary: '#06b6d4', // cyan-500
+    secondary: '#ec4899', // pink-500
+    tertiary: '#8b5cf6', // violet-500
+    accent: '#eab308', // yellow-500
+  },
+  borderRadius: 'none',
+  spacing: 'compact',
+  iconStyle: 'sharp',
+};
+
 /**
  * Load theme from localStorage
  */
@@ -151,7 +164,7 @@ const loadThemeFromStorage = (): ThemeSettings => {
       console.error('Failed to parse theme from storage:', e);
     }
   }
-  return defaultTheme;
+  return cyberpunkTheme;
 };
 
 /**

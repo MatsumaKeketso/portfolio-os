@@ -1,10 +1,12 @@
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
 
 export function Contact() {
   const { profile } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -47,10 +49,12 @@ export function Contact() {
             <p className="text-slate-400 text-sm mt-1">Get in touch</p>
           </div>
 
-          <Button variant="secondary" size="sm" onClick={openAboutApp}>
-            <Icons.Edit className="w-4 h-4 mr-2" />
-            Edit Contact
-          </Button>
+          {isAuthenticated && (
+            <Button variant="secondary" size="sm" onClick={openAboutApp}>
+              <Icons.Edit className="w-4 h-4 mr-2" />
+              Edit Contact
+            </Button>
+          )}
         </div>
       </div>
 

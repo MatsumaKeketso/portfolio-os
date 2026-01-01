@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { useUserStore } from '../store/userStore';
 import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -12,6 +13,7 @@ export function AdminPanel() {
     apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
   } = useDesktopStore();
+  const { profile, addMilestone, updateMilestone, removeMilestone } = useUserStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
@@ -19,7 +21,7 @@ export function AdminPanel() {
   const [bulkURLs, setBulkURLs] = useState('');
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [editingApp, setEditingApp] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'apps' | 'backgrounds'>('apps');
+  const [activeTab, setActiveTab] = useState<'apps' | 'backgrounds' | 'milestones'>('apps');
   const [formData, setFormData] = useState<Partial<App>>({
     name: '',
     icon: 'square',
@@ -31,6 +33,20 @@ export function AdminPanel() {
     desktopPosition: { x: 50, y: 50 },
     defaultSize: { width: 800, height: 600 },
     description: ''
+  });
+
+  // Milestone form state
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
+  const [milestoneFormData, setMilestoneFormData] = useState({
+    title: '',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    category: 'project' as 'achievement' | 'project' | 'education' | 'career' | 'personal' | 'other',
+    images: [] as string[],
+    links: [] as Array<{ label: string; url: string }>,
+    tags: [] as string[],
+    featured: false
   });
 
   const iconOptions = [
@@ -374,6 +390,19 @@ export function AdminPanel() {
               >
                 <Icons.Image className="w-4 h-4 inline mr-2" />
                 Backgrounds
+              </Button>
+              <Button
+                onClick={() => setActiveTab('milestones')}
+                variant="secondary"
+                size="md"
+                className={
+                  activeTab === 'milestones'
+                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
+                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
+                }
+              >
+                <Icons.Calendar className="w-4 h-4 inline mr-2" />
+                Milestones
               </Button>
             </div>
             </div>
@@ -907,6 +936,399 @@ export function AdminPanel() {
                     <p>No backgrounds available. Upload some images to get started!</p>
                   </div>
                 )}
+              </>
+            )}
+
+            {activeTab === 'milestones' && (
+              <>
+                <div className="mb-6">
+                  <Button
+                    onClick={() => {
+                      setShowMilestoneForm(!showMilestoneForm);
+                      setEditingMilestone(null);
+                      setMilestoneFormData({
+                        title: '',
+                        description: '',
+                        date: new Date().toISOString().split('T')[0],
+                        category: 'project',
+                        images: [],
+                        links: [],
+                        tags: [],
+                        featured: false
+                      });
+                    }}
+                    variant="primary"
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700"
+                  >
+                    <Icons.Plus className="w-5 h-5" />
+                    Add Milestone
+                  </Button>
+                </div>
+
+                {showMilestoneForm && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="bg-gray-900/70 backdrop-blur-md rounded p-6 mb-6 border-b border-cyan-400/20"
+                  >
+                    <h3 className="text-cyan-400 text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Icons.Star className="w-5 h-5" />
+                      {editingMilestone ? 'Edit Milestone' : 'New Milestone'}
+                    </h3>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!milestoneFormData.title) return;
+
+                        if (editingMilestone) {
+                          updateMilestone(editingMilestone, milestoneFormData);
+                        } else {
+                          addMilestone(milestoneFormData);
+                        }
+
+                        setShowMilestoneForm(false);
+                        setEditingMilestone(null);
+                        setMilestoneFormData({
+                          title: '',
+                          description: '',
+                          date: new Date().toISOString().split('T')[0],
+                          category: 'project',
+                          images: [],
+                          links: [],
+                          tags: [],
+                          featured: false
+                        });
+                      }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-cyan-400 text-sm mb-2 block">Title *</label>
+                          <Input
+                            type="text"
+                            value={milestoneFormData.title}
+                            onChange={(e) => setMilestoneFormData({ ...milestoneFormData, title: e.target.value })}
+                            variant="solid"
+                            placeholder="Milestone title"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="text-cyan-400 text-sm mb-2 block">Date *</label>
+                          <Input
+                            type="date"
+                            value={milestoneFormData.date}
+                            onChange={(e) => setMilestoneFormData({ ...milestoneFormData, date: e.target.value })}
+                            variant="solid"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-cyan-400 text-sm mb-2 block">Category</label>
+                        <select
+                          value={milestoneFormData.category}
+                          onChange={(e) => setMilestoneFormData({ ...milestoneFormData, category: e.target.value as any })}
+                          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-cyan-400/30 focus:outline-none focus:border-cyan-400"
+                        >
+                          <option value="project">Project</option>
+                          <option value="achievement">Achievement</option>
+                          <option value="education">Education</option>
+                          <option value="career">Career</option>
+                          <option value="personal">Personal</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-cyan-400 text-sm mb-2 block">Description</label>
+                        <textarea
+                          value={milestoneFormData.description}
+                          onChange={(e) => setMilestoneFormData({ ...milestoneFormData, description: e.target.value })}
+                          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-cyan-400/30 focus:outline-none focus:border-cyan-400 placeholder-gray-400"
+                          placeholder="Describe this milestone..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-cyan-400 text-sm mb-2 block">Tags (comma-separated)</label>
+                        <Input
+                          type="text"
+                          value={milestoneFormData.tags.join(', ')}
+                          onChange={(e) => setMilestoneFormData({
+                            ...milestoneFormData,
+                            tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
+                          })}
+                          variant="solid"
+                          placeholder="React, TypeScript, Design"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-cyan-400 text-sm mb-2 block flex items-center justify-between">
+                          <span>Images</span>
+                          <label className="cursor-pointer">
+                            <span className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-xs transition-colors">
+                              <Icons.Upload className="w-3 h-3 inline mr-1" />
+                              Upload
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => {
+                                const files = e.target.files;
+                                if (!files) return;
+
+                                Array.from(files).forEach((file) => {
+                                  if (file.size > 2 * 1024 * 1024) {
+                                    alert('Image too large (max 2MB)');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    const dataUrl = event.target?.result as string;
+                                    setMilestoneFormData(prev => ({
+                                      ...prev,
+                                      images: [...prev.images, dataUrl]
+                                    }));
+                                  };
+                                  reader.readAsDataURL(file);
+                                });
+                                e.target.value = '';
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+                        </label>
+                        {milestoneFormData.images.length > 0 && (
+                          <div className="grid grid-cols-4 gap-2 mt-2">
+                            {milestoneFormData.images.map((img, idx) => (
+                              <div key={idx} className="relative group">
+                                <img
+                                  src={img}
+                                  alt={`Preview ${idx + 1}`}
+                                  className="w-full aspect-video object-cover rounded border border-cyan-400/30"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMilestoneFormData(prev => ({
+                                      ...prev,
+                                      images: prev.images.filter((_, i) => i !== idx)
+                                    }));
+                                  }}
+                                  className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Icons.X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-cyan-400 text-sm mb-2 block flex items-center justify-between">
+                          <span>Links</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMilestoneFormData(prev => ({
+                                ...prev,
+                                links: [...prev.links, { label: '', url: '' }]
+                              }));
+                            }}
+                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                          >
+                            <Icons.Plus className="w-3 h-3 inline mr-1" />
+                            Add Link
+                          </button>
+                        </label>
+                        {milestoneFormData.links.length > 0 && (
+                          <div className="space-y-2">
+                            {milestoneFormData.links.map((link, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                <Input
+                                  type="text"
+                                  value={link.label}
+                                  onChange={(e) => {
+                                    const newLinks = [...milestoneFormData.links];
+                                    newLinks[idx].label = e.target.value;
+                                    setMilestoneFormData({ ...milestoneFormData, links: newLinks });
+                                  }}
+                                  variant="solid"
+                                  placeholder="Label"
+                                  className="flex-1"
+                                />
+                                <Input
+                                  type="url"
+                                  value={link.url}
+                                  onChange={(e) => {
+                                    const newLinks = [...milestoneFormData.links];
+                                    newLinks[idx].url = e.target.value;
+                                    setMilestoneFormData({ ...milestoneFormData, links: newLinks });
+                                  }}
+                                  variant="solid"
+                                  placeholder="URL"
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    setMilestoneFormData(prev => ({
+                                      ...prev,
+                                      links: prev.links.filter((_, i) => i !== idx)
+                                    }));
+                                  }}
+                                  variant="danger"
+                                  size="icon"
+                                  className="w-9 h-9"
+                                >
+                                  <Icons.Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="flex items-center gap-2 text-cyan-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={milestoneFormData.featured}
+                            onChange={(e) => setMilestoneFormData({ ...milestoneFormData, featured: e.target.checked })}
+                            className="w-4 h-4"
+                          />
+                          <Icons.Star className="w-4 h-4" />
+                          Featured Milestone
+                        </label>
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="md"
+                          className="flex-1 bg-cyan-600 hover:bg-cyan-700"
+                        >
+                          {editingMilestone ? 'Update Milestone' : 'Create Milestone'}
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setShowMilestoneForm(false);
+                            setEditingMilestone(null);
+                          }}
+                          variant="secondary"
+                          size="md"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </motion.div>
+                )}
+
+                {/* Milestones List */}
+                <div className="space-y-3">
+                  {profile.milestones.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400">
+                      <Icons.Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>No milestones yet. Add your first milestone to get started!</p>
+                    </div>
+                  ) : (
+                    profile.milestones
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .map((milestone) => (
+                        <div
+                          key={milestone.id}
+                          className="bg-gray-900/70 backdrop-blur-md rounded-lg p-4 border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="text-white font-semibold text-lg">{milestone.title}</h4>
+                                {milestone.featured && (
+                                  <Icons.Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className={`text-xs px-2 py-1 rounded bg-gradient-to-r ${
+                                  milestone.category === 'project' ? 'from-cyan-600 to-blue-600' :
+                                  milestone.category === 'achievement' ? 'from-yellow-600 to-amber-600' :
+                                  milestone.category === 'education' ? 'from-purple-600 to-pink-600' :
+                                  milestone.category === 'career' ? 'from-green-600 to-emerald-600' :
+                                  milestone.category === 'personal' ? 'from-red-600 to-rose-600' :
+                                  'from-slate-600 to-gray-600'
+                                } text-white font-semibold`}>
+                                  {milestone.category}
+                                </span>
+                                <span className="text-cyan-400/60 text-sm">
+                                  {new Date(milestone.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </span>
+                              </div>
+                              {milestone.description && (
+                                <p className="text-gray-300 text-sm mb-2">{milestone.description}</p>
+                              )}
+                              {milestone.tags && milestone.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {milestone.tags.map((tag, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-xs px-2 py-0.5 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 rounded"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <Button
+                                onClick={() => {
+                                  setEditingMilestone(milestone.id);
+                                  setMilestoneFormData({
+                                    title: milestone.title,
+                                    description: milestone.description,
+                                    date: milestone.date,
+                                    category: milestone.category,
+                                    images: milestone.images || [],
+                                    links: milestone.links || [],
+                                    tags: milestone.tags || [],
+                                    featured: milestone.featured || false
+                                  });
+                                  setShowMilestoneForm(true);
+                                }}
+                                variant="primary"
+                                size="icon"
+                                className="w-8 h-8 bg-cyan-600 hover:bg-cyan-700"
+                              >
+                                <Icons.Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this milestone?')) {
+                                    removeMilestone(milestone.id);
+                                  }
+                                }}
+                                variant="danger"
+                                size="icon"
+                                className="w-8 h-8"
+                              >
+                                <Icons.Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
               </>
             )}
             </div>

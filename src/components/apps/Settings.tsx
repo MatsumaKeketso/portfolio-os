@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { Button } from '../ui/button';
@@ -10,6 +11,7 @@ type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const { profile, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const {
     openWindow,
     apps,
@@ -130,16 +132,7 @@ export function Settings() {
   };
 
   const handleExport = () => {
-    const data = exportProfile();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `portfolio_profile_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportProfile();
     addNotification({
       type: 'success',
       title: 'Profile Exported',
@@ -153,9 +146,11 @@ export function Settings() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const json = event.target?.result as string;
-      const success = importProfile(json);
-      if (success) {
+      try {
+        const json = event.target?.result as string;
+        const profileData = JSON.parse(json);
+        importProfile(profileData);
+
         addNotification({
           type: 'success',
           title: 'Profile Imported',
@@ -168,7 +163,7 @@ export function Settings() {
           title: profile.personal.title
         });
         setPreferences({ ...profile.preferences });
-      } else {
+      } catch (error) {
         addNotification({
           type: 'error',
           title: 'Import Failed',
@@ -259,8 +254,10 @@ export function Settings() {
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <>
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
+              {isAuthenticated ? (
+                <>
+                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                    <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
                 <p className="text-slate-400 text-sm mb-4">
                   Update your basic information quickly here, or open the About Me app for full profile editing.
                 </p>
@@ -308,6 +305,16 @@ export function Settings() {
                   </div>
                 </div>
               </div>
+                </>
+              ) : (
+                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
+                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
+                  <p className="text-slate-400 text-sm">
+                    Please sign in as admin to edit profile information.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
@@ -342,11 +349,10 @@ export function Settings() {
                   {backgrounds.map((bg) => (
                     <div
                       key={bg.id}
-                      className={`group relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                        selectedBackgroundId === bg.id
-                          ? 'border-primary-400 ring-2 ring-primary-400/50'
-                          : 'border-white/20 hover:border-white/40'
-                      }`}
+                      className={`group relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedBackgroundId === bg.id
+                        ? 'border-primary-400 ring-2 ring-primary-400/50'
+                        : 'border-white/20 hover:border-white/40'
+                        }`}
                       onClick={() => handleBackgroundSelect(bg.id)}
                     >
                       <div
@@ -443,7 +449,7 @@ export function Settings() {
                   <div>
                     <h4 className="text-white font-semibold mb-2">Personalization</h4>
                     <p className="text-slate-300 text-sm leading-relaxed">
-                      Customize your PortfolioOS experience with backgrounds, colors, and display preferences.
+                      Customize your GenOS experience with backgrounds, colors, and display preferences.
                       All changes are saved automatically and applied immediately.
                     </p>
                   </div>
@@ -676,7 +682,7 @@ export function Settings() {
                   Startup Applications
                 </h3>
                 <p className="text-slate-400 text-sm mb-4">
-                  Configure which applications open automatically when PortfolioOS starts
+                  Configure which applications open automatically when GenOS starts
                 </p>
                 <div className="space-y-2 opacity-50">
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
@@ -717,7 +723,9 @@ export function Settings() {
           {/* Privacy Tab */}
           {activeTab === 'privacy' && (
             <>
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              {isAuthenticated ? (
+                <>
+                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
                 <p className="text-slate-400 text-sm mb-4">
                   Control what contact information is publicly visible on your portfolio.
@@ -778,12 +786,24 @@ export function Settings() {
                   </div>
                 </div>
               </div>
+                </>
+              ) : (
+                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
+                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
+                  <p className="text-slate-400 text-sm">
+                    Please sign in as admin to manage privacy settings.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
           {/* Data Tab */}
           {activeTab === 'data' && (
             <>
+              {isAuthenticated ? (
+                <>
               <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Download className="w-5 h-5" />
@@ -852,6 +872,16 @@ export function Settings() {
                   </div>
                 </div>
               </div>
+                </>
+              ) : (
+                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
+                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
+                  <p className="text-slate-400 text-sm">
+                    Please sign in as admin to manage data settings.
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>

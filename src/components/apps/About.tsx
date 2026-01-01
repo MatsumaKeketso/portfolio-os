@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
-import { useUserStore } from '../../store/userStore';
+import { useUserStore, UserProfile } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { Button } from '../ui/button';
 import { compressImage, validateImageFile } from '../../lib/imageUtils';
 
@@ -9,6 +10,7 @@ type TabType = 'overview' | 'experience' | 'projects' | 'skills' | 'contact';
 export function About() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
+  const { isAuthenticated } = useAuthStore();
   const {
     profile,
     updatePersonal,
@@ -29,8 +31,6 @@ export function About() {
     addSkillCategory,
     updateSkillCategory,
     removeSkillCategory,
-    addSkillToCategory,
-    removeSkillFromCategory,
     updatePreferences
   } = useUserStore();
 
@@ -118,10 +118,10 @@ export function About() {
       case 'skills':
         // Update skill categories
         profile.skills.categories.forEach(c => {
-          const exists = editForm.skills.categories.find(ec => ec.id === c.id);
+          const exists = editForm.skills.categories.find((ec: UserProfile['skills']['categories'][0]) => ec.id === c.id);
           if (!exists) removeSkillCategory(c.id);
         });
-        editForm.skills.categories.forEach(ec => {
+        editForm.skills.categories.forEach((ec: UserProfile['skills']['categories'][0]) => {
           if (ec.id.startsWith('temp-')) {
             const { id, ...catData } = ec;
             addSkillCategory(catData);
@@ -164,13 +164,14 @@ export function About() {
       {/* Header with Edit Controls */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <h1 className="text-2xl font-bold text-white">About Me</h1>
-        <div className="flex gap-2">
-          {!isEditing ? (
-            <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>
-              <Icons.Edit2 className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          ) : (
+        {isAuthenticated && (
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>
+                <Icons.Edit2 className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            ) : (
             <>
               <Button variant="success" size="sm" onClick={handleSave}>
                 <Icons.Save className="w-4 h-4 mr-2" />
@@ -182,7 +183,8 @@ export function About() {
               </Button>
             </>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Tab Navigation */}
@@ -1392,7 +1394,7 @@ export function About() {
           {/* Skills Tab */}
           {activeTab === 'skills' && (
             <div className="space-y-6">
-              {editForm.skills.categories.map((category, catIndex) => (
+              {editForm.skills.categories.map((category: UserProfile['skills']['categories'][0], catIndex: number) => (
                 <div key={category.id} className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
                   {isEditing ? (
                     <div className="space-y-4">
@@ -1421,7 +1423,7 @@ export function About() {
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        {category.skills.map((skill, skillIndex) => (
+                        {category.skills.map((skill: UserProfile['skills']['categories'][0]['skills'][0], skillIndex: number) => (
                           <div key={skillIndex} className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
                             <input
                               type="text"
@@ -1496,7 +1498,7 @@ export function About() {
                     <>
                       <h3 className="text-xl font-semibold text-white mb-4">{category.name}</h3>
                       <div className="space-y-2">
-                        {category.skills.map((skill, skillIndex) => (
+                        {category.skills.map((skill: UserProfile['skills']['categories'][0]['skills'][0], skillIndex: number) => (
                           <div key={skillIndex} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
                             <div className="flex items-center gap-3">
                               <span className="text-white font-medium">{skill.name}</span>

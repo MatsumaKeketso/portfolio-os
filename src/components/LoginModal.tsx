@@ -10,27 +10,28 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@genos.dev');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuthStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!password.trim()) {
-      setError('Please enter a password');
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
       return;
     }
 
-    const success = login(password);
+    const { success, error: loginError } = await login(password, email);
 
     if (success) {
       setPassword('');
       setError('');
       onClose();
     } else {
-      setError('Invalid password. Please try again.');
+      setError(loginError || 'Invalid credentials. Please try again.');
       setPassword('');
     }
   };
@@ -71,8 +72,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <Icons.Lock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Admin Login</h2>
-                  <p className="text-gray-400 text-sm">Enter password to access admin features</p>
+                  <h2 className="text-xl font-bold text-white">GenOS Admin</h2>
+                  <p className="text-gray-400 text-sm">Enter credentials to access admin features</p>
                 </div>
               </div>
               <button
@@ -90,6 +91,21 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-gray-700/50 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-gray-600/50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder="admin@genos.dev"
+                  autoFocus
+                />
+              </div>
+
+              <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                   Password
                 </label>
@@ -101,7 +117,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-gray-700/50 text-white placeholder-gray-400 px-4 py-3 pr-12 rounded-lg border border-gray-600/50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     placeholder="Enter admin password"
-                    autoFocus
                   />
                   <button
                     type="button"
@@ -128,12 +143,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className="flex items-start gap-2">
                   <Icons.Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-blue-300">
-                    <p className="font-medium mb-1">For Demo Purposes:</p>
+                    <p className="font-medium mb-1">Authenticated via Supabase</p>
                     <p className="text-blue-200/80">
-                      Default password: <span className="font-mono bg-blue-500/20 px-1.5 py-0.5 rounded">portfolio2024</span>
-                    </p>
-                    <p className="text-blue-200/60 mt-1">
-                      In production, set VITE_ADMIN_PASSWORD environment variable
+                      Login requires a valid Supabase Auth user.
                     </p>
                   </div>
                 </div>
