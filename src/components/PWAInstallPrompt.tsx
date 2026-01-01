@@ -72,7 +72,7 @@ export function PWAInstallPrompt() {
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">
-                  Install PortfolioOS
+                  Install GenOS
                 </h3>
                 <p className="text-gray-300 text-sm mb-3">
                   Add to your home screen for a native app experience

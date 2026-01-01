@@ -1,7 +1,8 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 // Helper to generate unique IDs
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
 
 // User Profile Data Schema
 export interface UserProfile {
@@ -98,260 +99,72 @@ export interface UserProfile {
     showPhone: boolean;
   };
 
+  milestones: Array<{
+    id: string;
+    title: string;
+    description: string;
+    date: string; // ISO format YYYY-MM-DD
+    category: 'achievement' | 'project' | 'education' | 'career' | 'personal' | 'other';
+    images?: string[]; // Base64 data URLs
+    links?: Array<{
+      label: string;
+      url: string;
+    }>;
+    tags?: string[];
+    featured?: boolean;
+  }>;
+
   metadata: {
     lastModified: number;
     version: string;
   };
 }
 
-// Default profile data
+// Export Project type for use in other components
+export type Project = UserProfile['projects'][0];
+
+// Default profile data (Fallback)
 const defaultProfile: UserProfile = {
   personal: {
-    name: 'Alex Portfolio',
+    name: 'Keketso Matsuma',
     title: 'Full-Stack Software Engineer',
     subtitle: 'Building innovative web experiences',
     bio: [
-      'Passionate software engineer with 5+ years of experience building scalable web applications and interactive user experiences. I specialize in modern JavaScript frameworks, cloud architecture, and creating delightful user interfaces that solve real-world problems.',
-      'When I\'m not coding, you\'ll find me contributing to open-source projects, mentoring junior developers, or exploring the latest web technologies. I believe in writing clean, maintainable code and continuously learning to stay at the forefront of web development.'
+      'Passionate software engineer with experience building scalable web applications and interactive user experiences.',
+      'I specialize in modern JavaScript frameworks, cloud architecture, and creating delightful user interfaces.'
     ],
-    location: 'Johannesburg, South Africa',
-    email: 'alex@example.com',
-    phone: '+27 12 345 6789',
+    location: 'South Africa',
+    email: 'keketso@genos.dev',
+    phone: '',
   },
 
   social: {
-    github: 'https://github.com/alexportfolio',
-    linkedin: 'https://linkedin.com/in/alexportfolio',
-    twitter: 'https://twitter.com/alexportfolio',
-    website: 'https://alexportfolio.dev',
-    custom: [
-      { id: '1', name: 'Base44', url: 'https://base44.co.za', icon: 'rocket' },
-      { id: '2', name: 'Dev.to', url: 'https://dev.to/alexportfolio', icon: 'book-open' },
-      { id: '3', name: 'CodePen', url: 'https://codepen.io/alexportfolio', icon: 'code' }
-    ]
+    github: 'https://github.com',
+    linkedin: 'https://linkedin.com',
+    custom: []
   },
 
   resume: {
-    summary: 'Full-stack software engineer with 5+ years of experience designing and implementing scalable web applications. Proven track record of delivering high-quality solutions using modern technologies including React, TypeScript, Node.js, and cloud platforms. Strong advocate for clean code, test-driven development, and agile methodologies.',
-    experience: [
-      {
-        id: generateId(),
-        company: 'Tech Innovations Inc',
-        position: 'Senior Full-Stack Engineer',
-        location: 'Johannesburg, South Africa',
-        startDate: '2022-03-01',
-        endDate: 'Present',
-        description: [
-          'Led development of enterprise SaaS platform serving 10,000+ users',
-          'Architected microservices infrastructure and implemented CI/CD pipelines, reducing deployment time by 60%',
-          'Mentored team of 4 junior developers and conducted code reviews'
-        ],
-        technologies: ['React', 'TypeScript', 'Node.js', 'AWS', 'PostgreSQL', 'Docker']
-      },
-      {
-        id: generateId(),
-        company: 'StartupHub',
-        position: 'Full-Stack Developer',
-        location: 'Cape Town, South Africa',
-        startDate: '2020-01-15',
-        endDate: '2022-02-28',
-        description: [
-          'Built and maintained multiple client-facing web applications',
-          'Developed RESTful APIs and integrated third-party services',
-          'Collaborated with designers to implement responsive UI components and improve user experience'
-        ],
-        technologies: ['React', 'JavaScript', 'Express.js', 'MongoDB', 'Redis', 'Git']
-      },
-      {
-        id: generateId(),
-        company: 'Digital Solutions Ltd',
-        position: 'Junior Developer',
-        location: 'Pretoria, South Africa',
-        startDate: '2019-06-01',
-        endDate: '2019-12-31',
-        description: [
-          'Contributed to e-commerce platform development',
-          'Implemented new features, fixed bugs, and wrote automated tests',
-          'Participated in agile ceremonies and learned industry best practices'
-        ],
-        technologies: ['JavaScript', 'Vue.js', 'PHP', 'MySQL', 'HTML/CSS']
-      }
-    ],
-    education: [
-      {
-        id: generateId(),
-        institution: 'University of Johannesburg',
-        degree: 'Bachelor of Science',
-        field: 'Computer Science',
-        startDate: '2015-02-01',
-        endDate: '2018-11-30',
-        gpa: '3.8/4.0',
-        achievements: [
-          'Dean\'s List - All semesters',
-          'Best Final Year Project Award',
-          'Computer Science Society President (2017-2018)'
-        ]
-      },
-      {
-        id: generateId(),
-        institution: 'Online Learning Academy',
-        degree: 'Certificate',
-        field: 'Advanced React & TypeScript',
-        startDate: '2021-01-01',
-        endDate: '2021-03-31',
-        achievements: ['Graduated with Distinction', 'Completed 50+ hands-on projects']
-      }
-    ],
-    certifications: [
-      {
-        id: generateId(),
-        name: 'AWS Certified Solutions Architect - Associate',
-        issuer: 'Amazon Web Services',
-        date: '2023-06-15',
-        credentialId: 'AWS-ASA-123456',
-        url: 'https://aws.amazon.com/certification'
-      },
-      {
-        id: generateId(),
-        name: 'Professional Scrum Master I (PSM I)',
-        issuer: 'Scrum.org',
-        date: '2022-09-20',
-        credentialId: 'PSM-789012'
-      },
-      {
-        id: generateId(),
-        name: 'MongoDB Certified Developer',
-        issuer: 'MongoDB University',
-        date: '2021-11-10',
-        url: 'https://university.mongodb.com'
-      }
-    ]
+    summary: 'Full-stack software engineer designing and implementing scalable web applications.',
+    experience: [],
+    education: [],
+    certifications: []
   },
 
   skills: {
-    categories: [
-      {
-        id: generateId(),
-        name: 'Frontend Development',
-        skills: [
-          { name: 'React', proficiency: 'Expert', yearsOfExperience: 5 },
-          { name: 'TypeScript', proficiency: 'Expert', yearsOfExperience: 4 },
-          { name: 'Next.js', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'Tailwind CSS', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'Vue.js', proficiency: 'Intermediate', yearsOfExperience: 2 },
-          { name: 'HTML/CSS', proficiency: 'Expert', yearsOfExperience: 6 }
-        ]
-      },
-      {
-        id: generateId(),
-        name: 'Backend Development',
-        skills: [
-          { name: 'Node.js', proficiency: 'Expert', yearsOfExperience: 5 },
-          { name: 'Express.js', proficiency: 'Advanced', yearsOfExperience: 4 },
-          { name: 'Python', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'GraphQL', proficiency: 'Intermediate', yearsOfExperience: 2 },
-          { name: 'REST APIs', proficiency: 'Expert', yearsOfExperience: 5 }
-        ]
-      },
-      {
-        id: generateId(),
-        name: 'Database & DevOps',
-        skills: [
-          { name: 'PostgreSQL', proficiency: 'Advanced', yearsOfExperience: 4 },
-          { name: 'MongoDB', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'Redis', proficiency: 'Intermediate', yearsOfExperience: 2 },
-          { name: 'Docker', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'AWS', proficiency: 'Advanced', yearsOfExperience: 3 },
-          { name: 'CI/CD', proficiency: 'Advanced', yearsOfExperience: 4 }
-        ]
-      },
-      {
-        id: generateId(),
-        name: 'Tools & Methodologies',
-        skills: [
-          { name: 'Git', proficiency: 'Expert', yearsOfExperience: 6 },
-          { name: 'Agile/Scrum', proficiency: 'Advanced', yearsOfExperience: 4 },
-          { name: 'Jest/Testing', proficiency: 'Advanced', yearsOfExperience: 4 },
-          { name: 'Webpack/Vite', proficiency: 'Intermediate', yearsOfExperience: 3 }
-        ]
-      }
-    ]
+    categories: []
   },
 
-  projects: [
-    {
-      id: generateId(),
-      name: 'PortfolioOS',
-      description: 'An innovative desktop OS-style portfolio platform built with React and TypeScript. Features a window management system, customizable desktop, and modular app architecture.',
-      longDescription: 'PortfolioOS reimagines the traditional portfolio website by creating an interactive desktop operating system experience in the browser. Users can manage multiple windowed applications, customize their desktop environment, and showcase their work in a unique, memorable way.',
-      technologies: ['React', 'TypeScript', 'Tailwind CSS', 'Zustand', 'Framer Motion', 'Vite'],
-      images: [],
-      links: {
-        live: 'https://portfolioos.dev',
-        github: 'https://github.com/alexportfolio/portfolioos'
-      },
-      featured: true,
-      startDate: '2024-11-01',
-      status: 'Completed'
-    },
-    {
-      id: generateId(),
-      name: 'NailHub Social',
-      description: 'A social networking platform connecting nail artists and enthusiasts. Features include portfolio showcases, booking system, and community engagement tools.',
-      longDescription: 'NailHub bridges the gap between nail artists and clients with a comprehensive platform featuring artist portfolios, service booking, real-time availability, and a vibrant community. Built with scalability in mind to serve thousands of users.',
-      technologies: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'AWS S3', 'Stripe'],
-      images: [],
-      links: { live: 'https://www.nailhub.co.za', github: 'https://github.com/alexportfolio/nailhub' },
-      featured: true,
-      startDate: '2023-06-01',
-      endDate: '2024-01-15',
-      status: 'Completed'
-    },
-    {
-      id: generateId(),
-      name: 'Delegation Coach AI',
-      description: 'AI-powered task delegation assistant that helps managers effectively assign tasks based on team members\' skills, availability, and workload.',
-      longDescription: 'Leverages machine learning to analyze team dynamics and suggest optimal task assignments. Integrates with project management tools and provides insights on team productivity and capacity planning.',
-      technologies: ['React', 'TypeScript', 'Python', 'TensorFlow', 'FastAPI', 'PostgreSQL'],
-      images: [],
-      links: { github: 'https://github.com/alexportfolio/delegation-coach' },
-      featured: true,
-      startDate: '2024-08-01',
-      status: 'In Progress'
-    },
-    {
-      id: generateId(),
-      name: '3D ShapeShift Visualizer',
-      description: 'Interactive 3D modeling tool for creating and manipulating geometric shapes in real-time using WebGL.',
-      technologies: ['Three.js', 'React', 'WebGL', 'TypeScript'],
-      images: [],
-      links: {
-        live: 'https://shapeshift.demo.dev',
-        github: 'https://github.com/alexportfolio/3d-shapeshift'
-      },
-      featured: false,
-      startDate: '2023-03-01',
-      endDate: '2023-05-30',
-      status: 'Completed'
-    },
-    {
-      id: generateId(),
-      name: 'Real-Time Analytics Dashboard',
-      description: 'Enterprise analytics platform with real-time data visualization, custom metrics, and automated reporting.',
-      technologies: ['React', 'D3.js', 'Socket.io', 'Node.js', 'ClickHouse'],
-      images: [],
-      links: {},
-      featured: false,
-      status: 'Completed'
-    }
-  ],
+  projects: [],
 
   preferences: {
-    accentColor: '#667eea',
+    accentColor: '#ef4444',
     fontSize: 'md',
     showEmail: false,
     showPhone: false
   },
+
+  milestones: [],
 
   metadata: {
     lastModified: Date.now(),
@@ -359,78 +172,33 @@ const defaultProfile: UserProfile = {
   }
 };
 
-// Migration from old About app localStorage
-interface OldAboutContent {
-  title: string;
-  subtitle: string;
-  bio1: string;
-  bio2: string;
-  projects: Array<{ name: string; description: string }>;
-}
+// Helper to debounce database updates
+let saveTimeout: NodeJS.Timeout;
+const saveToSupabase = async (profile: UserProfile) => {
+  if (saveTimeout) clearTimeout(saveTimeout);
 
-const migrateFromOldAbout = (): UserProfile | null => {
-  const oldAbout = localStorage.getItem('portfolioOS_about');
-  if (!oldAbout) return null;
-
-  try {
-    const parsed: OldAboutContent = JSON.parse(oldAbout);
-
-    return {
-      ...defaultProfile,
-      personal: {
-        ...defaultProfile.personal,
-        name: parsed.title,
-        title: parsed.subtitle,
-        bio: [parsed.bio1, parsed.bio2]
-      },
-      projects: parsed.projects.map((p, index) => ({
-        id: generateId(),
-        name: p.name,
-        description: p.description,
-        technologies: [],
-        images: [],
-        links: {},
-        featured: true,
-        status: 'Completed' as const,
-      })),
-      metadata: {
-        lastModified: Date.now(),
-        version: '1.0.0'
-      }
-    };
-  } catch (e) {
-    console.error('Failed to migrate old About data:', e);
-    return null;
-  }
-};
-
-// Load profile from localStorage
-const loadProfileFromStorage = (): UserProfile => {
-  const stored = localStorage.getItem('portfolioOS_userProfile');
-
-  if (stored) {
+  saveTimeout = setTimeout(async () => {
     try {
-      return JSON.parse(stored);
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({ id: 'profile', data: profile, updated_at: new Date().toISOString() });
+
+      if (error) console.error('Error saving profile to Supabase:', error);
+      else console.log('Profile saved to Supabase');
     } catch (e) {
-      console.error('Failed to parse userProfile from localStorage:', e);
-      return defaultProfile;
+      console.error('Failed to save profile:', e);
     }
-  }
-
-  // Check for migration from old About app
-  const migrated = migrateFromOldAbout();
-  if (migrated) {
-    // Save migrated data
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(migrated));
-    return migrated;
-  }
-
-  return defaultProfile;
+  }, 1000); // Debounce for 1 second
 };
 
 // User Store Interface
 interface UserStore {
   profile: UserProfile;
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  fetchProfile: () => Promise<void>;
 
   // Personal info actions
   updatePersonal: (updates: Partial<UserProfile['personal']>) => void;
@@ -474,39 +242,84 @@ interface UserStore {
   // Preferences actions
   updatePreferences: (updates: Partial<UserProfile['preferences']>) => void;
 
+  // Milestones actions
+  addMilestone: (milestone: Omit<UserProfile['milestones'][0], 'id'>) => void;
+  updateMilestone: (id: string, updates: Partial<UserProfile['milestones'][0]>) => void;
+  removeMilestone: (id: string) => void;
+  getMilestonesByYear: (year: number) => UserProfile['milestones'];
+  getMilestonesByMonth: (year: number, month: number) => UserProfile['milestones'];
+
   // Utility actions
-  exportProfile: () => string;
-  importProfile: (json: string) => boolean;
   resetProfile: () => void;
+  exportProfile: () => void;
+  importProfile: (profileData: UserProfile) => void;
 }
 
 // Create the Zustand store
 export const useUserStore = create<UserStore>((set, get) => ({
-  profile: loadProfileFromStorage(),
+  profile: defaultProfile,
+  isLoading: true,
+  error: null,
+
+  fetchProfile: async () => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const { data, error } = await supabase
+        .from('site_content')
+        .select('data')
+        .eq('id', 'profile')
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+        throw error;
+      }
+
+      if (data && data.data) {
+        // Merge with default profile to ensure schema compatibility if fields are missing
+        // This is a simple deep merge strategy or we can just assume data is good
+        // For simplicity, let's just use the data, potentially needing validation
+        set({ profile: { ...defaultProfile, ...data.data as UserProfile }, isLoading: false });
+      } else {
+        // No profile found, stick with default but save it to init the DB row
+        saveToSupabase(defaultProfile);
+        set({ isLoading: false });
+      }
+
+    } catch (err: any) {
+      console.error('Error fetching profile:', err);
+      // Fallback to local storage if available for offline support?
+      // Or just default
+      set({ error: err.message, isLoading: false });
+    }
+  },
 
   // Personal info actions
-  updatePersonal: (updates) => set((state) => {
+  updatePersonal: (updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       personal: { ...state.profile.personal, ...updates },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Social links actions
-  updateSocial: (updates) => set((state) => {
+  updateSocial: (updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       social: { ...state.profile.social, ...updates },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  addCustomSocialLink: (link) => set((state) => {
+  addCustomSocialLink: (link) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       social: {
@@ -515,11 +328,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeCustomSocialLink: (id) => set((state) => {
+  removeCustomSocialLink: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       social: {
@@ -528,11 +342,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateCustomSocialLink: (id, updates) => set((state) => {
+  updateCustomSocialLink: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       social: {
@@ -541,43 +356,47 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Projects actions
-  addProject: (project) => set((state) => {
+  addProject: (project) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       projects: [...state.profile.projects, { ...project, id: generateId() }],
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateProject: (id, updates) => set((state) => {
+  updateProject: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       projects: state.profile.projects.map(p => p.id === id ? { ...p, ...updates } : p),
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeProject: (id) => set((state) => {
+  removeProject: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       projects: state.profile.projects.filter(p => p.id !== id),
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Experience actions
-  addExperience: (experience) => set((state) => {
+  addExperience: (experience) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -586,11 +405,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateExperience: (id, updates) => set((state) => {
+  updateExperience: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -599,11 +419,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeExperience: (id) => set((state) => {
+  removeExperience: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -612,12 +433,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Education actions
-  addEducation: (education) => set((state) => {
+  addEducation: (education) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -626,11 +448,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateEducation: (id, updates) => set((state) => {
+  updateEducation: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -639,11 +462,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeEducation: (id) => set((state) => {
+  removeEducation: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -652,12 +476,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Certification actions
-  addCertification: (certification) => set((state) => {
+  addCertification: (certification) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -666,11 +491,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateCertification: (id, updates) => set((state) => {
+  updateCertification: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -679,11 +505,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeCertification: (id) => set((state) => {
+  removeCertification: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       resume: {
@@ -692,12 +519,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Skills actions
-  addSkillCategory: (category) => set((state) => {
+  addSkillCategory: (category) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       skills: {
@@ -705,11 +533,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  updateSkillCategory: (id, updates) => set((state) => {
+  updateSkillCategory: (id, updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       skills: {
@@ -717,11 +546,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeSkillCategory: (id) => set((state) => {
+  removeSkillCategory: (id) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       skills: {
@@ -729,11 +559,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  addSkillToCategory: (categoryId, skill) => set((state) => {
+  addSkillToCategory: (categoryId, skill) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       skills: {
@@ -745,11 +576,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  removeSkillFromCategory: (categoryId, skillName) => set((state) => {
+  removeSkillFromCategory: (categoryId, skillName) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       skills: {
@@ -761,62 +593,116 @@ export const useUserStore = create<UserStore>((set, get) => ({
       },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
   // Resume summary
-  updateResumeSummary: (summary) => set((state) => {
+  updateResumeSummary: (summary) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
-      resume: { ...state.profile.resume, summary },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      resume: {
+        ...state.profile.resume,
+        summary
+      }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
-
-  // Preferences actions
-  updatePreferences: (updates) => set((state) => {
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
+  updatePreferences: (updates) => {
+    const state = get();
     const newProfile = {
       ...state.profile,
       preferences: { ...state.profile.preferences, ...updates },
       metadata: { ...state.profile.metadata, lastModified: Date.now() }
     };
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-    return { profile: newProfile };
-  }),
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
 
-  // Utility actions
+  // Milestones actions
+  addMilestone: (milestone) => {
+    const state = get();
+    const newProfile = {
+      ...state.profile,
+      milestones: [...state.profile.milestones, { ...milestone, id: generateId() }],
+      metadata: { ...state.profile.metadata, lastModified: Date.now() }
+    };
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
+
+  updateMilestone: (id, updates) => {
+    const state = get();
+    const newProfile = {
+      ...state.profile,
+      milestones: state.profile.milestones.map(m => m.id === id ? { ...m, ...updates } : m),
+      metadata: { ...state.profile.metadata, lastModified: Date.now() }
+    };
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
+
+  removeMilestone: (id) => {
+    const state = get();
+    const newProfile = {
+      ...state.profile,
+      milestones: state.profile.milestones.filter(m => m.id !== id),
+      metadata: { ...state.profile.metadata, lastModified: Date.now() }
+    };
+    set({ profile: newProfile });
+    saveToSupabase(newProfile);
+  },
+
+  getMilestonesByYear: (year) => {
+    const state = get();
+    return state.profile.milestones.filter(m => {
+      const milestoneYear = new Date(m.date).getFullYear();
+      return milestoneYear === year;
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  },
+
+  getMilestonesByMonth: (year, month) => {
+    const state = get();
+    return state.profile.milestones.filter(m => {
+      const date = new Date(m.date);
+      return date.getFullYear() === year && date.getMonth() === month;
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  },
+
+  resetProfile: () => {
+    set({ profile: defaultProfile });
+    saveToSupabase(defaultProfile);
+  },
+
   exportProfile: () => {
-    return JSON.stringify(get().profile, null, 2);
+    const state = get();
+    const dataStr = JSON.stringify(state.profile, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `portfolio_profile_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   },
 
-  importProfile: (json) => {
-    try {
-      const imported: UserProfile = JSON.parse(json);
-
-      // Basic validation
-      if (!imported.personal || !imported.social || !imported.projects) {
-        return false;
+  importProfile: (profileData) => {
+    // Merge with default profile to ensure all required fields exist
+    const mergedProfile = {
+      ...defaultProfile,
+      ...profileData,
+      metadata: {
+        ...defaultProfile.metadata,
+        ...profileData.metadata,
+        lastModified: Date.now()
       }
-
-      const newProfile = {
-        ...imported,
-        metadata: { ...imported.metadata, lastModified: Date.now() }
-      };
-
-      localStorage.setItem('portfolioOS_userProfile', JSON.stringify(newProfile));
-      set({ profile: newProfile });
-      return true;
-    } catch (e) {
-      console.error('Failed to import profile:', e);
-      return false;
-    }
+    };
+    set({ profile: mergedProfile });
+    saveToSupabase(mergedProfile);
   },
-
-  resetProfile: () => set(() => {
-    localStorage.setItem('portfolioOS_userProfile', JSON.stringify(defaultProfile));
-    return { profile: defaultProfile };
-  })
 }));
+

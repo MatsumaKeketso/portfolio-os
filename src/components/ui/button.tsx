@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils'
 
 /**
  * Button component with Framer-inspired styling
- * Provides multiple variants for different use cases across PortfolioOS
+ * Provides multiple variants for different use cases across GenOS
  *
  * Color System:
  * - Primary: Red (main actions, CTAs)
@@ -97,7 +97,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 

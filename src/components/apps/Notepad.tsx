@@ -16,7 +16,7 @@ export function Notepad({ window }: NotepadProps = {}) {
   const fileStore = useFileStore();
   const { windows } = useDesktopStore();
   const { addNotification } = useNotificationStore();
-  const [text, setText] = useState('Welcome to PortfolioOS Notepad!\n\nStart typing your notes here...');
+  const [text, setText] = useState('Welcome to GenOS Notepad!\n\nStart typing your notes here...');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('edit');
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
@@ -129,11 +129,10 @@ export function Notepad({ window }: NotepadProps = {}) {
         <button
           onClick={handleSave}
           disabled={!hasUnsavedChanges || !fileId}
-          className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${
-            hasUnsavedChanges && fileId
+          className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${hasUnsavedChanges && fileId
               ? 'bg-primary-600 text-white hover:bg-primary-700'
               : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
-          }`}
+            }`}
         >
           <Icons.Save className="w-3 h-3" />
           Save {hasUnsavedChanges && '*'}
@@ -152,27 +151,24 @@ export function Notepad({ window }: NotepadProps = {}) {
         <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
           <button
             onClick={() => setViewMode('edit')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
-              viewMode === 'edit' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'edit' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.Edit3 className="w-3 h-3" />
             Edit
           </button>
           <button
             onClick={() => setViewMode('split')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
-              viewMode === 'split' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'split' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.Columns className="w-3 h-3" />
             Split
           </button>
           <button
             onClick={() => setViewMode('preview')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
-              viewMode === 'preview' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'preview' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Icons.Eye className="w-3 h-3" />
             Preview
@@ -182,9 +178,8 @@ export function Notepad({ window }: NotepadProps = {}) {
         {/* Auto-save toggle */}
         <button
           onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
-          className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${
-            autoSaveEnabled ? 'bg-green-600/20 text-green-400' : 'bg-gray-600/20 text-gray-400'
-          }`}
+          className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${autoSaveEnabled ? 'bg-green-600/20 text-green-400' : 'bg-gray-600/20 text-gray-400'
+            }`}
           title={autoSaveEnabled ? 'Auto-save enabled' : 'Auto-save disabled'}
         >
           <Icons.RefreshCw className={`w-3 h-3 ${autoSaveEnabled ? 'animate-spin' : ''}`} />

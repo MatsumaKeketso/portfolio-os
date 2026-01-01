@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
 import { Project } from '../../store/userStore';
@@ -17,6 +18,7 @@ export function Portfolio() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const { profile } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -126,7 +128,7 @@ export function Portfolio() {
       {/* Technologies */}
       {project.technologies.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
-          {project.technologies.slice(0, 3).map((tech, index) => (
+          {project.technologies.slice(0, 3).map((tech: string, index: number) => (
             <span
               key={index}
               className="bg-primary-500/20 text-primary-300 text-xs px-2 py-0.5 rounded"
@@ -190,7 +192,7 @@ export function Portfolio() {
         {/* Technologies */}
         {project.technologies.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {project.technologies.map((tech, index) => (
+            {project.technologies.map((tech: string, index: number) => (
               <span
                 key={index}
                 className="bg-primary-500/20 text-primary-300 text-xs px-2 py-0.5 rounded"
@@ -235,10 +237,12 @@ export function Portfolio() {
             </p>
           </div>
 
-          <Button variant="secondary" size="sm" onClick={openAboutApp}>
-            <Icons.Edit className="w-4 h-4 mr-2" />
-            Edit Projects
-          </Button>
+          {isAuthenticated && (
+            <Button variant="secondary" size="sm" onClick={openAboutApp}>
+              <Icons.Edit className="w-4 h-4 mr-2" />
+              Edit Projects
+            </Button>
+          )}
         </div>
       </div>
 
@@ -411,7 +415,7 @@ export function Portfolio() {
                       </button>
 
                       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        {selectedProject.images.map((_, index) => (
+                        {selectedProject.images.map((_: string, index: number) => (
                           <button
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
@@ -437,7 +441,7 @@ export function Portfolio() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-white mb-3">Technologies</h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProject.technologies.map((tech, index) => (
+                    {selectedProject.technologies.map((tech: string, index: number) => (
                       <span
                         key={index}
                         className="bg-primary-500/20 text-primary-300 px-3 py-1.5 rounded-lg border border-blue-500/30"

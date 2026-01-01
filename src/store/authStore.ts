@@ -1,92 +1,76 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 /**
  * Authentication Store
- * Manages admin authentication state for portfolio protection
+ * Manages admin authentication via Supabase
  */
 
 interface AuthState {
   isAuthenticated: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
-  checkSession: () => void;
+  user: any | null;
+  isLoading: boolean;
+  login: (password: string, email?: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  checkSession: () => Promise<void>;
 }
 
-// Admin password - In production, this should be environment variable
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'portfolio2024';
-
-// Session key
-const SESSION_KEY = 'portfolioOS_auth_session';
-
-/**
- * Check if there's an active session
- */
-const hasActiveSession = (): boolean => {
-  const session = sessionStorage.getItem(SESSION_KEY);
-  if (!session) return false;
-
-  try {
-    const { timestamp, authenticated } = JSON.parse(session);
-    const now = Date.now();
-    const sessionDuration = 24 * 60 * 60 * 1000; // 24 hours
-
-    // Check if session is still valid
-    if (authenticated && (now - timestamp) < sessionDuration) {
-      return true;
-    }
-
-    // Session expired
-    sessionStorage.removeItem(SESSION_KEY);
-    return false;
-  } catch (e) {
-    sessionStorage.removeItem(SESSION_KEY);
-    return false;
-  }
-};
-
-/**
- * Create authentication session
- */
-const createSession = (): void => {
-  const session = {
-    authenticated: true,
-    timestamp: Date.now(),
-  };
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-};
-
-/**
- * Clear authentication session
- */
-const clearSession = (): void => {
-  sessionStorage.removeItem(SESSION_KEY);
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: hasActiveSession(),
+  isAuthenticated: false,
+  user: null,
+  isLoading: true,
 
-  login: (password: string) => {
-    if (password === ADMIN_PASSWORD) {
-      createSession();
-      set({ isAuthenticated: true });
-      console.log('Admin authentication successful');
-      return true;
+  // Initialize session check
+  checkSession: async () => {
+    try {
+      set({ isLoading: true });
+      const { data: { session } } = await supabase.auth.getSession();
+
+      set({
+        isAuthenticated: !!session,
+        user: session?.user || null,
+        isLoading: false
+      });
+
+      // Set up auth state listener for real-time updates
+      supabase.auth.onAuthStateChange((_event, session) => {
+        set({
+          isAuthenticated: !!session,
+          user: session?.user || null,
+          isLoading: false
+        });
+      });
+
+    } catch (error) {
+      console.error('Session check failed:', error);
+      set({ isAuthenticated: false, user: null, isLoading: false });
     }
-    console.warn('Authentication failed: Invalid password');
-    return false;
   },
 
-  logout: () => {
-    clearSession();
-    set({ isAuthenticated: false });
-    console.log('Admin logged out');
+  login: async (password: string, email: string = 'admin@genos.dev') => {
+    try {
+      // In a real scenario, you'd likely have an email input form.
+      // For this portfolio OS style, we might default to a specific admin email
+      // or require the user to enter it.
+      // For now, let's assume valid credentials are passed or we use a hardcoded admin email for Keketso.
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      set({ isAuthenticated: true, user: data.user });
+      return { success: true };
+    } catch (error: any) {
+      console.error('Login failed:', error.message);
+      return { success: false, error: error.message };
+    }
   },
 
-  checkSession: () => {
-    const isValid = hasActiveSession();
-    set({ isAuthenticated: isValid });
-    if (!isValid) {
-      console.log('Session expired or invalid');
-    }
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ isAuthenticated: false, user: null });
   },
 }));

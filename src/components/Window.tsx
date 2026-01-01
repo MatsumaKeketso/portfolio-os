@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
-import { useNotificationStore } from '../store/notificationStore';
 import { WindowState } from '../types';
 import { Button } from './ui/button';
 
@@ -18,7 +17,7 @@ export function Window({ window, children }: WindowProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [snapZone, setSnapZone] = useState<'left' | 'right' | 'top' | null>(null);
-  const [preMaximizeState, setPreMaximizeState] = useState<{ position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
+  const [_preMaximizeState, setPreMaximizeState] = useState<{ position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
 
   const {
     closeWindow,
@@ -28,8 +27,6 @@ export function Window({ window, children }: WindowProps) {
     updateWindowSize,
     bringToFront
   } = useDesktopStore();
-
-  const { addNotification } = useNotificationStore();
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
@@ -65,8 +62,8 @@ export function Window({ window, children }: WindowProps) {
         updateWindowPosition(window.id, { x: newX, y: newY });
 
         // Detect snap zones
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight - TASKBAR_HEIGHT;
+        const screenWidth = globalThis.window.innerWidth;
+        const screenHeight = globalThis.window.innerHeight - TASKBAR_HEIGHT;
 
         if (e.clientX <= SNAP_THRESHOLD) {
           setSnapZone('left');
@@ -91,8 +88,8 @@ export function Window({ window, children }: WindowProps) {
 
     const handleMouseUp = () => {
       if (isDragging && snapZone) {
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight - TASKBAR_HEIGHT;
+        const screenWidth = globalThis.window.innerWidth;
+        const screenHeight = globalThis.window.innerHeight - TASKBAR_HEIGHT;
 
         // Save current state before snapping
         if (!window.isMaximized) {

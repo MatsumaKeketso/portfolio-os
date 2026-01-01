@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
 
@@ -10,6 +11,7 @@ export function Skills() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProficiency, setFilterProficiency] = useState<string>('all');
   const { profile } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -101,10 +103,12 @@ export function Skills() {
             </p>
           </div>
 
-          <Button variant="secondary" size="sm" onClick={openAboutApp}>
-            <Icons.Edit className="w-4 h-4 mr-2" />
-            Edit Skills
-          </Button>
+          {isAuthenticated && (
+            <Button variant="secondary" size="sm" onClick={openAboutApp}>
+              <Icons.Edit className="w-4 h-4 mr-2" />
+              Edit Skills
+            </Button>
+          )}
         </div>
       </div>
 

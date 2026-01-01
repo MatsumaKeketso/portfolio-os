@@ -117,7 +117,7 @@ const surfaceVariants = cva(
 
 export interface SurfaceProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof surfaceVariants> {
+  VariantProps<typeof surfaceVariants> {
   /**
    * Enable animated entrance
    */
@@ -132,7 +132,7 @@ export interface SurfaceProps
 /**
  * Surface component
  *
- * The foundational component for all surfaces in PortfolioOS.
+ * The foundational component for all surfaces in GenOS.
  * Provides consistent glassmorphism, blur, shadows, and borders.
  *
  * @param variant - Surface type (window, dialog, panel, card, etc.)
