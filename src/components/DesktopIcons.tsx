@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { App } from '../types';
+import { theme } from '../theme';
 
 interface GridPosition {
   row: number;
@@ -106,7 +107,6 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     const draggedApp = desktopApps.find(app => app.id === draggingAppId);
     if (!draggedApp) return desktopApps;
 
-    const currentIndex = desktopApps.findIndex(app => app.id === draggingAppId);
     const otherApps = desktopApps.filter(app => app.id !== draggingAppId);
 
     // Insert at hover index
@@ -192,149 +192,142 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     setHoverPosition(null);
   };
 
-  // Smart positioning for hover card to avoid screen edges
-  const getSmartCardPosition = (iconPos: { x: number; y: number }) => {
-    const CARD_WIDTH = 340;
-    const CARD_HEIGHT = 400; // Approximate card height
-    const CARD_MARGIN = 24; // Spacing from icon
-    const SCREEN_PADDING = 16; // Min distance from screen edge
+  // Smart positioning for text content next to icon
+  const getSmartContentPosition = (iconPos: { x: number; y: number }) => {
+    const CONTENT_WIDTH = 600;
+    const CONTENT_HEIGHT = 400; // Approximate height of content
+    const CONTENT_MARGIN = 24;
+    const SCREEN_PADDING = 16;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let cardX = iconPos.x + ICON_WIDTH + CARD_MARGIN; // Default: right of icon
-    let cardY = iconPos.y - 20; // Default: slightly above icon
+    let contentX = iconPos.x + ICON_WIDTH + CONTENT_MARGIN; // Default: right of icon
+    let contentY = iconPos.y;
 
     // Horizontal positioning
     const spaceOnRight = viewportWidth - (iconPos.x + ICON_WIDTH);
-    const spaceOnLeft = iconPos.x;
 
-    if (spaceOnRight < CARD_WIDTH + CARD_MARGIN + SCREEN_PADDING) {
+    if (spaceOnRight < CONTENT_WIDTH + CONTENT_MARGIN + SCREEN_PADDING) {
       // Not enough space on right, try left
-      if (spaceOnLeft > CARD_WIDTH + CARD_MARGIN + SCREEN_PADDING) {
-        cardX = iconPos.x - CARD_WIDTH - CARD_MARGIN;
+      const spaceOnLeft = iconPos.x;
+      if (spaceOnLeft > CONTENT_WIDTH + CONTENT_MARGIN + SCREEN_PADDING) {
+        contentX = iconPos.x - CONTENT_WIDTH - CONTENT_MARGIN;
       } else {
         // Not enough space on either side, center it
-        cardX = Math.max(SCREEN_PADDING, Math.min(
-          viewportWidth - CARD_WIDTH - SCREEN_PADDING,
-          iconPos.x + ICON_WIDTH / 2 - CARD_WIDTH / 2
+        contentX = Math.max(SCREEN_PADDING, Math.min(
+          viewportWidth - CONTENT_WIDTH - SCREEN_PADDING,
+          iconPos.x + ICON_WIDTH / 2 - CONTENT_WIDTH / 2
         ));
       }
     }
 
-    // Vertical positioning
-    const spaceBelow = viewportHeight - iconPos.y - 48; // 48 = taskbar height
-    const spaceAbove = iconPos.y;
+    // Vertical positioning - ensure content doesn't overflow bottom or top
+    const spaceBelow = viewportHeight - iconPos.y;
 
-    if (cardY + CARD_HEIGHT > viewportHeight - 48 - SCREEN_PADDING) {
-      // Card would overflow bottom, try to adjust
-      if (spaceAbove > CARD_HEIGHT + SCREEN_PADDING) {
-        // Show above icon if there's space
-        cardY = iconPos.y - CARD_HEIGHT + ICON_HEIGHT;
-      } else {
-        // Not enough space above or below, align to bottom
-        cardY = viewportHeight - 48 - CARD_HEIGHT - SCREEN_PADDING;
-      }
+    if (spaceBelow < CONTENT_HEIGHT + SCREEN_PADDING) {
+      // Not enough space below, try to align to bottom of viewport
+      // 48 avoids section showing behind taskbar 
+      // const taskbarHeight = theme.components.Taskbar.height;
+      const taskbarHeight = 48;
+      contentY = Math.max(SCREEN_PADDING, (viewportHeight - CONTENT_HEIGHT - SCREEN_PADDING) - taskbarHeight);
     }
 
-    // Ensure card never goes above screen
-    cardY = Math.max(SCREEN_PADDING, cardY);
+    // If content would overflow the top, clamp it
+    if (contentY < SCREEN_PADDING) {
+      contentY = SCREEN_PADDING;
+    }
 
-    return { x: cardX, y: cardY };
+    return { x: contentX, y: contentY };
   };
+
+
 
   return (
     <div ref={containerRef} className="absolute inset-0 p-4 select-none">
-      {/* No overlay - just reduce opacity of other icons */}
-
-      {/* Netflix-Style Preview Card */}
+      {/* Netflix-Style Full-Screen Preview - Behind Desktop Icons */}
       <AnimatePresence>
         {hoveredApp && hoverPosition && (() => {
-          const smartPos = getSmartCardPosition(hoverPosition);
+          const smartPos = getSmartContentPosition(hoverPosition);
           return (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute z-20 pointer-events-none"
-              style={{
-                left: `${smartPos.x}px`,
-                top: `${smartPos.y}px`,
-              }}
+              className="fixed inset-0 pointer-events-none"
+              style={{ zIndex: 0 }}
             >
-            {/* Netflix-style card */}
-            <div className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-700/50 w-[340px]">
-              {/* Top gradient accent - Updated to primary/tertiary colors */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500" />
+              {/* Gradient Background with Theme Colors */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-tertiary-500/20 to-secondary-500/20" />
 
-              {/* Card content */}
-              <div className="p-6">
-                {/* Logo/Icon at top */}
-                <div className="flex justify-center mb-5">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/30 to-tertiary-500/30 blur-2xl" />
-                    {renderIcon(hoveredApp, "relative w-16 h-16 text-white drop-shadow-2xl")}
-                  </div>
-                </div>
+              {/* Dark Overlay */}
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
 
-                {/* App name - Netflix style */}
-                <h3 className="text-white text-2xl font-bold text-center mb-3 tracking-tight">
-                  {hoveredApp.name}
-                </h3>
-
-                {/* Description */}
-                <p className="text-gray-300 text-sm text-center leading-relaxed mb-5 min-h-[40px]">
-                  {hoveredApp.description || 'No description available'}
-                </p>
-
-                {/* Divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
-
-                {/* Details section */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2.5 text-gray-400 text-xs">
-                    <Icons.Layers className="w-4 h-4 text-primary-400" />
-                    <span>{hoveredApp.type === 'component' ? 'Built-in Application' : hoveredApp.type === 'iframe' ? 'Web Application' : 'Static Application'}</span>
+              {/* Content Area - Positioned Next to Icon */}
+              <div
+                className="absolute"
+                style={{
+                  left: `${smartPos.x}px`,
+                  top: `${smartPos.y}px`,
+                  maxWidth: '600px'
+                }}
+              >
+                <div className="space-y-6 p-8">
+                  {/* App Icon with Glow */}
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/40 to-tertiary-500/40 blur-3xl" />
+                    {renderIcon(hoveredApp, "relative w-20 h-20 text-white drop-shadow-2xl")}
                   </div>
 
+                  {/* App Name - Large Netflix Style */}
+                  <h1 className="text-6xl font-bold text-white tracking-tight leading-tight">
+                    {hoveredApp.name}
+                  </h1>
+
+                  {/* App Type as Tagline */}
+                  <p className="text-xl text-primary-400 font-medium">
+                    {hoveredApp.type === 'component'
+                      ? 'Built-in Application'
+                      : hoveredApp.type === 'iframe'
+                        ? 'Web Application'
+                        : 'Static Application'}
+                  </p>
+
+                  {/* Description - Supports Long Text */}
+                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                    <p className="text-base text-gray-300 leading-relaxed">
+                      {hoveredApp.description || 'No description available'}
+                    </p>
+                  </div>
+
+                  {/* Additional Info */}
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    {hoveredApp.pinnedToTaskbar && (
+                      <span className="px-3 py-1.5 bg-primary-500/20 text-primary-300 border border-primary-500/40 rounded-full text-sm font-medium flex items-center gap-2">
+                        <Icons.Pin className="w-4 h-4" />
+                        Pinned to Taskbar
+                      </span>
+                    )}
+                    {hoveredApp.pinnedToDesktop && (
+                      <span className="px-3 py-1.5 bg-tertiary-500/20 text-tertiary-300 border border-tertiary-500/40 rounded-full text-sm font-medium flex items-center gap-2">
+                        <Icons.Monitor className="w-4 h-4" />
+                        Pinned to Desktop
+                      </span>
+                    )}
+                  </div>
+
+                  {/* URL if available */}
                   {hoveredApp.url && (
-                    <div className="flex items-center gap-2.5 text-gray-400 text-xs">
-                      <Icons.Link className="w-4 h-4 text-tertiary-400" />
-                      <span className="truncate">{hoveredApp.url}</span>
+                    <div className="flex items-center gap-2 text-gray-400 text-sm pt-2">
+                      <Icons.Link className="w-4 h-4 text-secondary-400" />
+                      <span className="truncate max-w-lg">{hoveredApp.url}</span>
                     </div>
                   )}
-
-                  {/* Badges */}
-                  {(hoveredApp.pinnedToTaskbar || hoveredApp.pinnedToDesktop) && (
-                    <div className="flex gap-2 pt-2">
-                      {hoveredApp.pinnedToTaskbar && (
-                        <span className="px-2.5 py-1 bg-primary-500/15 text-primary-300 border border-primary-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
-                          <Icons.Pin className="w-3 h-3" />
-                          Taskbar
-                        </span>
-                      )}
-                      {hoveredApp.pinnedToDesktop && (
-                        <span className="px-2.5 py-1 bg-tertiary-500/15 text-tertiary-300 border border-tertiary-500/30 rounded-full text-xs font-medium flex items-center gap-1.5">
-                          <Icons.Monitor className="w-3 h-3" />
-                          Desktop
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Call to action */}
-                <div className="mt-5 pt-4 border-t border-gray-700/50">
-                  <div className="flex items-center justify-center gap-2 text-gray-400 text-xs">
-                    <Icons.MousePointerClick className="w-4 h-4" />
-                    <span>Double-click to open</span>
-                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-          );
+            </motion.div>
+          )
         })()}
       </AnimatePresence>
       {displayApps.map((app, index) => {
@@ -374,18 +367,15 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               e.stopPropagation();
               if (!isDragging) openWindow(app);
             }}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${
-              isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
-            }`}
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
+              }`}
           >
             <div className={`w-${SIZES[iconSize].icon + 2} h-${SIZES[iconSize].icon + 2} flex items-center justify-center`}>
-              {renderIcon(app, `w-${SIZES[iconSize].icon} h-${SIZES[iconSize].icon} text-white drop-shadow-lg transition-transform ${
-                isHovered ? 'scale-110' : 'group-hover:scale-110'
-              }`)}
+              {renderIcon(app, `w-${SIZES[iconSize].icon} h-${SIZES[iconSize].icon} text-white drop-shadow-lg transition-transform ${isHovered ? 'scale-110' : 'group-hover:scale-110'
+                }`)}
             </div>
-            <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${
-              isHovered ? 'font-bold' : ''
-            }`}>
+            <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${isHovered ? 'font-bold' : ''
+              }`}>
               {app.name}
             </span>
           </motion.button>

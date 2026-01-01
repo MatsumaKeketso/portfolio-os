@@ -171,7 +171,7 @@ export function Desktop() {
       onContextMenu={handleDesktopContextMenu}
     >
       {isDraggingOver && (
-        <div className="absolute inset-0 bg-primary-500/20 border-4 border-primary-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
+        <div className="absolute inset-0 bg-primary-500/20 border-1 border-primary-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
           <div className="text-white text-2xl font-bold drop-shadow-lg">Drop files to upload</div>
         </div>
       )}
@@ -227,11 +227,10 @@ export function Desktop() {
                         setIconSize(size);
                         setContextMenu(null);
                       }}
-                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center justify-between ${
-                        systemPreferences.iconSize === size
-                          ? 'text-primary-300 bg-primary-500/20'
-                          : 'text-white hover:bg-white/10'
-                      }`}
+                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center justify-between ${systemPreferences.iconSize === size
+                        ? 'text-primary-300 bg-primary-500/20'
+                        : 'text-white hover:bg-white/10'
+                        }`}
                     >
                       <span className="capitalize">{size} icons</span>
                       {systemPreferences.iconSize === size && <Icons.Check className="w-3 h-3" />}
@@ -257,11 +256,10 @@ export function Desktop() {
                         setSortBy(option.value);
                         setContextMenu(null);
                       }}
-                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center gap-2 ${
-                        sortBy === option.value
-                          ? 'text-primary-300 bg-primary-500/20'
-                          : 'text-white hover:bg-white/10'
-                      }`}
+                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center gap-2 ${sortBy === option.value
+                        ? 'text-primary-300 bg-primary-500/20'
+                        : 'text-white hover:bg-white/10'
+                        }`}
                     >
                       <option.icon className="w-3.5 h-3.5" />
                       {option.label}
@@ -337,70 +335,69 @@ export function Desktop() {
 
                 <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
                   <div className="shrink-0 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <Icons.Image className="w-6 h-6" />
-                        Change Background
-                      </h2>
-                      <p className="text-primary-100 text-sm mt-1">Select a background for your desktop</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                          <Icons.Image className="w-6 h-6" />
+                          Change Background
+                        </h2>
+                        <p className="text-primary-100 text-sm mt-1">Select a background for your desktop</p>
+                      </div>
+                      <button
+                        onClick={() => setShowBackgroundSelector(false)}
+                        className="p-2 hover:bg-white/20 rounded-lg transition-all"
+                      >
+                        <Icons.X className="w-6 h-6" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setShowBackgroundSelector(false)}
-                      className="p-2 hover:bg-white/20 rounded-lg transition-all"
-                    >
-                      <Icons.X className="w-6 h-6" />
-                    </button>
                   </div>
-                </div>
 
-                {/* Gradient divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+                  {/* Gradient divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
 
-                <div className="flex-1 p-6 overflow-y-auto">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {backgrounds.map((bg) => {
-                      const isSelected = selectedBackgroundId === bg.id;
-                      const isBgGradient = bg.url.startsWith('linear-gradient');
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {backgrounds.map((bg) => {
+                        const isSelected = selectedBackgroundId === bg.id;
+                        const isBgGradient = bg.url.startsWith('linear-gradient');
 
-                      return (
-                        <button
-                          key={bg.id}
-                          onClick={() => {
-                            setSelectedBackground(bg.id);
-                            setShowBackgroundSelector(false);
-                          }}
-                          className={`relative rounded overflow-hidden border-4 transition-all group ${
-                            isSelected
+                        return (
+                          <button
+                            key={bg.id}
+                            onClick={() => {
+                              setSelectedBackground(bg.id);
+                              setShowBackgroundSelector(false);
+                            }}
+                            className={`relative rounded overflow-hidden border-4 transition-all group ${isSelected
                               ? 'border-primary-500 shadow-lg shadow-primary-500/50 scale-105'
                               : 'border-gray-700 hover:border-gray-500 hover:scale-102'
-                          }`}
-                        >
-                          <div
-                            className="w-full h-32 bg-cover bg-center"
-                            style={{
-                              background: isBgGradient ? bg.url : 'transparent',
-                              backgroundImage: !isBgGradient ? `url(${bg.url})` : undefined,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                          />
+                              }`}
+                          >
+                            <div
+                              className="w-full h-32 bg-cover bg-center"
+                              style={{
+                                background: isBgGradient ? bg.url : 'transparent',
+                                backgroundImage: !isBgGradient ? `url(${bg.url})` : undefined,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}
+                            />
 
-                          <div className="bg-gray-900/80 backdrop-blur-sm p-3 border-t border-white/10">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-white font-semibold text-sm truncate">
-                                {bg.name}
-                              </h3>
-                              {isSelected && (
-                                <Icons.Check className="w-5 h-5 text-primary-400 flex-shrink-0 ml-2" />
-                              )}
+                            <div className="bg-gray-900/80 backdrop-blur-sm p-3 border-t border-white/10">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-white font-semibold text-sm truncate">
+                                  {bg.name}
+                                </h3>
+                                {isSelected && (
+                                  <Icons.Check className="w-5 h-5 text-primary-400 flex-shrink-0 ml-2" />
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
                 </div>
               </motion.div>
             </motion.div>
