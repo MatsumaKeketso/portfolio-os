@@ -12,9 +12,16 @@ interface GridPosition {
 interface DesktopIconsProps {
   iconSize: 'small' | 'medium' | 'large';
   sortBy: 'name' | 'type' | 'date';
+  taskbarPosition: 'top' | 'bottom' | 'left' | 'right';
+  taskbarSize: 'small' | 'medium' | 'large';
 }
 
-export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIconsProps) {
+export function DesktopIcons({
+  iconSize = 'medium',
+  sortBy = 'name',
+  taskbarPosition = 'bottom',
+  taskbarSize = 'medium'
+}: DesktopIconsProps) {
   // Dynamic sizes based on iconSize prop
   const SIZES = {
     small: { grid: 70, width: 60, height: 70, icon: 8, text: 'text-[10px]' },
@@ -65,10 +72,36 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     }
   }, []);
 
-  // Calculate grid dimensions
+  // Calculate taskbar offset
+  const getTaskbarOffset = () => {
+    const sizeMap = {
+      small: { horizontal: 40, vertical: 48 },
+      medium: { horizontal: 48, vertical: 64 },
+      large: { horizontal: 64, vertical: 80 },
+    };
+
+    const isVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
+    return isVertical ? sizeMap[taskbarSize].vertical : sizeMap[taskbarSize].horizontal;
+  };
+
+  const taskbarOffset = getTaskbarOffset();
+
+  // Calculate grid dimensions accounting for taskbar
   const getGridDimensions = () => {
-    const maxRows = Math.floor((containerHeight - 32 - 48) / GRID_SIZE); // Subtract padding and taskbar
-    return { maxRows };
+    const isVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
+    const padding = 32;
+
+    if (isVertical) {
+      // Vertical taskbar - reduce available width
+      const availableHeight = containerHeight - padding;
+      const maxRows = Math.floor(availableHeight / GRID_SIZE);
+      return { maxRows };
+    } else {
+      // Horizontal taskbar - reduce available height
+      const availableHeight = containerHeight - padding - taskbarOffset;
+      const maxRows = Math.floor(availableHeight / GRID_SIZE);
+      return { maxRows };
+    }
   };
 
   // Convert index to grid position (column-first layout like Windows)
@@ -79,19 +112,39 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     return { row, col };
   };
 
-  // Convert grid position to pixel position
+  // Convert grid position to pixel position accounting for taskbar
   const gridToPixels = (gridPos: GridPosition): { x: number; y: number } => {
-    return {
-      x: gridPos.col * GRID_SIZE + 16,
-      y: gridPos.row * GRID_SIZE + 16,
-    };
+    const basePadding = 16;
+    let x = gridPos.col * GRID_SIZE + basePadding;
+    let y = gridPos.row * GRID_SIZE + basePadding;
+
+    // Adjust starting position based on taskbar position
+    if (taskbarPosition === 'left') {
+      x += taskbarOffset;
+    } else if (taskbarPosition === 'top') {
+      y += taskbarOffset;
+    }
+
+    return { x, y };
   };
 
-  // Convert pixel position to index
+  // Convert pixel position to index accounting for taskbar
   const pixelsToIndex = (x: number, y: number): number => {
     const { maxRows } = getGridDimensions();
-    const col = Math.max(0, Math.floor((x - 16) / GRID_SIZE));
-    const row = Math.max(0, Math.floor((y - 16) / GRID_SIZE));
+    const basePadding = 16;
+
+    // Adjust for taskbar offset
+    let adjustedX = x - basePadding;
+    let adjustedY = y - basePadding;
+
+    if (taskbarPosition === 'left') {
+      adjustedX -= taskbarOffset;
+    } else if (taskbarPosition === 'top') {
+      adjustedY -= taskbarOffset;
+    }
+
+    const col = Math.max(0, Math.floor(adjustedX / GRID_SIZE));
+    const row = Math.max(0, Math.floor(adjustedY / GRID_SIZE));
     return col * maxRows + row;
   };
 
@@ -158,7 +211,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [draggingAppId, dragOffset, dragPosition, hoverIndex, containerHeight]);
+  }, [draggingAppId, dragOffset, dragPosition, hoverIndex, containerHeight, taskbarPosition, taskbarSize, taskbarOffset]);
 
   // Sort apps based on sortBy prop
   const sortApps = (appsToSort: App[]): App[] => {
@@ -378,10 +431,24 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
             }`}
           >
-            <div className={`w-${SIZES[iconSize].icon + 2} h-${SIZES[iconSize].icon + 2} flex items-center justify-center`}>
-              {renderIcon(app, `w-${SIZES[iconSize].icon} h-${SIZES[iconSize].icon} text-white drop-shadow-lg transition-transform ${
-                isHovered ? 'scale-110' : 'group-hover:scale-110'
-              }`)}
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: `${SIZES[iconSize].icon * 4 + 8}px`,
+                height: `${SIZES[iconSize].icon * 4 + 8}px`,
+              }}
+            >
+              <div
+                className={`text-white drop-shadow-lg transition-transform ${
+                  isHovered ? 'scale-110' : 'group-hover:scale-110'
+                }`}
+                style={{
+                  width: `${SIZES[iconSize].icon * 4}px`,
+                  height: `${SIZES[iconSize].icon * 4}px`,
+                }}
+              >
+                {renderIcon(app, "w-full h-full")}
+              </div>
             </div>
             <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${
               isHovered ? 'font-bold' : ''

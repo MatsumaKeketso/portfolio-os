@@ -178,7 +178,12 @@ export function Desktop() {
 
       <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
         <div className="flex-1 relative desktop-area">
-          <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
+          <DesktopIcons
+            iconSize={systemPreferences.iconSize}
+            sortBy={sortBy}
+            taskbarPosition={systemPreferences.taskbarPosition}
+            taskbarSize={systemPreferences.taskbarSize}
+          />
           <WindowManager />
         </div>
 

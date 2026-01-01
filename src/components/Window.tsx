@@ -26,7 +26,8 @@ export function Window({ window, children }: WindowProps) {
     maximizeWindow,
     updateWindowPosition,
     updateWindowSize,
-    bringToFront
+    bringToFront,
+    systemPreferences,
   } = useDesktopStore();
 
   const { addNotification } = useNotificationStore();
@@ -159,8 +160,38 @@ export function Window({ window, children }: WindowProps) {
 
   if (window.isMinimized) return null;
 
+  // Calculate taskbar offset based on system preferences
+  const getTaskbarOffset = () => {
+    const { taskbarPosition, taskbarSize } = systemPreferences;
+
+    // Size mapping
+    const sizeMap = {
+      small: { horizontal: 40, vertical: 48 },
+      medium: { horizontal: 48, vertical: 64 },
+      large: { horizontal: 64, vertical: 80 },
+    };
+
+    const isVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
+    const offset = isVertical ? sizeMap[taskbarSize].vertical : sizeMap[taskbarSize].horizontal;
+
+    return { position: taskbarPosition, offset };
+  };
+
+  const taskbarInfo = getTaskbarOffset();
+
   const windowStyle = window.isMaximized
-    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 48px)' }
+    ? (() => {
+        const { position, offset } = taskbarInfo;
+        if (position === 'bottom') {
+          return { left: 0, top: 0, width: '100%', height: `calc(100% - ${offset}px)` };
+        } else if (position === 'top') {
+          return { left: 0, top: `${offset}px`, width: '100%', height: `calc(100% - ${offset}px)` };
+        } else if (position === 'left') {
+          return { left: `${offset}px`, top: 0, width: `calc(100% - ${offset}px)`, height: '100%' };
+        } else { // right
+          return { left: 0, top: 0, width: `calc(100% - ${offset}px)`, height: '100%' };
+        }
+      })()
     : {
         left: `${window.position.x}px`,
         top: `${window.position.y}px`,
@@ -168,12 +199,19 @@ export function Window({ window, children }: WindowProps) {
         height: `${window.size.height}px`
       };
 
+  // Animation settings based on system preferences
+  const animationProps = systemPreferences.windowAnimations
+    ? {
+        initial: { opacity: 0, scale: 0.95, y: 20 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.95, y: 20 },
+        transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as any },
+      }
+    : {};
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: 20 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      {...animationProps}
       className="absolute flex flex-col"
       style={{
         ...windowStyle,

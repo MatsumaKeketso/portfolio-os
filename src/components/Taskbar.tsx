@@ -13,11 +13,49 @@ export function Taskbar() {
     systemPreferences,
   } = useDesktopStore();
   const [time, setTime] = useState(new Date());
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-hide taskbar functionality
+  useEffect(() => {
+    if (!systemPreferences.autoHideTaskbar) {
+      setIsVisible(true);
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const { taskbarPosition } = systemPreferences;
+      const threshold = 5; // pixels from edge to trigger show
+
+      if (taskbarPosition === 'bottom' && e.clientY >= window.innerHeight - threshold) {
+        setIsVisible(true);
+      } else if (taskbarPosition === 'top' && e.clientY <= threshold) {
+        setIsVisible(true);
+      } else if (taskbarPosition === 'left' && e.clientX <= threshold) {
+        setIsVisible(true);
+      } else if (taskbarPosition === 'right' && e.clientX >= window.innerWidth - threshold) {
+        setIsVisible(true);
+      } else {
+        // Only hide if mouse is far from taskbar area
+        const hideThreshold = 100;
+        if (
+          (taskbarPosition === 'bottom' && e.clientY < window.innerHeight - hideThreshold) ||
+          (taskbarPosition === 'top' && e.clientY > hideThreshold) ||
+          (taskbarPosition === 'left' && e.clientX > hideThreshold) ||
+          (taskbarPosition === 'right' && e.clientX < window.innerWidth - hideThreshold)
+        ) {
+          setIsVisible(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, [systemPreferences.autoHideTaskbar, systemPreferences.taskbarPosition]);
 
   const pinnedApps = apps.filter(app => app.pinnedToTaskbar);
   const openApps = windows.filter(w => !w.isMinimized);
@@ -87,8 +125,26 @@ export function Taskbar() {
 
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
 
+  // Calculate transform for auto-hide
+  const getAutoHideTransform = () => {
+    if (!systemPreferences.autoHideTaskbar || isVisible) return 'none';
+
+    const { taskbarPosition } = systemPreferences;
+    if (taskbarPosition === 'bottom') return 'translateY(100%)';
+    if (taskbarPosition === 'top') return 'translateY(-100%)';
+    if (taskbarPosition === 'left') return 'translateX(-100%)';
+    if (taskbarPosition === 'right') return 'translateX(100%)';
+    return 'none';
+  };
+
   return (
-    <div className={getTaskbarClasses()}>
+    <div
+      className={getTaskbarClasses()}
+      style={{
+        transform: getAutoHideTransform(),
+        transition: 'transform 0.3s ease-in-out',
+      }}
+    >
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
         <button
           onClick={toggleStartMenu}
