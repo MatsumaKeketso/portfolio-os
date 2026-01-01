@@ -162,11 +162,11 @@ export function Window({ window, children }: WindowProps) {
   const windowStyle = window.isMaximized
     ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 48px)' }
     : {
-        left: `${window.position.x}px`,
-        top: `${window.position.y}px`,
-        width: `${window.size.width}px`,
-        height: `${window.size.height}px`
-      };
+      left: `${window.position.x}px`,
+      top: `${window.position.y}px`,
+      width: `${window.size.width}px`,
+      height: `${window.size.height}px`
+    };
 
   return (
     <motion.div
@@ -193,7 +193,7 @@ export function Window({ window, children }: WindowProps) {
           ref={headerRef}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
-          className="flex items-center justify-between px-4 h-12 cursor-move select-none backdrop-blur-md bg-white/5 shrink-0"
+          className="flex items-center justify-between px-4 py-2 cursor-move select-none bg-white/5 shrink-0"
         >
           <div className="flex items-center gap-2">
             {renderIcon(window.icon, window.customIcon, "w-4 h-4 text-primary-400")}
