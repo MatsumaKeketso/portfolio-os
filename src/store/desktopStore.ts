@@ -10,6 +10,14 @@ interface DesktopBackground {
   config?: Record<string, any>;
 }
 
+interface SystemPreferences {
+  taskbarPosition: 'top' | 'bottom' | 'left' | 'right';
+  taskbarSize: 'small' | 'medium' | 'large';
+  iconSize: 'small' | 'medium' | 'large';
+  windowAnimations: boolean;
+  autoHideTaskbar: boolean;
+}
+
 interface DesktopStore {
   apps: App[];
   windows: WindowState[];
@@ -18,6 +26,7 @@ interface DesktopStore {
   maxZIndex: number;
   backgrounds: DesktopBackground[];
   selectedBackgroundId: string;
+  systemPreferences: SystemPreferences;
 
   addApp: (app: App) => void;
   removeApp: (appId: string) => void;
@@ -46,6 +55,13 @@ interface DesktopStore {
   removeBackground: (backgroundId: string) => void;
   setSelectedBackground: (backgroundId: string) => void;
   getSelectedBackground: () => DesktopBackground | undefined;
+
+  updateSystemPreferences: (preferences: Partial<SystemPreferences>) => void;
+  setTaskbarPosition: (position: SystemPreferences['taskbarPosition']) => void;
+  setTaskbarSize: (size: SystemPreferences['taskbarSize']) => void;
+  setIconSize: (size: SystemPreferences['iconSize']) => void;
+  setWindowAnimations: (enabled: boolean) => void;
+  setAutoHideTaskbar: (enabled: boolean) => void;
 }
 
 const defaultApps: App[] = [
@@ -297,6 +313,30 @@ const loadSelectedBackgroundId = (): string => {
   return stored || 'default-blue';
 };
 
+const defaultSystemPreferences: SystemPreferences = {
+  taskbarPosition: 'bottom',
+  taskbarSize: 'medium',
+  iconSize: 'medium',
+  windowAnimations: true,
+  autoHideTaskbar: false,
+};
+
+const loadSystemPreferences = (): SystemPreferences => {
+  const stored = localStorage.getItem('portfolioOS_systemPreferences');
+  if (stored) {
+    try {
+      return { ...defaultSystemPreferences, ...JSON.parse(stored) };
+    } catch (e) {
+      return defaultSystemPreferences;
+    }
+  }
+  return defaultSystemPreferences;
+};
+
+const saveSystemPreferences = (preferences: SystemPreferences): void => {
+  localStorage.setItem('portfolioOS_systemPreferences', JSON.stringify(preferences));
+};
+
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   apps: loadAppsFromStorage(),
   windows: [],
@@ -305,6 +345,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   maxZIndex: 1000,
   backgrounds: loadBackgroundsFromStorage(),
   selectedBackgroundId: loadSelectedBackgroundId(),
+  systemPreferences: loadSystemPreferences(),
 
   addApp: (app) => set((state) => {
     const newApps = [...state.apps, app];
@@ -479,5 +520,41 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   getSelectedBackground: () => {
     const state = get();
     return state.backgrounds.find(b => b.id === state.selectedBackgroundId);
-  }
+  },
+
+  updateSystemPreferences: (preferences) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, ...preferences };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
+
+  setTaskbarPosition: (position) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, taskbarPosition: position };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
+
+  setTaskbarSize: (size) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, taskbarSize: size };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
+
+  setIconSize: (size) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, iconSize: size };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
+
+  setWindowAnimations: (enabled) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, windowAnimations: enabled };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
+
+  setAutoHideTaskbar: (enabled) => set((state) => {
+    const newPreferences = { ...state.systemPreferences, autoHideTaskbar: enabled };
+    saveSystemPreferences(newPreferences);
+    return { systemPreferences: newPreferences };
+  }),
 }));

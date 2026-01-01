@@ -10,7 +10,21 @@ type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const { profile, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
-  const { openWindow, apps, backgrounds, selectedBackgroundId, setSelectedBackground, addBackground, removeBackground } = useDesktopStore();
+  const {
+    openWindow,
+    apps,
+    backgrounds,
+    selectedBackgroundId,
+    setSelectedBackground,
+    addBackground,
+    removeBackground,
+    systemPreferences,
+    setTaskbarPosition,
+    setTaskbarSize,
+    setIconSize,
+    setWindowAnimations,
+    setAutoHideTaskbar,
+  } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -451,37 +465,61 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Position</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
-                      defaultValue="bottom"
-                      disabled
+                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      value={systemPreferences.taskbarPosition}
+                      onChange={(e) => {
+                        setTaskbarPosition(e.target.value as any);
+                        addNotification({
+                          type: 'success',
+                          title: 'Taskbar Position Changed',
+                          message: `Taskbar moved to ${e.target.value}`,
+                          duration: 2000,
+                        });
+                      }}
                     >
                       <option value="top" className="bg-slate-800">Top</option>
                       <option value="bottom" className="bg-slate-800">Bottom</option>
                       <option value="left" className="bg-slate-800">Left</option>
                       <option value="right" className="bg-slate-800">Right</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Coming soon: Change taskbar position</p>
+                    <p className="text-slate-400 text-xs mt-1">Change where the taskbar appears</p>
                   </div>
 
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Size</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
-                      defaultValue="medium"
-                      disabled
+                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      value={systemPreferences.taskbarSize}
+                      onChange={(e) => {
+                        setTaskbarSize(e.target.value as any);
+                        addNotification({
+                          type: 'success',
+                          title: 'Taskbar Size Changed',
+                          message: `Taskbar size set to ${e.target.value}`,
+                          duration: 2000,
+                        });
+                      }}
                     >
                       <option value="small" className="bg-slate-800">Small</option>
                       <option value="medium" className="bg-slate-800">Medium</option>
                       <option value="large" className="bg-slate-800">Large</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Coming soon: Adjust taskbar size</p>
+                    <p className="text-slate-400 text-xs mt-1">Adjust taskbar height/width</p>
                   </div>
 
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-not-allowed opacity-50">
+                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
                     <input
                       type="checkbox"
-                      defaultChecked={true}
-                      disabled
+                      checked={systemPreferences.autoHideTaskbar}
+                      onChange={(e) => {
+                        setAutoHideTaskbar(e.target.checked);
+                        addNotification({
+                          type: 'info',
+                          title: 'Auto-hide Taskbar',
+                          message: e.target.checked ? 'Taskbar will auto-hide' : 'Taskbar always visible',
+                          duration: 2000,
+                        });
+                      }}
                       className="w-5 h-5"
                     />
                     <div className="flex-1">
@@ -490,7 +528,7 @@ export function Settings() {
                         <span className="text-white font-medium">Auto-hide Taskbar</span>
                       </div>
                       <p className="text-slate-400 text-xs mt-1">
-                        Coming soon: Automatically hide taskbar when not in use
+                        Automatically hide taskbar when not in use
                       </p>
                     </div>
                   </label>
@@ -507,15 +545,23 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Icon Size</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
-                      defaultValue="medium"
-                      disabled
+                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      value={systemPreferences.iconSize}
+                      onChange={(e) => {
+                        setIconSize(e.target.value as any);
+                        addNotification({
+                          type: 'success',
+                          title: 'Icon Size Changed',
+                          message: `Desktop icons set to ${e.target.value}`,
+                          duration: 2000,
+                        });
+                      }}
                     >
-                      <option value="small" className="bg-slate-800">Small (32px)</option>
-                      <option value="medium" className="bg-slate-800">Medium (48px)</option>
-                      <option value="large" className="bg-slate-800">Large (64px)</option>
+                      <option value="small" className="bg-slate-800">Small (64px)</option>
+                      <option value="medium" className="bg-slate-800">Medium (80px)</option>
+                      <option value="large" className="bg-slate-800">Large (96px)</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Coming soon: Adjust desktop icon size</p>
+                    <p className="text-slate-400 text-xs mt-1">Adjust desktop icon size</p>
                   </div>
 
                   <div>
@@ -559,11 +605,19 @@ export function Settings() {
                   Performance & Effects
                 </h3>
                 <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-not-allowed opacity-50">
+                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
                     <input
                       type="checkbox"
-                      defaultChecked={true}
-                      disabled
+                      checked={systemPreferences.windowAnimations}
+                      onChange={(e) => {
+                        setWindowAnimations(e.target.checked);
+                        addNotification({
+                          type: 'info',
+                          title: 'Window Animations',
+                          message: e.target.checked ? 'Animations enabled' : 'Animations disabled',
+                          duration: 2000,
+                        });
+                      }}
                       className="w-5 h-5"
                     />
                     <div className="flex-1">
@@ -572,7 +626,7 @@ export function Settings() {
                         <span className="text-white font-medium">Window Animations</span>
                       </div>
                       <p className="text-slate-400 text-xs mt-1">
-                        Coming soon: Enable smooth window open/close animations
+                        Enable smooth window open/close animations
                       </p>
                     </div>
                   </label>
@@ -647,10 +701,12 @@ export function Settings() {
                 <div className="flex items-start gap-4">
                   <Icons.Settings className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
                   <div>
-                    <h4 className="text-white font-semibold mb-2">Advanced System Controls</h4>
+                    <h4 className="text-white font-semibold mb-2">System Customization Available</h4>
+                    <p className="text-slate-300 text-sm leading-relaxed mb-2">
+                      <strong className="text-primary-400">Now Active:</strong> Taskbar positioning & size, desktop icon sizing, window animations, and auto-hide taskbar.
+                    </p>
                     <p className="text-slate-300 text-sm leading-relaxed">
-                      System-level features are currently in development. Background customization is fully functional,
-                      while taskbar positioning, icon sizing, and performance controls will be available in future updates.
+                      <strong className="text-secondary-400">Coming Soon:</strong> Icon arrangement modes, visual effects controls, performance mode, and startup applications manager.
                     </p>
                   </div>
                 </div>

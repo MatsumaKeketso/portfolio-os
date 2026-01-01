@@ -22,7 +22,9 @@ export function Desktop() {
     getSelectedBackground,
     backgrounds,
     selectedBackgroundId,
-    setSelectedBackground
+    setSelectedBackground,
+    systemPreferences,
+    setIconSize,
   } = useDesktopStore();
   const fileStore = useFileStore();
   const { isAuthenticated, checkSession } = useAuthStore();
@@ -31,7 +33,6 @@ export function Desktop() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
 
   useEffect(() => {
@@ -177,7 +178,7 @@ export function Desktop() {
 
       <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
         <div className="flex-1 relative desktop-area">
-          <DesktopIcons iconSize={iconSize} sortBy={sortBy} />
+          <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
           <WindowManager />
         </div>
 
@@ -227,13 +228,13 @@ export function Desktop() {
                         setContextMenu(null);
                       }}
                       className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center justify-between ${
-                        iconSize === size
+                        systemPreferences.iconSize === size
                           ? 'text-primary-300 bg-primary-500/20'
                           : 'text-white hover:bg-white/10'
                       }`}
                     >
                       <span className="capitalize">{size} icons</span>
-                      {iconSize === size && <Icons.Check className="w-3 h-3" />}
+                      {systemPreferences.iconSize === size && <Icons.Check className="w-3 h-3" />}
                     </button>
                   ))}
                 </div>

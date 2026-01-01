@@ -3,10 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+  /* Theme CSS Variables - Set by themeStore */
+  :root {
+    --color-primary: 239, 68, 68;
+    --color-secondary: 59, 130, 246;
+    --color-tertiary: 139, 92, 246;
+    --color-accent: 245, 158, 11;
+    --color-primary-hover: 220, 38, 38;
+    --color-secondary-hover: 29, 78, 216;
+    --color-tertiary-hover: 109, 40, 217;
+    --color-accent-hover: 217, 119, 6;
+    --border-radius: 0.75rem;
+    --spacing-scale: 1;
+  }
+
   /* Custom Scrollbar - Futuristic Minimal Space UI */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(239, 68, 68, 0.3) rgba(255, 255, 255, 0.05);
+    scrollbar-color: rgba(var(--color-primary), 0.3) rgba(255, 255, 255, 0.05);
   }
 
   /* Webkit Scrollbar (Chrome, Safari, Edge) */
@@ -22,7 +36,7 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(239, 68, 68, 0.3);
+    background: rgba(var(--color-primary), 0.3);
     border-radius: 4px;
     border: 2px solid transparent;
     background-clip: padding-box;
@@ -30,14 +44,14 @@
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(239, 68, 68, 0.5);
+    background: rgba(var(--color-primary), 0.5);
     border-radius: 4px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
   *::-webkit-scrollbar-thumb:active {
-    background: rgba(239, 68, 68, 0.7);
+    background: rgba(var(--color-primary), 0.7);
   }
 
   /* Scrollbar corner */
@@ -59,5 +73,86 @@
   body {
     @apply bg-gray-950 text-white antialiased;
     overflow: hidden;
+  }
+
+  /* Dynamic Border Radius - Applied globally based on theme */
+  [data-border-radius="none"] .window,
+  [data-border-radius="none"] .rounded,
+  [data-border-radius="none"] .rounded-lg,
+  [data-border-radius="none"] .rounded-xl {
+    border-radius: 0 !important;
+  }
+
+  [data-border-radius="sm"] .window,
+  [data-border-radius="sm"] .rounded,
+  [data-border-radius="sm"] .rounded-lg,
+  [data-border-radius="sm"] .rounded-xl {
+    border-radius: 0.375rem !important;
+  }
+
+  [data-border-radius="md"] .window,
+  [data-border-radius="md"] .rounded,
+  [data-border-radius="md"] .rounded-lg,
+  [data-border-radius="md"] .rounded-xl {
+    border-radius: 0.5rem !important;
+  }
+
+  [data-border-radius="lg"] .window,
+  [data-border-radius="lg"] .rounded,
+  [data-border-radius="lg"] .rounded-lg,
+  [data-border-radius="lg"] .rounded-xl {
+    border-radius: 0.75rem !important;
+  }
+
+  [data-border-radius="xl"] .window,
+  [data-border-radius="xl"] .rounded,
+  [data-border-radius="xl"] .rounded-lg,
+  [data-border-radius="xl"] .rounded-xl {
+    border-radius: 1rem !important;
+  }
+
+  /* Dynamic Spacing - Applied via CSS variable */
+  [data-spacing="compact"] {
+    --spacing-multiplier: 0.75;
+  }
+
+  [data-spacing="normal"] {
+    --spacing-multiplier: 1;
+  }
+
+  [data-spacing="comfortable"] {
+    --spacing-multiplier: 1.25;
+  }
+
+  [data-spacing="compact"] .p-2 { padding: calc(0.5rem * 0.75) !important; }
+  [data-spacing="compact"] .p-3 { padding: calc(0.75rem * 0.75) !important; }
+  [data-spacing="compact"] .p-4 { padding: calc(1rem * 0.75) !important; }
+  [data-spacing="compact"] .p-6 { padding: calc(1.5rem * 0.75) !important; }
+  [data-spacing="compact"] .gap-2 { gap: calc(0.5rem * 0.75) !important; }
+  [data-spacing="compact"] .gap-3 { gap: calc(0.75rem * 0.75) !important; }
+  [data-spacing="compact"] .gap-4 { gap: calc(1rem * 0.75) !important; }
+
+  [data-spacing="comfortable"] .p-2 { padding: calc(0.5rem * 1.25) !important; }
+  [data-spacing="comfortable"] .p-3 { padding: calc(0.75rem * 1.25) !important; }
+  [data-spacing="comfortable"] .p-4 { padding: calc(1rem * 1.25) !important; }
+  [data-spacing="comfortable"] .p-6 { padding: calc(1.5rem * 1.25) !important; }
+  [data-spacing="comfortable"] .gap-2 { gap: calc(0.5rem * 1.25) !important; }
+  [data-spacing="comfortable"] .gap-3 { gap: calc(0.75rem * 1.25) !important; }
+  [data-spacing="comfortable"] .gap-4 { gap: calc(1rem * 1.25) !important; }
+
+  /* Dynamic Icon Styles */
+  [data-icon-style="rounded"] .desktop-icon,
+  [data-icon-style="rounded"] .app-icon {
+    border-radius: 50% !important;
+  }
+
+  [data-icon-style="sharp"] .desktop-icon,
+  [data-icon-style="sharp"] .app-icon {
+    border-radius: 0 !important;
+  }
+
+  [data-icon-style="default"] .desktop-icon,
+  [data-icon-style="default"] .app-icon {
+    border-radius: 0.5rem !important;
   }
 }

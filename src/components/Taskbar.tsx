@@ -3,7 +3,15 @@ import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 
 export function Taskbar() {
-  const { apps, windows, isStartMenuOpen, toggleStartMenu, openWindow, minimizeWindow } = useDesktopStore();
+  const {
+    apps,
+    windows,
+    isStartMenuOpen,
+    toggleStartMenu,
+    openWindow,
+    minimizeWindow,
+    systemPreferences,
+  } = useDesktopStore();
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -37,9 +45,51 @@ export function Taskbar() {
     return <Icon className={className} />;
   };
 
+  // Calculate taskbar classes based on system preferences
+  const getTaskbarClasses = () => {
+    const { taskbarPosition, taskbarSize } = systemPreferences;
+
+    // Position classes
+    const positionClasses = {
+      top: 'top-0 left-0 right-0 flex-row',
+      bottom: 'bottom-0 left-0 right-0 flex-row',
+      left: 'left-0 top-0 bottom-0 flex-col',
+      right: 'right-0 top-0 bottom-0 flex-col',
+    };
+
+    // Size classes
+    const sizeClasses = {
+      horizontal: {
+        small: 'h-10',
+        medium: 'h-12',
+        large: 'h-16',
+      },
+      vertical: {
+        small: 'w-12',
+        medium: 'w-16',
+        large: 'w-20',
+      },
+    };
+
+    const isVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
+    const sizeClass = isVertical ? sizeClasses.vertical[taskbarSize] : sizeClasses.horizontal[taskbarSize];
+
+    // Border classes
+    const borderClasses = {
+      top: 'border-b',
+      bottom: 'border-t',
+      left: 'border-r',
+      right: 'border-l',
+    };
+
+    return `fixed ${positionClasses[taskbarPosition]} ${sizeClass} ${borderClasses[taskbarPosition]} bg-gray-900/70 backdrop-blur-md border-white/10 flex items-center justify-between px-2 z-[10000]`;
+  };
+
+  const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-gray-900/70 backdrop-blur-md border-t border-white/10 flex items-center justify-between px-2 z-[10000]">
-      <div className="flex items-center gap-1">
+    <div className={getTaskbarClasses()}>
+      <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
         <button
           onClick={toggleStartMenu}
           className={`w-10 h-10 rounded flex items-center justify-center transition-all ${isStartMenuOpen ? 'bg-primary-600' : 'hover:bg-white/10'
@@ -48,7 +98,7 @@ export function Taskbar() {
           <Icons.Grid3x3 className="w-5 h-5 text-white" />
         </button>
 
-        <div className="w-px h-6 bg-gray-700 mx-1" />
+        <div className={isVertical ? 'h-px w-6 bg-gray-700 my-1' : 'w-px h-6 bg-gray-700 mx-1'} />
 
         {pinnedApps.map((app) => {
           const isOpen = windows.some(w => w.appId === app.id);
@@ -91,12 +141,12 @@ export function Taskbar() {
         })}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-white text-xs">
+      <div className={`flex items-center gap-3 ${isVertical ? 'flex-col' : 'flex-row'}`}>
+        <div className={`flex items-center gap-2 text-white text-xs ${isVertical ? 'flex-col' : 'flex-row'}`}>
           <Icons.Wifi className="w-4 h-4" />
           <Icons.Volume2 className="w-4 h-4" />
         </div>
-        <div className="text-white text-xs text-right">
+        <div className={`text-white text-xs ${isVertical ? 'text-center' : 'text-right'}`}>
           <div className="font-medium">{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
           <div className="text-[10px] opacity-70">{time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
         </div>
