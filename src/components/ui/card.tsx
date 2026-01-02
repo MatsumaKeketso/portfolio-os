@@ -29,44 +29,46 @@ import { BorderGlow } from '../aceternity/ui/border-glow'
  */
 
 const cardVariants = cva(
-  // Base styles
-  'relative transition-all duration-300',
+  // Base styles - Cyberpunk easing
+  'relative transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
   {
     variants: {
       variant: {
-        // Desktop icon hover card style (Netflix-inspired with new colors)
+        // Desktop icon with thin top data strip (HUD panel, angled corners)
         hover:
-          'bg-gradient-to-b from-gray-900 via-gray-900 to-black overflow-hidden shadow-2xl border border-gray-700/50 hover:border-gray-600/70 hover:scale-[1.02]',
+          'bg-gradient-to-b from-gray-900 via-black to-black overflow-hidden shadow-hud-base border-t border-primary-500/30 border-x border-b border-gray-800/50 hover:border-t-primary-500/50 hover:shadow-lg hover:shadow-primary-500/30 hover:translate-y-[-2px]',
 
-        // Standard glassmorphism card
+        // Standard HUD panel with crisp edges (angled corners)
         standard:
-          'bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/30 shadow-lg',
+          'bg-gray-900/50 backdrop-blur-md border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 shadow-hud-base hover:shadow-lg hover:shadow-primary-500/30 hover:translate-y-[-1px]',
 
-        // Elevated card with stronger shadow
+        // Elevated layered panel (angled corners, more depth)
         elevated:
-          'bg-gradient-to-b from-system-surface-raised to-system-surface-base border border-white/10 shadow-elevated hover:shadow-2xl',
+          'bg-gradient-to-b from-gray-900/90 to-black/90 border-t border-primary-500/30 border-x border-b border-gray-800 shadow-hud-elevated hover:shadow-lg hover:shadow-primary-500/20 hover:translate-y-[-2px]',
 
-        // Flat card with minimal styling
+        // Flat minimal HUD surface (no angled corners)
         flat:
-          'bg-system-surface-base border border-white/8 hover:border-white/12 shadow-sm',
+          'bg-black/80 border border-gray-800/60 hover:border-primary-500/30 shadow-sm',
 
-        // Accent card with primary color
+        // Accent panel with subtle primary tint (angled corners)
         accent:
-          'bg-gradient-to-br from-primary-900/20 to-tertiary-900/20 border border-primary-500/30 shadow-glow-primary',
+          'bg-gradient-to-br from-primary-900/20 via-black/90 to-tertiary-900/20 border border-primary-500/40 shadow-hud-base hover:shadow-lg hover:shadow-primary-500/40 hover:translate-y-[-1px]',
 
-        // Window chrome (for compatibility)
+        // Window main container (sharp, layered, no angled corners)
         window:
-          'bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 shadow-window',
+          'bg-black/95 backdrop-blur-xl border-t border-primary-500/25 border-x border-b border-gray-800/70 shadow-hud-elevated',
 
-        // Modal/Panel style (for compatibility)
+        // Modal elevated dialog (highest layer, angled corners)
         modal:
-          'bg-gray-800/95 backdrop-blur-2xl border border-gray-700/50 shadow-2xl',
+          'bg-black/97 backdrop-blur-2xl border border-primary-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)] shadow-hud-hairline',
 
-        // Desktop icon card (for compatibility)
-        icon: 'bg-gray-900/95 backdrop-blur-lg border border-white/20 shadow-glass',
+        // Icon sharp container (no angled corners)
+        icon:
+          'bg-black/90 backdrop-blur-lg border border-primary-500/20 shadow-hud-base',
 
-        // Context menu (for compatibility)
-        menu: 'bg-white dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 shadow-xl backdrop-blur-md',
+        // Menu context panel (no angled corners)
+        menu:
+          'bg-black/95 border border-primary-500/30 shadow-hud-elevated backdrop-blur-md',
       },
 
       padding: {
@@ -77,16 +79,16 @@ const cardVariants = cva(
       },
 
       rounded: {
-        none: 'rounded-none',
-        md: 'rounded-lg',
-        lg: 'rounded-xl',
-        xl: 'rounded-2xl',
+        none: 'rounded-none',    // Cyberpunk default
+        md: 'rounded-none',      // Override to sharp for Cyberpunk
+        lg: 'rounded-none',      // Override to sharp for Cyberpunk
+        xl: 'rounded-none',      // Override to sharp for Cyberpunk
       },
     },
     defaultVariants: {
       variant: 'window',
       padding: 'md',
-      rounded: 'lg',
+      rounded: 'none',           // Force sharp for Cyberpunk
     },
   }
 )
@@ -112,11 +114,22 @@ export interface CardProps
  * @param children - Card content
  */
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant, padding, rounded, borderGlow = false, glowColor, glowSize, ...props }, ref) => {
+  ({ className, variant, padding, rounded, borderGlow = false, glowColor, glowSize, style, ...props }, ref) => {
+    // Variants that get angled corners (Star Citizen HUD style)
+    const hasAngledCorners = variant && ['hover', 'standard', 'elevated', 'accent', 'modal'].includes(variant)
+
+    const clipPathStyle = hasAngledCorners
+      ? {
+          clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+          ...style,
+        }
+      : style
+
     const card = (
       <div
         ref={ref}
         className={cn(cardVariants({ variant, padding, rounded, className }))}
+        style={clipPathStyle}
         {...props}
       />
     )
@@ -220,23 +233,23 @@ CardFooter.displayName = 'CardFooter'
 
 /**
  * Card Accent Bar
- * Colorful gradient bar at the top of hover cards
+ * HUD top data strip (no glow, just thin line)
  */
 const CardAccent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & { variant?: 'primary' | 'tertiary' | 'mixed' }
 >(({ className, variant = 'mixed', ...props }, ref) => {
   const gradients = {
-    primary: 'bg-gradient-to-r from-primary-500 via-primary-600 to-primary-500',
-    tertiary: 'bg-gradient-to-r from-tertiary-500 via-tertiary-600 to-tertiary-500',
-    mixed: 'bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500',
+    primary: 'bg-gradient-to-r from-transparent via-primary-500/60 to-transparent',
+    tertiary: 'bg-gradient-to-r from-transparent via-tertiary-500/60 to-transparent',
+    mixed: 'bg-gradient-to-r from-primary-500/40 via-tertiary-500/60 to-primary-500/40',
   };
 
   return (
     <div
       ref={ref}
       className={cn(
-        'absolute top-0 left-0 right-0 h-1',
+        'absolute top-0 left-0 right-0 h-[1px]',  // Thin data indicator line
         gradients[variant],
         className
       )}
@@ -248,7 +261,7 @@ CardAccent.displayName = 'CardAccent';
 
 /**
  * Card Divider
- * Gradient divider line (desktop icon style)
+ * HUD section divider (subtle, no glow)
  */
 const CardDivider = React.forwardRef<
   HTMLDivElement,
@@ -257,7 +270,7 @@ const CardDivider = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-4',
+      'h-[1px] bg-gradient-to-r from-transparent via-primary-500/25 to-transparent my-4',
       className
     )}
     {...props}

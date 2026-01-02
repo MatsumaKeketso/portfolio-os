@@ -205,7 +205,6 @@ export function Window({ window, children }: WindowProps) {
               variant="ghost"
               size="icon"
               onClick={() => minimizeWindow(window.id)}
-              className="hover:bg-white/10 w-8 h-8"
             >
               <Icons.Minus className="w-4 h-4" />
             </Button>
@@ -214,7 +213,6 @@ export function Window({ window, children }: WindowProps) {
               variant="ghost"
               size="icon"
               onClick={() => maximizeWindow(window.id)}
-              className="hover:bg-white/10 w-8 h-8"
             >
               {window.isMaximized ? (
                 <Icons.Minimize2 className="w-3.5 h-3.5" />
@@ -224,10 +222,9 @@ export function Window({ window, children }: WindowProps) {
             </Button>
 
             <Button
-              variant="ghostDanger"
+              variant="ghost-danger"
               size="icon"
               onClick={() => closeWindow(window.id)}
-              className="w-8 h-8"
             >
               <Icons.X className="w-4 h-4" />
             </Button>

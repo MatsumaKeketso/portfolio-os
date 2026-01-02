@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../store/userStore';
 import { MilestoneCard } from './MilestoneCard';
+import { Button } from './ui/button';
 
 interface TimelineProps {
   isExpanded?: boolean;
@@ -154,16 +155,11 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                 Year
               </span>
               {availableYears.map(year => (
-                <button
+                <Button
                   key={year}
                   onClick={() => setSelectedYear(year)}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-all duration-200 relative overflow-hidden ${selectedYear === year
-                    ? 'text-gray-950 bg-primary-500 shadow-lg shadow-primary-500/50'
-                    : 'text-primary-400/70 bg-gray-900/50 border border-primary-500/30 hover:border-primary-500/60 hover:text-primary-400'
-                    }`}
-                  style={{
-                    clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)'
-                  }}
+                  variant={selectedYear === year ? 'solid-brand-primary' : 'soft-brand-primary'}
+                  size="sm"
                 >
                   {/* Animated background for active year */}
                   {selectedYear === year && (
@@ -176,14 +172,16 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                     />
                   )}
                   <span className="relative">{year}</span>
-                </button>
+                </Button>
               ))}
 
               {/* View Toggle Button */}
               {onToggleExpand && (
-                <button
+                <Button
                   onClick={onToggleExpand}
-                  className="ml-2 p-1.5 text-primary-400/70 hover:text-primary-400 hover:bg-primary-500/10 rounded-md transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
                   title={isExpanded ? "Collapse View" : "Expand View"}
                 >
                   {isExpanded ? (
@@ -191,7 +189,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                   ) : (
                     <Icons.Maximize2 className="w-4 h-4" />
                   )}
-                </button>
+                </Button>
               )}
             </div>
           </div>

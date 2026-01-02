@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import { Button } from './ui/button';
 
 const WELCOME_STORAGE_KEY = 'portfolioOS_welcomeShown';
 
@@ -280,23 +281,27 @@ export function WelcomeScreen() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button
+                <Button
                   onClick={handleSkip}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-all text-sm"
+                  variant="ghost"
+                  size="sm"
                 >
                   Skip Tour
-                </button>
+                </Button>
                 {currentStep > 0 && (
-                  <button
+                  <Button
                     onClick={handlePrevious}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+                    variant="soft-system-primary"
+                    size="sm"
                   >
                     Previous
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   onClick={handleNext}
-                  className="px-6 py-2 bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white rounded-lg font-semibold transition-all text-sm flex items-center gap-2"
+                  variant="solid-brand-primary"
+                  size="sm"
+                  className="flex items-center gap-2"
                 >
                   {currentStep === 2 ? (
                     <>
@@ -309,7 +314,7 @@ export function WelcomeScreen() {
                       <Icons.ChevronRight className="w-4 h-4" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

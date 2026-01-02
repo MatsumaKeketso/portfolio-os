@@ -124,14 +124,21 @@ const presets = [
     name: 'Cyberpunk',
     theme: {
       colors: {
-        primary: '#06b6d4', // cyan-500
-        secondary: '#ec4899', // pink-500
-        tertiary: '#8b5cf6', // violet-500
-        accent: '#eab308', // yellow-500
+        // PRIMARY: Cyan (neon accent - main interactive elements)
+        primary: '#06b6d4',      // cyan-500 → brighter for neon effect
+
+        // SECONDARY: Magenta/Pink (emphasis, warnings, active states)
+        secondary: '#ec4899',    // pink-500 → hot magenta for cyberpunk edge
+
+        // TERTIARY: Electric Violet (gradients, backgrounds, secondary accents)
+        tertiary: '#a855f7',     // purple-500 → deeper violet for depth
+
+        // ACCENT: Electric Yellow (highlights, notifications, success states)
+        accent: '#eab308',       // yellow-500 → warning/alert color
       },
-      borderRadius: 'none' as const,
-      spacing: 'compact' as const,
-      iconStyle: 'sharp' as const,
+      borderRadius: 'none' as const,     // Sharp cyberpunk geometry
+      spacing: 'compact' as const,        // Dense information layout
+      iconStyle: 'sharp' as const,        // No rounded icons
     },
   },
 ];
@@ -142,14 +149,14 @@ const THEME_STORAGE_KEY = 'portfolioOS_theme';
 // Cyberpunk as default theme
 const cyberpunkTheme: ThemeSettings = {
   colors: {
-    primary: '#06b6d4', // cyan-500
-    secondary: '#ec4899', // pink-500
-    tertiary: '#8b5cf6', // violet-500
-    accent: '#eab308', // yellow-500
+    primary: '#06b6d4',      // cyan-500 → neon cyan for main accents
+    secondary: '#ec4899',    // pink-500 → hot magenta for emphasis
+    tertiary: '#a855f7',     // purple-500 → electric violet for depth
+    accent: '#eab308',       // yellow-500 → electric yellow for alerts
   },
-  borderRadius: 'none',
-  spacing: 'compact',
-  iconStyle: 'sharp',
+  borderRadius: 'none',      // Sharp cyberpunk geometry
+  spacing: 'compact',         // Dense information layout
+  iconStyle: 'sharp',         // No rounded icons
 };
 
 /**
