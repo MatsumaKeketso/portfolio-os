@@ -142,33 +142,23 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 )}
               </div>
 
-              {/* Info Box */}
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <Icons.Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-300">
-                    <p className="font-medium mb-1">Authenticated via Supabase</p>
-                    <p className="text-blue-200/80">
-                      Login requires a valid Supabase Auth user.
-                    </p>
-                  </div>
-                </div>
-              </div>
+
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col gap-3 pt-2">
                 <Button
                   type="submit"
                   variant="primary"
-                  className="flex-1 flex items-center justify-center gap-2"
+                  className="flex-1 w-full flex items-center justify-center gap-2"
                 >
                   <Icons.LogIn className="w-4 h-4" />
                   Login
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleClose}
+                  className="flex-1 w-full flex items-center justify-center gap-2"
                 >
                   Cancel
                 </Button>
