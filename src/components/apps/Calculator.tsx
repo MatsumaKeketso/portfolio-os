@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface HistoryEntry {
   expression: string;
@@ -146,25 +147,26 @@ export function Calculator() {
     }
   };
 
-  const Button = ({ children, onClick, className = '', span = false, variant = 'default' }: any) => {
-    const variantClasses = {
-      default: 'bg-gray-800 hover:bg-gray-700 text-white',
-      operation: 'bg-gray-700 hover:bg-gray-600 text-white',
-      clear: 'bg-red-600 hover:bg-red-700 text-white',
-      equals: 'bg-primary-600 hover:bg-primary-700 text-white',
-      scientific: 'bg-blue-900/50 hover:bg-blue-800/50 text-blue-300',
-      memory: 'bg-purple-900/50 hover:bg-purple-800/50 text-purple-300',
+  // Calculator button helper - maps calculator-specific variants to design system variants
+  const CalcButton = ({ children, onClick, className = '', span = false, variant = 'default' }: any) => {
+    const variantMap: Record<string, any> = {
+      default: 'soft-system-secondary',
+      operation: 'soft-system-primary',
+      clear: 'soft-brand-secondary',
+      equals: 'solid-brand-primary',
+      scientific: 'soft-brand-tertiary',
+      memory: 'soft-brand-tertiary',
     };
 
     return (
-      <button
+      <Button
         onClick={onClick}
-        className={`h-12 rounded-lg font-semibold text-sm transition-all active:scale-95 ${variantClasses[variant]} ${className} ${
-          span ? 'col-span-2' : ''
-        }`}
+        variant={variantMap[variant] || 'soft-system-secondary'}
+        size="calculator"
+        className={`${className} ${span ? 'col-span-2' : ''}`}
       >
         {children}
-      </button>
+      </Button>
     );
   };
 
@@ -178,30 +180,35 @@ export function Calculator() {
               <Icons.History className="w-4 h-4" />
               History
             </h3>
-            <button
+            <Button
               onClick={() => setHistory([])}
-              className="text-xs text-red-400 hover:text-red-300"
+              variant="ghost"
+              size="sm"
               title="Clear history"
+              className="text-xs text-secondary-400 hover:text-secondary-300"
             >
               Clear
-            </button>
+            </Button>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {history.length === 0 ? (
               <p className="text-gray-500 text-sm text-center mt-4">No calculations yet</p>
             ) : (
               history.map((entry, index) => (
-                <button
+                <Button
                   key={index}
                   onClick={() => {
                     setDisplay(entry.result);
                     setNewNumber(true);
                   }}
-                  className="w-full text-left p-2 rounded hover:bg-white/10 transition-colors mb-1"
+                  variant="ghost"
+                  className="w-full text-left p-2 h-auto justify-start mb-1"
                 >
-                  <div className="text-gray-400 text-xs truncate">{entry.expression}</div>
-                  <div className="text-white font-semibold truncate">= {entry.result}</div>
-                </button>
+                  <div className="w-full">
+                    <div className="text-gray-400 text-xs truncate">{entry.expression}</div>
+                    <div className="text-white font-semibold truncate">= {entry.result}</div>
+                  </div>
+                </Button>
               ))
             )}
           </div>
@@ -223,24 +230,24 @@ export function Calculator() {
 
         {/* Mode toggles */}
         <div className="flex gap-2 mb-3">
-          <button
+          <Button
             onClick={() => setShowHistory(!showHistory)}
-            className={`flex-1 px-3 py-2 rounded text-xs font-semibold transition-all ${
-              showHistory ? 'bg-primary-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+            variant={showHistory ? 'solid-brand-primary' : 'soft-system-primary'}
+            size="sm"
+            className="flex-1"
           >
             <Icons.History className="w-3 h-3 inline mr-1" />
             History
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setIsScientific(!isScientific)}
-            className={`flex-1 px-3 py-2 rounded text-xs font-semibold transition-all ${
-              isScientific ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+            variant={isScientific ? 'solid-brand-tertiary' : 'soft-system-primary'}
+            size="sm"
+            className="flex-1"
           >
             <Icons.FlaskConical className="w-3 h-3 inline mr-1" />
             Scientific
-          </button>
+          </Button>
         </div>
 
         {/* Calculator buttons */}

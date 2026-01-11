@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { Button } from './ui/button';
 
 export function Taskbar() {
   const {
@@ -90,13 +91,14 @@ export function Taskbar() {
   return (
     <div className={getTaskbarClasses()}>
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
-        <button
+        <Button
           onClick={toggleStartMenu}
-          className={`w-10 h-10 rounded flex items-center justify-center transition-all ${isStartMenuOpen ? 'bg-primary-600' : 'hover:bg-white/10'
-            }`}
+          variant="taskbar"
+          size="iconLg"
+          data-active={isStartMenuOpen}
         >
-          <Icons.Grid3x3 className="w-5 h-5 text-white" />
-        </button>
+          <Icons.Grid3x3 className="w-5 h-5" />
+        </Button>
 
         <div className={isVertical ? 'h-px w-6 bg-gray-700 my-1' : 'w-px h-6 bg-gray-700 mx-1'} />
 
@@ -104,7 +106,7 @@ export function Taskbar() {
           const isOpen = windows.some(w => w.appId === app.id);
 
           return (
-            <button
+            <Button
               key={app.id}
               onClick={() => {
                 const window = windows.find(w => w.appId === app.id);
@@ -114,29 +116,32 @@ export function Taskbar() {
                   openWindow(app);
                 }
               }}
-              className={`w-10 h-10 rounded flex items-center justify-center transition-all relative ${isOpen ? 'bg-white/20' : 'hover:bg-white/10'
-                }`}
+              variant="taskbar"
+              size="iconLg"
+              data-active={isOpen}
               title={app.name}
             >
               {renderIcon(app.icon, app.customIcon, "w-5 h-5 text-white")}
               {isOpen && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
               )}
-            </button>
+            </Button>
           );
         })}
 
         {openApps.filter(w => !pinnedApps.some(app => app.id === w.appId)).map((window) => {
           return (
-            <button
+            <Button
               key={window.id}
               onClick={() => minimizeWindow(window.id)}
-              className="w-10 h-10 rounded flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all relative"
+              variant="taskbar"
+              size="iconLg"
+              data-active={true}
               title={window.title}
             >
               {renderIcon(window.icon, window.customIcon, "w-5 h-5 text-white")}
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
-            </button>
+            </Button>
           );
         })}
       </div>

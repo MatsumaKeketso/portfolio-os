@@ -17,26 +17,26 @@ import { cn } from '../../lib/utils'
  */
 
 const inputVariants = cva(
-  // Base styles (applied to all variants)
-  'flex w-full rounded-md text-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+  // Base styles (applied to all variants) - Cyberpunk focus treatment
+  'flex w-full text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]',
   {
     variants: {
       variant: {
-        // Glass-morphism input (StartMenu, AdminPanel)
+        // Glass-morphism input with inset focus ring (StartMenu, AdminPanel)
         glass:
-          'bg-gray-700/50 border border-gray-600/50 text-white backdrop-blur-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+          'bg-black/70 border border-gray-700/70 text-white backdrop-blur-sm focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black/85',
 
-        // Solid input (standard forms)
+        // Solid input with subtle inset ring (standard forms)
         solid:
-          'bg-gray-700 border border-gray-600 text-white focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500',
+          'bg-gray-900 border border-gray-700 text-white focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black',
 
-        // Light theme input
+        // Light theme input (rarely used in Cyberpunk)
         light:
           'bg-white border border-gray-200 text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
 
-        // Search variant with icon spacing
+        // Search variant with left icon space + inset focus
         search:
-          'bg-gray-700/50 border border-gray-600/50 text-white pl-10 backdrop-blur-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+          'bg-black/70 border border-gray-700/70 text-white pl-10 backdrop-blur-sm focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black/85',
       },
 
       size: {
@@ -53,7 +53,7 @@ const inputVariants = cva(
 )
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
   VariantProps<typeof inputVariants> { }
 
 /**

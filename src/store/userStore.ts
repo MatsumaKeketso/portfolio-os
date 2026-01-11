@@ -173,23 +173,7 @@ const defaultProfile: UserProfile = {
 };
 
 // Helper to debounce database updates
-let saveTimeout: NodeJS.Timeout;
-const saveToSupabase = async (profile: UserProfile) => {
-  if (saveTimeout) clearTimeout(saveTimeout);
 
-  saveTimeout = setTimeout(async () => {
-    try {
-      const { error } = await supabase
-        .from('site_content')
-        .upsert({ id: 'profile', data: profile, updated_at: new Date().toISOString() });
-
-      if (error) console.error('Error saving profile to Supabase:', error);
-      else console.log('Profile saved to Supabase');
-    } catch (e) {
-      console.error('Failed to save profile:', e);
-    }
-  }, 1000); // Debounce for 1 second
-};
 
 // User Store Interface
 interface UserStore {
@@ -256,453 +240,481 @@ interface UserStore {
 }
 
 // Create the Zustand store
-export const useUserStore = create<UserStore>((set, get) => ({
-  profile: defaultProfile,
-  isLoading: true,
-  error: null,
+export const useUserStore = create<UserStore>((set, get) => {
+  // Helper to debounce database updates
+  let saveTimeout: NodeJS.Timeout;
+  const saveToSupabase = async (profile: UserProfile) => {
+    if (saveTimeout) clearTimeout(saveTimeout);
 
-  fetchProfile: async () => {
-    try {
-      set({ isLoading: true, error: null });
+    saveTimeout = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from('site_content')
+          .upsert({ id: 'profile', data: profile, updated_at: new Date().toISOString() });
 
-      const { data, error } = await supabase
-        .from('site_content')
-        .select('data')
-        .eq('id', 'profile')
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
-        throw error;
+        if (error) {
+          console.error('Error saving profile to Supabase:', error);
+          set({ error: 'Failed to save changes: ' + error.message });
+        } else {
+          console.log('Profile saved to Supabase');
+          // Clear error if save successful
+          if (get().error) set({ error: null });
+        }
+      } catch (e: any) {
+        console.error('Failed to save profile:', e);
+        set({ error: 'Failed to save profile: ' + e.message });
       }
+    }, 1000); // Debounce for 1 second
+  };
 
-      if (data && data.data) {
-        // Merge with default profile to ensure schema compatibility if fields are missing
-        // This is a simple deep merge strategy or we can just assume data is good
-        // For simplicity, let's just use the data, potentially needing validation
-        set({ profile: { ...defaultProfile, ...data.data as UserProfile }, isLoading: false });
-      } else {
-        // No profile found, stick with default but save it to init the DB row
-        saveToSupabase(defaultProfile);
-        set({ isLoading: false });
+  return {
+    profile: defaultProfile,
+    isLoading: true,
+    error: null,
+
+    fetchProfile: async () => {
+      try {
+        set({ isLoading: true, error: null });
+
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('data')
+          .eq('id', 'profile')
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+          throw error;
+        }
+
+        if (data && data.data) {
+          // Merge with default profile to ensure schema compatibility if fields are missing
+          // This is a simple deep merge strategy or we can just assume data is good
+          // For simplicity, let's just use the data, potentially needing validation
+          set({ profile: { ...defaultProfile, ...data.data as UserProfile }, isLoading: false });
+        } else {
+          // No profile found, stick with default but save it to init the DB row
+          saveToSupabase(defaultProfile);
+          set({ isLoading: false });
+        }
+
+      } catch (err: any) {
+        console.error('Error fetching profile:', err);
+        // Fallback to local storage if available for offline support?
+        // Or just default
+        set({ error: err.message, isLoading: false });
       }
+    },
 
-    } catch (err: any) {
-      console.error('Error fetching profile:', err);
-      // Fallback to local storage if available for offline support?
-      // Or just default
-      set({ error: err.message, isLoading: false });
-    }
-  },
+    // Personal info actions
+    updatePersonal: (updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        personal: { ...state.profile.personal, ...updates },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Personal info actions
-  updatePersonal: (updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      personal: { ...state.profile.personal, ...updates },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Social links actions
+    updateSocial: (updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        social: { ...state.profile.social, ...updates },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Social links actions
-  updateSocial: (updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      social: { ...state.profile.social, ...updates },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    addCustomSocialLink: (link) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        social: {
+          ...state.profile.social,
+          custom: [...state.profile.social.custom, { ...link, id: generateId() }]
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  addCustomSocialLink: (link) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      social: {
-        ...state.profile.social,
-        custom: [...state.profile.social.custom, { ...link, id: generateId() }]
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeCustomSocialLink: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        social: {
+          ...state.profile.social,
+          custom: state.profile.social.custom.filter(l => l.id !== id)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeCustomSocialLink: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      social: {
-        ...state.profile.social,
-        custom: state.profile.social.custom.filter(l => l.id !== id)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateCustomSocialLink: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        social: {
+          ...state.profile.social,
+          custom: state.profile.social.custom.map(l => l.id === id ? { ...l, ...updates } : l)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateCustomSocialLink: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      social: {
-        ...state.profile.social,
-        custom: state.profile.social.custom.map(l => l.id === id ? { ...l, ...updates } : l)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Projects actions
+    addProject: (project) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        projects: [...state.profile.projects, { ...project, id: generateId() }],
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Projects actions
-  addProject: (project) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      projects: [...state.profile.projects, { ...project, id: generateId() }],
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateProject: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        projects: state.profile.projects.map(p => p.id === id ? { ...p, ...updates } : p),
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateProject: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      projects: state.profile.projects.map(p => p.id === id ? { ...p, ...updates } : p),
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeProject: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        projects: state.profile.projects.filter(p => p.id !== id),
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeProject: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      projects: state.profile.projects.filter(p => p.id !== id),
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Experience actions
+    addExperience: (experience) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          experience: [...state.profile.resume.experience, { ...experience, id: generateId() }]
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Experience actions
-  addExperience: (experience) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        experience: [...state.profile.resume.experience, { ...experience, id: generateId() }]
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateExperience: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          experience: state.profile.resume.experience.map(e => e.id === id ? { ...e, ...updates } : e)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateExperience: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        experience: state.profile.resume.experience.map(e => e.id === id ? { ...e, ...updates } : e)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeExperience: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          experience: state.profile.resume.experience.filter(e => e.id !== id)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeExperience: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        experience: state.profile.resume.experience.filter(e => e.id !== id)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Education actions
+    addEducation: (education) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          education: [...state.profile.resume.education, { ...education, id: generateId() }]
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Education actions
-  addEducation: (education) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        education: [...state.profile.resume.education, { ...education, id: generateId() }]
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateEducation: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          education: state.profile.resume.education.map(e => e.id === id ? { ...e, ...updates } : e)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateEducation: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        education: state.profile.resume.education.map(e => e.id === id ? { ...e, ...updates } : e)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeEducation: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          education: state.profile.resume.education.filter(e => e.id !== id)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeEducation: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        education: state.profile.resume.education.filter(e => e.id !== id)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Certification actions
+    addCertification: (certification) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          certifications: [...state.profile.resume.certifications, { ...certification, id: generateId() }]
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Certification actions
-  addCertification: (certification) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        certifications: [...state.profile.resume.certifications, { ...certification, id: generateId() }]
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateCertification: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          certifications: state.profile.resume.certifications.map(c => c.id === id ? { ...c, ...updates } : c)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateCertification: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        certifications: state.profile.resume.certifications.map(c => c.id === id ? { ...c, ...updates } : c)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeCertification: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          certifications: state.profile.resume.certifications.filter(c => c.id !== id)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeCertification: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        certifications: state.profile.resume.certifications.filter(c => c.id !== id)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Skills actions
+    addSkillCategory: (category) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        skills: {
+          categories: [...state.profile.skills.categories, { ...category, id: generateId() }]
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Skills actions
-  addSkillCategory: (category) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      skills: {
-        categories: [...state.profile.skills.categories, { ...category, id: generateId() }]
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateSkillCategory: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        skills: {
+          categories: state.profile.skills.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateSkillCategory: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      skills: {
-        categories: state.profile.skills.categories.map(c => c.id === id ? { ...c, ...updates } : c)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeSkillCategory: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        skills: {
+          categories: state.profile.skills.categories.filter(c => c.id !== id)
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeSkillCategory: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      skills: {
-        categories: state.profile.skills.categories.filter(c => c.id !== id)
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    addSkillToCategory: (categoryId, skill) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        skills: {
+          categories: state.profile.skills.categories.map(c =>
+            c.id === categoryId
+              ? { ...c, skills: [...c.skills, skill] }
+              : c
+          )
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  addSkillToCategory: (categoryId, skill) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      skills: {
-        categories: state.profile.skills.categories.map(c =>
-          c.id === categoryId
-            ? { ...c, skills: [...c.skills, skill] }
-            : c
-        )
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeSkillFromCategory: (categoryId, skillName) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        skills: {
+          categories: state.profile.skills.categories.map(c =>
+            c.id === categoryId
+              ? { ...c, skills: c.skills.filter(s => s.name !== skillName) }
+              : c
+          )
+        },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeSkillFromCategory: (categoryId, skillName) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      skills: {
-        categories: state.profile.skills.categories.map(c =>
-          c.id === categoryId
-            ? { ...c, skills: c.skills.filter(s => s.name !== skillName) }
-            : c
-        )
-      },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Resume summary
+    updateResumeSummary: (summary) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        resume: {
+          ...state.profile.resume,
+          summary
+        }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
+    updatePreferences: (updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        preferences: { ...state.profile.preferences, ...updates },
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Resume summary
-  updateResumeSummary: (summary) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      resume: {
-        ...state.profile.resume,
-        summary
-      }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
-  updatePreferences: (updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      preferences: { ...state.profile.preferences, ...updates },
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    // Milestones actions
+    addMilestone: (milestone) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        milestones: [...state.profile.milestones, { ...milestone, id: generateId() }],
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  // Milestones actions
-  addMilestone: (milestone) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      milestones: [...state.profile.milestones, { ...milestone, id: generateId() }],
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    updateMilestone: (id, updates) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        milestones: state.profile.milestones.map(m => m.id === id ? { ...m, ...updates } : m),
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  updateMilestone: (id, updates) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      milestones: state.profile.milestones.map(m => m.id === id ? { ...m, ...updates } : m),
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    removeMilestone: (id) => {
+      const state = get();
+      const newProfile = {
+        ...state.profile,
+        milestones: state.profile.milestones.filter(m => m.id !== id),
+        metadata: { ...state.profile.metadata, lastModified: Date.now() }
+      };
+      set({ profile: newProfile });
+      saveToSupabase(newProfile);
+    },
 
-  removeMilestone: (id) => {
-    const state = get();
-    const newProfile = {
-      ...state.profile,
-      milestones: state.profile.milestones.filter(m => m.id !== id),
-      metadata: { ...state.profile.metadata, lastModified: Date.now() }
-    };
-    set({ profile: newProfile });
-    saveToSupabase(newProfile);
-  },
+    getMilestonesByYear: (year) => {
+      const state = get();
+      return state.profile.milestones.filter(m => {
+        const milestoneYear = new Date(m.date).getFullYear();
+        return milestoneYear === year;
+      }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    },
 
-  getMilestonesByYear: (year) => {
-    const state = get();
-    return state.profile.milestones.filter(m => {
-      const milestoneYear = new Date(m.date).getFullYear();
-      return milestoneYear === year;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  },
+    getMilestonesByMonth: (year, month) => {
+      const state = get();
+      return state.profile.milestones.filter(m => {
+        const date = new Date(m.date);
+        return date.getFullYear() === year && date.getMonth() === month;
+      }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    },
 
-  getMilestonesByMonth: (year, month) => {
-    const state = get();
-    return state.profile.milestones.filter(m => {
-      const date = new Date(m.date);
-      return date.getFullYear() === year && date.getMonth() === month;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  },
+    resetProfile: () => {
+      set({ profile: defaultProfile });
+      saveToSupabase(defaultProfile);
+    },
 
-  resetProfile: () => {
-    set({ profile: defaultProfile });
-    saveToSupabase(defaultProfile);
-  },
+    exportProfile: () => {
+      const state = get();
+      const dataStr = JSON.stringify(state.profile, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `portfolio_profile_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
 
-  exportProfile: () => {
-    const state = get();
-    const dataStr = JSON.stringify(state.profile, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `portfolio_profile_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  },
-
-  importProfile: (profileData) => {
-    // Merge with default profile to ensure all required fields exist
-    const mergedProfile = {
-      ...defaultProfile,
-      ...profileData,
-      metadata: {
-        ...defaultProfile.metadata,
-        ...profileData.metadata,
-        lastModified: Date.now()
-      }
-    };
-    set({ profile: mergedProfile });
-    saveToSupabase(mergedProfile);
-  },
-}));
+    importProfile: (profileData) => {
+      // Merge with default profile to ensure all required fields exist
+      const mergedProfile = {
+        ...defaultProfile,
+        ...profileData,
+        metadata: {
+          ...defaultProfile.metadata,
+          ...profileData.metadata,
+          lastModified: Date.now()
+        }
+      };
+      set({ profile: mergedProfile });
+      saveToSupabase(mergedProfile);
+    },
+  };
+});
 

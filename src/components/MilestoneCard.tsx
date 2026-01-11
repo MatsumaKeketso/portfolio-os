@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { UserProfile } from '../store/userStore';
+import { Button } from './ui/button';
 
 interface MilestoneCardProps {
   milestone: UserProfile['milestones'][0];
@@ -244,12 +245,14 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                   alt="Expanded view"
                   className="max-w-full max-h-[85vh] object-contain"
                 />
-                <button
+                <Button
                   onClick={() => setShowImageModal(false)}
-                  className="absolute top-4 right-4 p-2 bg-cyan-400/20 hover:bg-cyan-400/30 backdrop-blur-xl border border-cyan-400/30 rounded-lg transition-colors"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 backdrop-blur-xl"
                 >
-                  <Icons.X className="w-5 h-5 text-cyan-400" />
-                </button>
+                  <Icons.X className="w-5 h-5" />
+                </Button>
               </div>
             </motion.div>
           </motion.div>

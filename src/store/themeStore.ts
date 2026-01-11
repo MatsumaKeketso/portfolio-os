@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 /**
  * Theme Store
@@ -22,6 +23,7 @@ export interface ThemeSettings {
 interface ThemeState {
   theme: ThemeSettings;
   presets: { name: string; theme: ThemeSettings }[];
+  fetchTheme: () => Promise<void>;
   updateColors: (colors: Partial<ThemeColors>) => void;
   setBorderRadius: (radius: ThemeSettings['borderRadius']) => void;
   setSpacing: (spacing: ThemeSettings['spacing']) => void;
@@ -124,14 +126,42 @@ const presets = [
     name: 'Cyberpunk',
     theme: {
       colors: {
-        primary: '#06b6d4', // cyan-500
-        secondary: '#ec4899', // pink-500
-        tertiary: '#8b5cf6', // violet-500
-        accent: '#eab308', // yellow-500
+        // PRIMARY: Cyan (neon accent - main interactive elements)
+        primary: '#06b6d4',      // cyan-500 → brighter for neon effect
+
+        // SECONDARY: Magenta/Pink (emphasis, warnings, active states)
+        secondary: '#ec4899',    // pink-500 → hot magenta for cyberpunk edge
+
+        // TERTIARY: Electric Violet (gradients, backgrounds, secondary accents)
+        tertiary: '#a855f7',     // purple-500 → deeper violet for depth
+
+        // ACCENT: Electric Yellow (highlights, notifications, success states)
+        accent: '#eab308',       // yellow-500 → warning/alert color
       },
-      borderRadius: 'none' as const,
-      spacing: 'compact' as const,
-      iconStyle: 'sharp' as const,
+      borderRadius: 'none' as const,     // Sharp cyberpunk geometry
+      spacing: 'compact' as const,        // Dense information layout
+      iconStyle: 'sharp' as const,        // No rounded icons
+    },
+  },
+  {
+    name: 'Star Citizen',
+    theme: {
+      colors: {
+        // PRIMARY: Signature Star Citizen Cyan (main UI accents)
+        primary: '#00d9ff',
+
+        // SECONDARY: Deep Space Blue (secondary elements, buttons)
+        secondary: '#0066ff',
+
+        // TERTIARY: Teal Accent (tertiary accents, highlights)
+        tertiary: '#00e5cc',
+
+        // ACCENT: Bright Cyan (alerts, notifications, active states)
+        accent: '#00ffff',
+      },
+      borderRadius: 'lg' as const,       // Modern, sleek rounded corners
+      spacing: 'normal' as const,         // Balanced spacing
+      iconStyle: 'rounded' as const,      // Softer, futuristic icons
     },
   },
 ];
@@ -139,39 +169,64 @@ const presets = [
 // Storage key
 const THEME_STORAGE_KEY = 'portfolioOS_theme';
 
-// Cyberpunk as default theme
-const cyberpunkTheme: ThemeSettings = {
+// Star Citizen as default theme
+const starCitizenTheme: ThemeSettings = {
   colors: {
-    primary: '#06b6d4', // cyan-500
-    secondary: '#ec4899', // pink-500
-    tertiary: '#8b5cf6', // violet-500
-    accent: '#eab308', // yellow-500
+    primary: '#00d9ff',      // Signature Star Citizen Cyan
+    secondary: '#0066ff',    // Deep Space Blue
+    tertiary: '#00e5cc',     // Teal Accent
+    accent: '#00ffff',       // Bright Cyan
   },
-  borderRadius: 'none',
-  spacing: 'compact',
-  iconStyle: 'sharp',
+  borderRadius: 'lg',        // Modern, sleek rounded corners
+  spacing: 'normal',         // Balanced spacing
+  iconStyle: 'rounded',      // Softer, futuristic icons
 };
 
 /**
- * Load theme from localStorage
+ * Fetch theme from Supabase
  */
-const loadThemeFromStorage = (): ThemeSettings => {
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (e) {
-      console.error('Failed to parse theme from storage:', e);
+const fetchThemeFromSupabase = async (): Promise<ThemeSettings> => {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('data')
+      .eq('id', 'theme')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
     }
+
+    if (data && data.data) {
+      return data.data as ThemeSettings;
+    }
+    return starCitizenTheme;
+  } catch (err: any) {
+    console.error('Error fetching theme:', err);
+    return starCitizenTheme;
   }
-  return cyberpunkTheme;
 };
 
 /**
- * Save theme to localStorage
+ * Save theme to Supabase
  */
-const saveThemeToStorage = (theme: ThemeSettings): void => {
-  localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
+let themeTimeout: NodeJS.Timeout;
+const saveThemeToSupabase = (theme: ThemeSettings): void => {
+  if (themeTimeout) clearTimeout(themeTimeout);
+
+  themeTimeout = setTimeout(async () => {
+    try {
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({ id: 'theme', data: theme, updated_at: new Date().toISOString() });
+
+      if (error) {
+        console.error('Error saving theme to Supabase:', error);
+      }
+    } catch (e: any) {
+      console.error('Failed to save theme:', e);
+    }
+  }, 500); // 500ms debounce
 };
 
 /**
@@ -238,7 +293,7 @@ const applyThemeToDom = (theme: ThemeSettings): void => {
 };
 
 export const useThemeStore = create<ThemeState>((set, get) => {
-  const initialTheme = loadThemeFromStorage();
+  const initialTheme = starCitizenTheme;
 
   // Apply theme on initialization
   if (typeof window !== 'undefined') {
@@ -249,12 +304,18 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     theme: initialTheme,
     presets,
 
+    fetchTheme: async () => {
+      const theme = await fetchThemeFromSupabase();
+      applyThemeToDom(theme);
+      set({ theme });
+    },
+
     updateColors: (colors) => {
       const newTheme = {
         ...get().theme,
         colors: { ...get().theme.colors, ...colors },
       };
-      saveThemeToStorage(newTheme);
+      saveThemeToSupabase(newTheme);
       applyThemeToDom(newTheme);
       set({ theme: newTheme });
     },
@@ -264,7 +325,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         ...get().theme,
         borderRadius: radius,
       };
-      saveThemeToStorage(newTheme);
+      saveThemeToSupabase(newTheme);
       applyThemeToDom(newTheme);
       set({ theme: newTheme });
     },
@@ -274,7 +335,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         ...get().theme,
         spacing,
       };
-      saveThemeToStorage(newTheme);
+      saveThemeToSupabase(newTheme);
       applyThemeToDom(newTheme);
       set({ theme: newTheme });
     },
@@ -284,7 +345,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
         ...get().theme,
         iconStyle: style,
       };
-      saveThemeToStorage(newTheme);
+      saveThemeToSupabase(newTheme);
       applyThemeToDom(newTheme);
       set({ theme: newTheme });
     },
@@ -292,14 +353,14 @@ export const useThemeStore = create<ThemeState>((set, get) => {
     applyPreset: (presetName) => {
       const preset = presets.find((p) => p.name === presetName);
       if (preset) {
-        saveThemeToStorage(preset.theme);
+        saveThemeToSupabase(preset.theme);
         applyThemeToDom(preset.theme);
         set({ theme: preset.theme });
       }
     },
 
     resetToDefault: () => {
-      saveThemeToStorage(defaultTheme);
+      saveThemeToSupabase(defaultTheme);
       applyThemeToDom(defaultTheme);
       set({ theme: defaultTheme });
     },

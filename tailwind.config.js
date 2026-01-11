@@ -91,6 +91,11 @@ export default {
           darker: 'rgba(31, 41, 55, 0.95)',
           light: 'rgba(255, 255, 255, 0.1)',
         },
+
+        // Cyberpunk HUD borders (subtle, not glowing)
+        'hud-border': 'rgba(6, 182, 212, 0.6)',
+        'hud-border-dim': 'rgba(6, 182, 212, 0.25)',
+        'hud-border-accent': 'rgba(236, 72, 153, 0.6)',
       },
 
       // Premium shadows (Framer-style elevation)
@@ -112,6 +117,22 @@ export default {
         'glow-purple': '0 0 20px rgba(168, 85, 247, 0.5)',
         'glow-green': '0 0 20px rgba(16, 185, 129, 0.5)',
         'glow-red': '0 0 20px rgba(239, 68, 68, 0.5)',
+
+        // === CYBERPUNK HUD DEPTH SHADOWS (no glow, just depth) ===
+        // Base depth for standard panels
+        'hud-base': '0 4px 16px rgba(0, 0, 0, 0.6)',
+
+        // Raised elements (hover state, slight lift)
+        'hud-raised': '0 6px 20px rgba(0, 0, 0, 0.7)',
+
+        // Elevated dialogs and modals
+        'hud-elevated': '0 8px 32px rgba(0, 0, 0, 0.7)',
+
+        // Pressed/active inset shadow
+        'hud-inset': 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
+
+        // Subtle hairline edge definition (not glow)
+        'hud-hairline': '0 0 0 1px rgba(6, 182, 212, 0.15)',
       },
 
       // Enhanced backdrop blur

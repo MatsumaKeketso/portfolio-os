@@ -4,6 +4,8 @@ import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 interface CustomizationSettingsProps {
   isOpen: boolean;
@@ -134,12 +136,13 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                     Personalize your PortfolioOS experience
                   </p>
                 </div>
-                <button
+                <Button
                   onClick={onClose}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-all"
+                  variant="ghost"
+                  size="icon"
                 >
-                  <Icons.X className="w-6 h-6 text-white" />
-                </button>
+                  <Icons.X className="w-6 h-6" />
+                </Button>
               </div>
 
               {/* Gradient divider */}
@@ -147,39 +150,30 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
 
               {/* Tabs */}
               <div className="shrink-0 px-6 py-3 bg-white/5 flex gap-2">
-                <button
+                <Button
                   onClick={() => setActiveTab('desktop')}
-                  className={`px-4 py-2 rounded transition-all ${
-                    activeTab === 'desktop'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
+                  variant={activeTab === 'desktop' ? 'solid-brand-primary' : 'soft-system-primary'}
+                  size="sm"
                 >
                   <Icons.Monitor className="w-4 h-4 inline mr-2" />
                   Desktop
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setActiveTab('appearance')}
-                  className={`px-4 py-2 rounded transition-all ${
-                    activeTab === 'appearance'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
+                  variant={activeTab === 'appearance' ? 'solid-brand-primary' : 'soft-system-primary'}
+                  size="sm"
                 >
                   <Icons.Sparkles className="w-4 h-4 inline mr-2" />
                   Appearance
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setActiveTab('profile')}
-                  className={`px-4 py-2 rounded transition-all ${
-                    activeTab === 'profile'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
+                  variant={activeTab === 'profile' ? 'solid-brand-primary' : 'soft-system-primary'}
+                  size="sm"
                 >
                   <Icons.User className="w-4 h-4 inline mr-2" />
                   Profile
-                </button>
+                </Button>
               </div>
 
               {/* Gradient divider */}
@@ -255,18 +249,20 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
 
                                 {/* Delete button for custom backgrounds */}
                                 {!isDefault && (
-                                  <button
+                                  <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (confirm(`Delete "${bg.name}"?`)) {
                                         removeBackground(bg.id);
                                       }
                                     }}
-                                    className="p-1 hover:bg-red-500 rounded transition-all opacity-0 group-hover:opacity-100"
+                                    variant="ghost-danger"
+                                    size="icon"
+                                    className="w-6 h-6 opacity-0 group-hover:opacity-100"
                                     title="Delete background"
                                   >
-                                    <Icons.Trash2 className="w-3 h-3 text-white" />
-                                  </button>
+                                    <Icons.Trash2 className="w-3 h-3" />
+                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -288,10 +284,11 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {presets.map((preset) => (
-                          <button
+                          <Button
                             key={preset.name}
                             onClick={() => applyPreset(preset.name)}
-                            className="p-4 rounded-lg border-2 transition-all hover:scale-105 bg-white/5 border-gray-700 hover:border-primary-500"
+                            variant="soft-system-primary"
+                            className="p-4 h-auto hover:scale-105"
                           >
                             <div className="flex items-center gap-2 mb-2">
                               <div
@@ -308,7 +305,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                               />
                             </div>
                             <div className="text-white font-semibold text-sm">{preset.name}</div>
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>
@@ -347,20 +344,17 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                       </h3>
                       <div className="grid grid-cols-5 gap-3">
                         {(['none', 'sm', 'md', 'lg', 'xl'] as const).map((radius) => (
-                          <button
+                          <Button
                             key={radius}
                             onClick={() => setBorderRadius(radius)}
-                            className={`p-4 border-2 transition-all ${
-                              theme.borderRadius === radius
-                                ? 'border-primary-500 bg-primary-500/20'
-                                : 'border-gray-700 hover:border-gray-500 bg-white/5'
-                            }`}
+                            variant={theme.borderRadius === radius ? 'solid-brand-primary' : 'soft-system-primary'}
+                            className="p-4 h-auto"
                             style={{
                               borderRadius: radius === 'none' ? '0' : radius === 'sm' ? '0.375rem' : radius === 'md' ? '0.5rem' : radius === 'lg' ? '0.75rem' : '1rem'
                             }}
                           >
-                            <div className="text-white font-semibold text-xs uppercase">{radius}</div>
-                          </button>
+                            <div className="font-semibold text-xs uppercase">{radius}</div>
+                          </Button>
                         ))}
                       </div>
                     </div>
@@ -373,20 +367,17 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                       </h3>
                       <div className="grid grid-cols-3 gap-4">
                         {(['compact', 'normal', 'comfortable'] as const).map((spacing) => (
-                          <button
+                          <Button
                             key={spacing}
                             onClick={() => setSpacing(spacing)}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              theme.spacing === spacing
-                                ? 'border-primary-500 bg-primary-500/20'
-                                : 'border-gray-700 hover:border-gray-500 bg-white/5'
-                            }`}
+                            variant={theme.spacing === spacing ? 'solid-brand-primary' : 'soft-system-primary'}
+                            className="p-4 h-auto flex-col"
                           >
-                            <div className="text-white font-semibold mb-1 capitalize">{spacing}</div>
-                            <div className="text-gray-400 text-xs">
+                            <div className="font-semibold mb-1 capitalize">{spacing}</div>
+                            <div className="text-xs opacity-70">
                               {spacing === 'compact' ? 'Dense layout' : spacing === 'normal' ? 'Balanced spacing' : 'Generous spacing'}
                             </div>
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>
@@ -399,17 +390,14 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                       </h3>
                       <div className="grid grid-cols-3 gap-4">
                         {(['default', 'rounded', 'sharp'] as const).map((style) => (
-                          <button
+                          <Button
                             key={style}
                             onClick={() => setIconStyle(style)}
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              theme.iconStyle === style
-                                ? 'border-primary-500 bg-primary-500/20'
-                                : 'border-gray-700 hover:border-gray-500 bg-white/5'
-                            }`}
+                            variant={theme.iconStyle === style ? 'solid-brand-primary' : 'soft-system-primary'}
+                            className="p-4 h-auto flex-col"
                           >
                             <Icons.Square
-                              className={`w-8 h-8 mx-auto mb-2 text-white ${
+                              className={`w-8 h-8 mx-auto mb-2 ${
                                 style === 'rounded' ? 'rounded-full' : style === 'sharp' ? '' : 'rounded-lg'
                               }`}
                               style={{
@@ -417,21 +405,22 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                                 padding: '8px',
                               }}
                             />
-                            <div className="text-white font-semibold text-sm capitalize">{style}</div>
-                          </button>
+                            <div className="font-semibold text-sm capitalize">{style}</div>
+                          </Button>
                         ))}
                       </div>
                     </div>
 
                     {/* Reset Button */}
                     <div className="pt-4 border-t border-gray-700">
-                      <button
+                      <Button
                         onClick={resetToDefault}
-                        className="w-full bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                        variant="soft-system-primary"
+                        className="w-full flex items-center justify-center gap-2"
                       >
                         <Icons.RotateCcw className="w-4 h-4" />
                         Reset to Default Theme
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}

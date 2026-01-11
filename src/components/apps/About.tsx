@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore, UserProfile } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
@@ -13,6 +13,8 @@ export function About() {
   const { isAuthenticated } = useAuthStore();
   const {
     profile,
+    isLoading,
+    error,
     updatePersonal,
     updateSocial,
     updateProject,
@@ -46,6 +48,35 @@ export function About() {
     skills: JSON.parse(JSON.stringify(profile.skills)),
     preferences: { ...profile.preferences }
   });
+
+  // Effect to update local form state when profile changes (if not editing)
+  // This ensures that if data arrives late (after loading), the form is ready to edit with fresh data
+  useEffect(() => {
+    if (!isEditing) {
+      setEditForm({
+        personal: { ...profile.personal },
+        social: { ...profile.social },
+        projects: [...profile.projects],
+        experience: [...profile.resume.experience],
+        education: [...profile.resume.education],
+        certifications: [...profile.resume.certifications],
+        summary: profile.resume.summary,
+        skills: JSON.parse(JSON.stringify(profile.skills)),
+        preferences: { ...profile.preferences }
+      });
+    }
+  }, [profile, isEditing]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <Icons.Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+        <span className="ml-3 text-white font-medium">Loading profile...</span>
+      </div>
+    );
+  }
+
+
 
   const handleSave = () => {
     // Save based on active tab
@@ -172,20 +203,38 @@ export function About() {
                 Edit
               </Button>
             ) : (
-            <>
-              <Button variant="success" size="sm" onClick={handleSave}>
-                <Icons.Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleCancel}>
-                <Icons.X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-            </>
-          )}
+              <>
+                <Button variant="success" size="sm" onClick={handleSave}>
+                  <Icons.Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handleCancel}>
+                  <Icons.X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="px-6 py-2 bg-red-500/20 border-b border-red-500/30 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-red-200 text-sm">
+            <Icons.AlertTriangle className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-red-200 hover:text-white hover:bg-red-500/20"
+            onClick={() => useUserStore.setState({ error: null })}
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="flex gap-2 px-6 py-3 border-b border-white/10 bg-white/5">
@@ -1320,11 +1369,10 @@ export function About() {
                               {project.name}
                               {project.featured && <Icons.Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
                             </h4>
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              project.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
+                            <span className={`text-xs px-2 py-1 rounded ${project.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
                               project.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-gray-500/20 text-gray-400'
-                            }`}>
+                                'bg-gray-500/20 text-gray-400'
+                              }`}>
                               {project.status}
                             </span>
                           </div>
@@ -1508,12 +1556,11 @@ export function About() {
                                 </span>
                               )}
                             </div>
-                            <span className={`px-3 py-1 rounded text-sm ${
-                              skill.proficiency === 'Expert' ? 'bg-tertiary-500/20 text-tertiary-300' :
+                            <span className={`px-3 py-1 rounded text-sm ${skill.proficiency === 'Expert' ? 'bg-tertiary-500/20 text-tertiary-300' :
                               skill.proficiency === 'Advanced' ? 'bg-primary-500/20 text-primary-300' :
-                              skill.proficiency === 'Intermediate' ? 'bg-green-500/20 text-green-300' :
-                              'bg-gray-500/20 text-gray-300'
-                            }`}>
+                                skill.proficiency === 'Intermediate' ? 'bg-green-500/20 text-green-300' :
+                                  'bg-gray-500/20 text-gray-300'
+                              }`}>
                               {skill.proficiency}
                             </span>
                           </div>

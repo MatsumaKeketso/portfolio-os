@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useFileStore } from '../store/fileStore';
 import { useAuthStore } from '../store/authStore';
+import { useNotificationStore } from '../store/notificationStore';
 import { Taskbar } from './Taskbar';
 import { StartMenu } from './StartMenu';
 import { DesktopIcons } from './DesktopIcons';
@@ -17,6 +18,7 @@ import { NotificationContainer } from './NotificationContainer';
 import { Timeline } from './Timeline';
 
 import { useUserStore } from '../store/userStore';
+import { useThemeStore } from '../store/themeStore';
 
 export function Desktop() {
   const {
@@ -29,6 +31,8 @@ export function Desktop() {
     systemPreferences,
     setIconSize,
     windows,
+    fetchApps,
+    fetchBackgrounds,
   } = useDesktopStore();
   const fileStore = useFileStore();
   const { isAuthenticated, checkSession } = useAuthStore();
@@ -45,13 +49,41 @@ export function Desktop() {
   const hasMaximizedWindow = windows.some(w => w.isMaximized && !w.isMinimized);
 
   const { fetchProfile } = useUserStore();
+  const { fetchFileSystem } = useFileStore();
+  const { fetchTheme } = useThemeStore();
 
   useEffect(() => {
     // Check authentication session on mount
     checkSession();
     // Fetch profile data from Supabase
     fetchProfile();
-  }, [checkSession, fetchProfile]);
+    // Fetch file system
+    fetchFileSystem();
+    // Fetch apps from Supabase
+    fetchApps();
+    // Fetch backgrounds from Supabase
+    fetchBackgrounds();
+    // Fetch theme from Supabase
+    fetchTheme();
+  }, [checkSession, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, fetchTheme]);
+
+  /* Global Error Handling */
+  const { error: userError } = useUserStore();
+  const { addNotification } = useNotificationStore();
+
+  useEffect(() => {
+    if (userError) {
+      addNotification({
+        type: 'error',
+        title: 'System Error',
+        message: userError,
+        duration: 5000,
+      });
+      // Optionally clear error after showing? 
+      // useUserStore.setState({ error: null }); 
+      // Better to let user dismiss or have it persist until next action.
+    }
+  }, [userError, addNotification]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

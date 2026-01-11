@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
+import { Button } from './ui/button';
 
 export interface ContextMenuItem {
   label: string;
@@ -74,7 +75,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           item.divider ? (
             <div key={`divider-${index}`} className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-1" />
           ) : (
-            <button
+            <Button
               key={`item-${index}`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -84,7 +85,8 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
                 }
               }}
               disabled={item.disabled}
-              className="w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between transition-colors"
+              variant="menu-item"
+              className="w-full flex items-center justify-between h-auto py-2"
             >
               <div className="flex items-center gap-2">
                 <item.icon className="w-4 h-4 text-primary-400" />
@@ -93,7 +95,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
               {item.shortcut && (
                 <span className="text-xs text-gray-400">{item.shortcut}</span>
               )}
-            </button>
+            </Button>
           )
         ))}
       </div>

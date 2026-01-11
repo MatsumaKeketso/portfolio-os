@@ -28,54 +28,53 @@ import { cn } from '../../lib/utils'
  */
 
 const surfaceVariants = cva(
-  // Base styles - Applied to ALL surfaces for consistent futuristic minimal space UI
+  // Base styles - Cyberpunk HUD panels with neon accents
   // Sharp corners, high transparency, mild blur for that minimal space aesthetic
-  'relative backdrop-blur-md border-b border-white/10 transition-all duration-300',
+  'relative backdrop-blur-md border-b border-primary-500/10 transition-all duration-200',
   {
     variants: {
       variant: {
-        // Window chrome - Main application windows
-        window: 'bg-gray-900/75 shadow-2xl rounded overflow-hidden',
+        // Window chrome - Main app container (sharp HUD panel)
+        window: 'bg-black/92 shadow-hud-elevated border-t border-primary-500/25 border-x border-b border-gray-800/50 overflow-hidden',
 
-        // Dialog/Modal - Elevated dialogs and modals
-        dialog: 'bg-gray-800/75 shadow-2xl rounded overflow-hidden',
+        // Dialog/Modal - Elevated layer with subtle glow
+        dialog: 'bg-black/95 shadow-[0_25px_50px_rgba(0,0,0,0.8)] shadow-lg shadow-primary-500/20 border border-primary-500/30 overflow-hidden',
 
-        // Panel - Side panels, admin panels, settings panels (DEFAULT)
-        // High transparency, sharp corners, mild blur
-        panel: 'bg-gray-900/70 shadow-xl rounded',
+        // Panel - Side panels with layered depth (DEFAULT)
+        panel: 'bg-gray-900/50 shadow-hud-base border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10',
 
-        // Card - Content cards within apps
-        card: 'bg-white/5 shadow-lg rounded hover:bg-white/8',
+        // Card - Content cards (Timeline style with subtle glow on hover)
+        card: 'bg-gray-900/50 shadow-hud-base border border-primary-500/30 hover:bg-primary-500/10 hover:border-primary-500/60 hover:translate-y-[-1px] hover:shadow-lg hover:shadow-primary-500/30',
 
-        // Toolbar - Top bars, action bars
-        toolbar: 'bg-gray-900/60 shadow-md',
+        // Toolbar - Top bars (thin bottom accent)
+        toolbar: 'bg-black/80 shadow-md border-b border-primary-500/25',
 
-        // Sidebar - Navigation sidebars
-        sidebar: 'bg-gray-900/70 shadow-lg',
+        // Sidebar - Nav sidebars (thin right divider)
+        sidebar: 'bg-black/85 shadow-hud-base border-r border-primary-500/20',
 
-        // Popover - Small floating panels (context menus, tooltips)
-        popover: 'bg-gray-800/80 shadow-xl rounded',
+        // Popover - Context menus (elevated with subtle glow)
+        popover: 'bg-black/95 shadow-hud-elevated shadow-lg shadow-primary-500/20 border border-primary-500/30',
 
-        // Input - Form input surfaces
-        input: 'bg-gray-700/40 rounded border border-gray-600/50 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500',
+        // Input - Form surfaces (inset on focus)
+        input: 'bg-gray-900/60 border border-gray-700/50 focus-within:border-primary-500/60 focus-within:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset]',
 
-        // App container - Main app content area
-        app: 'bg-gradient-to-br from-gray-900/70 to-gray-800/70 shadow-inner',
+        // App container - Main content area
+        app: 'bg-gradient-to-br from-black/85 via-gray-900/80 to-black/85 shadow-inner',
 
-        // Inline - Minimal inline surface (no shadow)
-        inline: 'bg-white/5 rounded',
+        // Inline - Minimal flat surface
+        inline: 'bg-black/40 border border-gray-800/40',
 
-        // Glass - Maximum transparency for overlays
-        glass: 'bg-white/5 shadow-lg rounded',
+        // Glass - Max transparency HUD overlay
+        glass: 'bg-black/30 shadow-lg border border-primary-500/15',
       },
 
       elevation: {
-        // Shadow depth for layering
+        // Shadow depth for layering (HUD-inspired)
         none: 'shadow-none',
         low: 'shadow-md',
-        medium: 'shadow-xl',
-        high: 'shadow-2xl',
-        highest: 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]',
+        medium: 'shadow-hud-base',
+        high: 'shadow-hud-elevated',
+        highest: 'shadow-[0_25px_50px_rgba(0,0,0,0.9),0_0_2px_rgba(6,182,212,0.5)]',
       },
 
       blur: {
@@ -90,11 +89,11 @@ const surfaceVariants = cva(
       },
 
       border: {
-        // Border style
-        default: 'border-b border-white/10',
+        // Border style (Cyberpunk neon)
+        default: 'border-b border-primary-500/10',
         none: 'border-none',
-        all: 'border border-white/10',
-        glow: 'border-b border-primary-500/30 shadow-[0_1px_20px_rgba(239,68,68,0.15)]',
+        all: 'border border-primary-500/15',
+        glow: 'border-b border-primary-500/50 shadow-[0_1px_10px_rgba(6,182,212,0.3)]',
       },
 
       padding: {
@@ -233,7 +232,7 @@ const SurfaceFooter = React.forwardRef<
 SurfaceFooter.displayName = 'SurfaceFooter'
 
 /**
- * SurfaceDivider - Divider line for surfaces
+ * SurfaceDivider - HUD section divider (subtle, no glow)
  */
 const SurfaceDivider = React.forwardRef<
   HTMLDivElement,
@@ -242,10 +241,10 @@ const SurfaceDivider = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'h-px my-4',
+      'h-[1px] my-4',
       variant === 'gradient'
-        ? 'bg-gradient-to-r from-transparent via-white/20 to-transparent'
-        : 'bg-white/10',
+        ? 'bg-gradient-to-r from-transparent via-primary-500/25 to-transparent'
+        : 'bg-primary-500/20',
       className
     )}
     {...props}

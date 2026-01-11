@@ -25,6 +25,8 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   const GRID_SIZE = SIZES[iconSize].grid;
   const ICON_WIDTH = SIZES[iconSize].width;
   const ICON_HEIGHT = SIZES[iconSize].height;
+  const DRAG_THRESHOLD = 5; // pixels to move before starting drag
+
   const { apps, openWindow, reorderApps } = useDesktopStore();
   const [draggingAppId, setDraggingAppId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -34,6 +36,14 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
+
+  // Track mouse down state for drag threshold
+  const [mouseDownState, setMouseDownState] = useState<{
+    appId: string;
+    startX: number;
+    startY: number;
+    currentPos: { x: number; y: number };
+  } | null>(null);
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
@@ -117,27 +127,45 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   };
 
   const handleMouseDown = (e: React.MouseEvent, appId: string, currentPos: { x: number; y: number }) => {
-    e.preventDefault();
-    setDraggingAppId(appId);
-    setDragOffset({
-      x: e.clientX - currentPos.x,
-      y: e.clientY - currentPos.y,
+    // Don't prevent default yet - let double-click work
+    setMouseDownState({
+      appId,
+      startX: e.clientX,
+      startY: e.clientY,
+      currentPos,
     });
-    setDragPosition(currentPos);
-    setHoverIndex(null);
   };
 
   useEffect(() => {
-    if (!draggingAppId) return;
+    if (!mouseDownState && !draggingAppId) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = e.clientX - dragOffset.x;
-      const newY = e.clientY - dragOffset.y;
-      setDragPosition({ x: newX, y: newY });
+      // Check if we should start dragging (threshold check)
+      if (mouseDownState && !draggingAppId) {
+        const deltaX = Math.abs(e.clientX - mouseDownState.startX);
+        const deltaY = Math.abs(e.clientY - mouseDownState.startY);
 
-      // Calculate hover index
-      const index = pixelsToIndex(newX + ICON_WIDTH / 2, newY + ICON_HEIGHT / 2);
-      setHoverIndex(index);
+        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+          // Start dragging
+          setDraggingAppId(mouseDownState.appId);
+          setDragOffset({
+            x: e.clientX - mouseDownState.currentPos.x,
+            y: e.clientY - mouseDownState.currentPos.y,
+          });
+          setDragPosition(mouseDownState.currentPos);
+          setHoverIndex(null);
+          setMouseDownState(null);
+        }
+      } else if (draggingAppId) {
+        // Continue dragging
+        const newX = e.clientX - dragOffset.x;
+        const newY = e.clientY - dragOffset.y;
+        setDragPosition({ x: newX, y: newY });
+
+        // Calculate hover index
+        const index = pixelsToIndex(newX + ICON_WIDTH / 2, newY + ICON_HEIGHT / 2);
+        setHoverIndex(index);
+      }
     };
 
     const handleMouseUp = () => {
@@ -148,6 +176,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
       }
       setDraggingAppId(null);
       setHoverIndex(null);
+      setMouseDownState(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -157,7 +186,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [draggingAppId, dragOffset, dragPosition, hoverIndex, containerHeight]);
+  }, [mouseDownState, draggingAppId, dragOffset, dragPosition, hoverIndex, containerHeight]);
 
   // Sort apps based on sortBy prop
   const sortApps = (appsToSort: App[]): App[] => {

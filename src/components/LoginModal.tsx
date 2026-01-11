@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { Button } from './ui/button';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -76,13 +77,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <p className="text-gray-400 text-sm">Enter credentials to access admin features</p>
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleClose}
-                className="p-2 hover:bg-white/20 rounded-lg transition-all"
                 type="button"
               >
-                <Icons.X className="w-5 h-5 text-gray-400" />
-              </button>
+                <Icons.X className="w-5 h-5" />
+              </Button>
             </div>
 
             {/* Gradient divider */}
@@ -118,17 +120,19 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     className="w-full bg-gray-700/50 text-white placeholder-gray-400 px-4 py-3 pr-12 rounded-lg border border-gray-600/50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     placeholder="Enter admin password"
                   />
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded transition-all"
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
                   >
                     {showPassword ? (
-                      <Icons.EyeOff className="w-5 h-5 text-gray-400" />
+                      <Icons.EyeOff className="w-5 h-5" />
                     ) : (
-                      <Icons.Eye className="w-5 h-5 text-gray-400" />
+                      <Icons.Eye className="w-5 h-5" />
                     )}
-                  </button>
+                  </Button>
                 </div>
                 {error && (
                   <p className="mt-2 text-sm text-red-400 flex items-center gap-1">
@@ -153,20 +157,21 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
               {/* Actions */}
               <div className="flex gap-3 pt-2">
-                <button
+                <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  variant="primary"
+                  className="flex-1 flex items-center justify-center gap-2"
                 >
                   <Icons.LogIn className="w-4 h-4" />
                   Login
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={handleClose}
-                  className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
 

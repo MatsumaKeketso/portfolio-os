@@ -14,7 +14,8 @@ interface NotepadProps {
 
 export function Notepad({ window }: NotepadProps = {}) {
   const fileStore = useFileStore();
-  const { windows } = useDesktopStore();
+
+  const { windows, updateWindow } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const [text, setText] = useState('Welcome to GenOS Notepad!\n\nStart typing your notes here...');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -97,14 +98,17 @@ export function Notepad({ window }: NotepadProps = {}) {
     if (fileId) {
       fileStore.updateFileContent(fileId, text);
       setHasUnsavedChanges(false);
+    } else {
+      handleSaveAs();
     }
   };
 
   const handleSaveAs = () => {
     const fileName = prompt('Enter file name:', 'untitled.txt');
     if (fileName) {
+      const newFileId = `file-${Date.now()}`;
       fileStore.addFile({
-        id: `file-${Date.now()}`,
+        id: newFileId,
         name: fileName,
         type: 'file',
         parentId: null,
@@ -116,6 +120,14 @@ export function Notepad({ window }: NotepadProps = {}) {
         modifiedAt: Date.now(),
       });
       setHasUnsavedChanges(false);
+
+      // Update the current window to point to the new file
+      if (currentWindow) {
+        updateWindow(currentWindow.id, {
+          fileId: newFileId,
+          title: fileName
+        });
+      }
     }
   };
 
@@ -128,10 +140,10 @@ export function Notepad({ window }: NotepadProps = {}) {
         {/* Save buttons */}
         <button
           onClick={handleSave}
-          disabled={!hasUnsavedChanges || !fileId}
-          className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${hasUnsavedChanges && fileId
-              ? 'bg-primary-600 text-white hover:bg-primary-700'
-              : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+          disabled={!hasUnsavedChanges && !!fileId}
+          className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${hasUnsavedChanges || !fileId
+            ? 'bg-primary-600 text-white hover:bg-primary-700'
+            : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
             }`}
         >
           <Icons.Save className="w-3 h-3" />
