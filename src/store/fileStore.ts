@@ -275,10 +275,29 @@ export const useFileStore = create<FileStoreState>((set, get) => {
     }),
 
     removeFile: (fileId) => set((state) => {
-      // const newFiles = state.files.filter(f => f.id !== fileId); // Unused
+      // Find files to remove (including children)
       const childFiles = state.files.filter(f => f.parentId === fileId);
-      const allRemovedIds = [fileId, ...childFiles.map(f => f.id)];
+      const filesToRemove = [state.files.find(f => f.id === fileId), ...childFiles].filter(Boolean) as FileItem[];
+      const allRemovedIds = filesToRemove.map(f => f.id);
+
       const finalFiles = state.files.filter(f => !allRemovedIds.includes(f.id));
+
+      // Cleanup storage for removed files
+      filesToRemove.forEach(async (file) => {
+        if ((file.type === 'image' || file.type === 'video') && file.dataUrl && file.dataUrl.includes('portfolio-files')) {
+          try {
+            // Extract filename from URL
+            // URL Format: .../portfolio-files/filename
+            const parts = file.dataUrl.split('portfolio-files/');
+            if (parts.length > 1) {
+              const fileName = parts[1];
+              await supabase.storage.from('portfolio-files').remove([fileName]);
+            }
+          } catch (err) {
+            console.error('Error deleting file from storage:', err);
+          }
+        }
+      });
 
       saveToSupabase(finalFiles);
       return { files: finalFiles };

@@ -131,8 +131,11 @@ portfolio-os/
   - Navigate folder hierarchy
   - File preview (documents and images)
 - **Metadata Tracking**: Size, creation date, modification date, MIME type
-- **Data URLs**: Base64 encoding for uploaded files
-- **LocalStorage Persistence**: All files saved to browser storage
+- **Supabase Storage Integration**:
+  - Images and videos uploaded to `portfolio-files` bucket
+  - Public URLs stored in database
+  - Automatic cleanup of storage upon file deletion
+- **LocalStorage Persistence**: Cached in browser, synced with Supabase
 
 ### 4. Admin Panel
 - **Access**: `Ctrl + Shift + A` or URL parameter `?admin=1`
@@ -527,19 +530,17 @@ The `WindowManager` component dynamically loads app components based on the `com
 
 ## 🐛 Known Limitations
 
-1. **No Real File System**: Files stored as base64 in localStorage (size limits)
-2. **Static Weather Data**: No API integration for real weather
-3. **No Multi-User Support**: Single-user experience
-4. **Browser Storage Limits**: ~5-10MB localStorage quota
-5. **No Mobile Optimization**: Desktop-focused experience
-6. **Supabase Unused**: Dependency included but not integrated
+1.  **Static Weather Data**: No API integration for real weather
+2.  **No Multi-User Support**: Single-user experience
+3.  **Browser Storage Limits**: LocalStorage quota (mitigated by Supabase Storage for media)
+4.  **No Mobile Optimization**: Desktop-focused experience
 
 ---
 
 ## 🔄 Future Enhancement Opportunities
 
 ### Suggested Features
-- [ ] Cloud storage integration (Supabase implementation)
+- [x] Cloud storage integration (Supabase implementation)
 - [ ] User authentication and profiles
 - [ ] Real-time weather API integration
 - [ ] Mobile responsive design

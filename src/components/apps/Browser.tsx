@@ -31,7 +31,7 @@ export function Browser() {
   ];
 
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: 'tab-1', title: 'Udemy', url: 'https://www.udemy.com' },
+    { id: 'tab-1', title: 'New Tab', url: 'browser://newtab' },
   ]);
   const [activeTabId, setActiveTabId] = useState('tab-1');
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(defaultBookmarks);
@@ -129,7 +129,7 @@ export function Browser() {
 
   const handleHome = () => {
     if (activeTab) {
-      updateTabUrl(activeTab.id, 'https://www.udemy.com');
+      updateTabUrl(activeTab.id, 'browser://newtab');
     }
   };
 
@@ -137,7 +137,7 @@ export function Browser() {
     const newTab: Tab = {
       id: `tab-${Date.now()}`,
       title: 'New Tab',
-      url: 'https://www.bing.com',
+      url: 'browser://newtab',
     };
     setTabs([...tabs, newTab]);
     setActiveTabId(newTab.id);
@@ -190,8 +190,8 @@ export function Browser() {
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={() => setActiveTabId(tab.id)}
               className={`group flex items-center gap-2 px-3 py-2 rounded-t transition-all min-w-[120px] max-w-[200px] ${activeTabId === tab.id
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
+                ? 'bg-gray-800 text-white'
+                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
                 }`}
             >
               <Icons.Globe className="w-3.5 h-3.5 shrink-0" />
@@ -347,13 +347,93 @@ export function Browser() {
           </div>
         )}
         {activeTab && (
-          <iframe
-            key={activeTab.id}
-            src={activeTab.url}
-            className="w-full h-full border-0"
-            title={activeTab.title}
-            onLoad={() => setIsLoading(false)}
-          />
+          <>
+            {activeTab.url === 'browser://newtab' ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900 text-white p-8 overflow-y-auto">
+                <div className="max-w-4xl w-full flex flex-col items-center gap-12">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary-500 to-tertiary-600 flex items-center justify-center shadow-2xl shadow-primary-500/20">
+                      <Icons.Globe className="w-12 h-12 text-white" />
+                    </div>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-tertiary-400">
+                      Portfolio Browser
+                    </h1>
+                  </div>
+
+                  {/* Search Bar - just navigates */}
+                  <div className="w-full max-w-2xl relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-tertiary-500/20 rounded-xl blur-lg transition-all opacity-0 group-hover:opacity-100" />
+                    <div className="relative bg-white/10 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex items-center gap-3 transition-all focus-within:bg-white/15 focus-within:border-white/20 focus-within:shadow-xl focus-within:shadow-primary-500/10">
+                      <Icons.Search className="w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search the web or enter URL..."
+                        className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-400 text-lg"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = e.currentTarget.value.trim();
+                            if (val) {
+                              let url = val;
+                              if (!url.startsWith('http')) {
+                                if (url.includes('.') && !url.includes(' ')) {
+                                  url = 'https://' + url;
+                                } else {
+                                  url = `https://www.bing.com/search?q=${encodeURIComponent(val)}`;
+                                }
+                              }
+                              updateTabUrl(activeTab.id, url);
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Speed Dial Grid */}
+                  <div className="w-full">
+                    <h2 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider pl-1">Quick Links</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {bookmarks.map((bookmark, index) => (
+                        <button
+                          key={index}
+                          onClick={() => updateTabUrl(activeTab.id, bookmark.url)}
+                          className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"
+                        >
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform duration-300">
+                            {bookmark.icon}
+                          </div>
+                          <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors truncate w-full text-center">
+                            {bookmark.name}
+                          </span>
+                        </button>
+                      ))}
+
+                      {/* Add Button */}
+                      <button
+                        onClick={() => setShowBookmarkDialog(true)}
+                        className="group flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-white/10 hover:border-primary-500/50 hover:bg-primary-500/5 transition-all"
+                      >
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center text-gray-500 group-hover:text-primary-400 transition-colors">
+                          <Icons.Plus className="w-8 h-8" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-500 group-hover:text-primary-400 transition-colors">
+                          Add Shortcut
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <iframe
+                key={activeTab.id}
+                src={activeTab.url}
+                className="w-full h-full border-0"
+                title={activeTab.title}
+                onLoad={() => setIsLoading(false)}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
