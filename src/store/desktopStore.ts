@@ -58,6 +58,7 @@ interface DesktopStore {
   addBackground: (background: DesktopBackground) => void;
   removeBackground: (backgroundId: string) => void;
   setSelectedBackground: (backgroundId: string) => void;
+  resetBackgroundToDefault: () => Promise<void>;
   getSelectedBackground: () => DesktopBackground | undefined;
 
   updateSystemPreferences: (preferences: Partial<SystemPreferences>) => void;

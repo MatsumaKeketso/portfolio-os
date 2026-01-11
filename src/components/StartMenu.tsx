@@ -149,16 +149,14 @@ export function StartMenu() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  {isAuthenticated && (
-                    <Button
-                      onClick={() => setShowCustomization(true)}
-                      variant="ghost"
-                      size="icon"
-                      title="Customization Settings"
-                    >
-                      <Icons.Settings className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => setShowCustomization(true)}
+                    variant="ghost"
+                    size="icon"
+                    title="Customization Settings"
+                  >
+                    <Icons.Settings className="w-4 h-4" />
+                  </Button>
                   {isAuthenticated ? (
                     <Button
                       onClick={() => {
@@ -187,13 +185,11 @@ export function StartMenu() {
             </div>
           </motion.div>
 
-          {/* Customization Settings Modal - Only accessible when authenticated */}
-          {isAuthenticated && (
-            <CustomizationSettings
-              isOpen={showCustomization}
-              onClose={() => setShowCustomization(false)}
-            />
-          )}
+          {/* Customization Settings Modal - Accessible to all */}
+          <CustomizationSettings
+            isOpen={showCustomization}
+            onClose={() => setShowCustomization(false)}
+          />
 
           {/* Login Modal */}
           <LoginModal

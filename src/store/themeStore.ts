@@ -359,10 +359,11 @@ export const useThemeStore = create<ThemeState>((set, get) => {
       }
     },
 
-    resetToDefault: () => {
-      saveThemeToSupabase(defaultTheme);
-      applyThemeToDom(defaultTheme);
-      set({ theme: defaultTheme });
+    resetToDefault: async () => {
+      // Revert to the global theme set by Admin (from Supabase)
+      const theme = await fetchThemeFromSupabase();
+      applyThemeToDom(theme);
+      set({ theme });
     },
 
     applyThemeToDom,

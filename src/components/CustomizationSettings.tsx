@@ -20,6 +20,8 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     setSelectedBackground,
     addBackground,
     removeBackground,
+    resetBackgroundToDefault,
+    isAdminMode,
   } = useDesktopStore();
   const { profile, updatePreferences } = useUserStore();
   const {
@@ -183,92 +185,107 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
               <div className="flex-1 overflow-y-auto p-6">
                 {/* Desktop Tab */}
                 {activeTab === 'desktop' && (
-                  <div className="space-y-6">
+                  <div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                        <Icons.Image className="w-5 h-5 text-primary-400" />
-                        Background Wallpapers
-                      </h3>
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                            <Icons.Image className="w-5 h-5 text-primary-400" />
+                            Background Wallpapers
+                          </h3>
 
-                      {/* Upload Button */}
-                      <div className="mb-4">
-                        <label className="bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold cursor-pointer">
-                          <Icons.Upload className="w-5 h-5" />
-                          Upload Custom Background
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleBackgroundUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <p className="text-gray-400 text-sm text-center mt-2">
-                          Upload JPG, PNG, or WebP images (max 5MB per file, multiple files supported)
-                        </p>
-                      </div>
-
-                      {/* Background Grid */}
-                      <div className="grid grid-cols-3 gap-4">
-                        {backgrounds.map((bg) => {
-                          const isSelected = selectedBackgroundId === bg.id;
-                          const isDefault = bg.id.startsWith('default-');
-                          const isGradient = bg.url.startsWith('linear-gradient');
-
-                          return (
-                            <div
-                              key={bg.id}
-                              className={`relative rounded overflow-hidden border-4 transition-all cursor-pointer group ${
-                                isSelected
-                                  ? 'border-primary-500 shadow-lg shadow-primary-500/50'
-                                  : 'border-gray-700 hover:border-gray-500'
-                              }`}
-                              onClick={() => setSelectedBackground(bg.id)}
-                            >
-                              {/* Background Preview */}
-                              <div
-                                className="w-full h-24 bg-cover bg-center"
-                                style={{
-                                  background: isGradient ? bg.url : 'transparent',
-                                  backgroundImage: !isGradient ? `url(${bg.url})` : undefined,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center'
-                                }}
+                          {/* Upload Button */}
+                          <div className="mb-4">
+                            <label className="bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold cursor-pointer">
+                              <Icons.Upload className="w-5 h-5" />
+                              Upload Custom Background
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleBackgroundUpload}
+                                className="hidden"
                               />
+                            </label>
+                            <p className="text-gray-400 text-sm text-center mt-2">
+                              Upload JPG, PNG, or WebP images (max 5MB per file, multiple files supported)
+                            </p>
+                          </div>
 
-                              {/* Info Bar */}
-                              <div className="bg-gray-900/80 backdrop-blur-sm p-2 border-t border-white/10 flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <h3 className="text-white font-semibold text-xs truncate">
-                                    {bg.name}
-                                  </h3>
-                                  {isSelected && (
-                                    <Icons.Check className="w-4 h-4 text-primary-400 flex-shrink-0" />
-                                  )}
-                                </div>
+                          {/* Background Grid */}
+                          <div className="grid grid-cols-3 gap-4">
+                            {backgrounds.map((bg) => {
+                              const isSelected = selectedBackgroundId === bg.id;
+                              const isDefault = bg.id.startsWith('default-');
+                              const isGradient = bg.url.startsWith('linear-gradient');
 
-                                {/* Delete button for custom backgrounds */}
-                                {!isDefault && (
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (confirm(`Delete "${bg.name}"?`)) {
-                                        removeBackground(bg.id);
-                                      }
+                              return (
+                                <div
+                                  key={bg.id}
+                                  className={`relative rounded overflow-hidden border-4 transition-all cursor-pointer group ${isSelected
+                                    ? 'border-primary-500 shadow-lg shadow-primary-500/50'
+                                    : 'border-gray-700 hover:border-gray-500'
+                                    }`}
+                                  onClick={() => setSelectedBackground(bg.id)}
+                                >
+                                  {/* Background Preview */}
+                                  <div
+                                    className="w-full h-24 bg-cover bg-center"
+                                    style={{
+                                      background: isGradient ? bg.url : 'transparent',
+                                      backgroundImage: !isGradient ? `url(${bg.url})` : undefined,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
                                     }}
-                                    variant="ghost-danger"
-                                    size="icon"
-                                    className="w-6 h-6 opacity-0 group-hover:opacity-100"
-                                    title="Delete background"
-                                  >
-                                    <Icons.Trash2 className="w-3 h-3" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                                  />
+
+                                  {/* Info Bar */}
+                                  <div className="bg-gray-900/80 backdrop-blur-sm p-2 border-t border-white/10 flex items-center justify-between">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <h3 className="text-white font-semibold text-xs truncate">
+                                        {bg.name}
+                                      </h3>
+                                      {isSelected && (
+                                        <Icons.Check className="w-4 h-4 text-primary-400 flex-shrink-0" />
+                                      )}
+                                    </div>
+
+                                    {/* Delete button for custom backgrounds */}
+                                    {!isDefault && (
+                                      <Button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (confirm(`Delete "${bg.name}"?`)) {
+                                            removeBackground(bg.id);
+                                          }
+                                        }}
+                                        variant="ghost-danger"
+                                        size="icon"
+                                        className="w-6 h-6 opacity-0 group-hover:opacity-100"
+                                        title="Delete background"
+                                      >
+                                        <Icons.Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    <div className="pt-4 border-t border-gray-700">
+                      <Button
+                        onClick={resetBackgroundToDefault}
+                        variant="soft-system-primary"
+                        className="w-full flex items-center justify-center gap-2"
+                      >
+                        <Icons.RotateCcw className="w-4 h-4" />
+                        Reset to Default Background
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -397,9 +414,8 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                             className="p-4 h-auto flex-col"
                           >
                             <Icons.Square
-                              className={`w-8 h-8 mx-auto mb-2 ${
-                                style === 'rounded' ? 'rounded-full' : style === 'sharp' ? '' : 'rounded-lg'
-                              }`}
+                              className={`w-8 h-8 mx-auto mb-2 ${style === 'rounded' ? 'rounded-full' : style === 'sharp' ? '' : 'rounded-lg'
+                                }`}
                               style={{
                                 background: 'rgba(255,255,255,0.1)',
                                 padding: '8px',
@@ -500,8 +516,9 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
               </div>
             </div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </motion.div >
+      )
+      }
+    </AnimatePresence >
   );
 }
