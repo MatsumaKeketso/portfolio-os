@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { App, WindowState } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface DesktopBackground {
   id: string;
@@ -40,6 +41,7 @@ interface DesktopStore {
   maximizeWindow: (windowId: string) => void;
   updateWindowPosition: (windowId: string, position: { x: number; y: number }) => void;
   updateWindowSize: (windowId: string, size: { width: number; height: number }) => void;
+  updateWindow: (windowId: string, updates: Partial<WindowState>) => void;
   bringToFront: (windowId: string) => void;
 
   toggleStartMenu: () => void;
@@ -48,9 +50,11 @@ interface DesktopStore {
   setAdminMode: (mode: boolean) => void;
 
   loadApps: (apps: App[]) => void;
+  fetchApps: () => Promise<void>;
   exportConfig: () => string;
   importConfig: (json: string) => void;
 
+  fetchBackgrounds: () => Promise<void>;
   addBackground: (background: DesktopBackground) => void;
   removeBackground: (backgroundId: string) => void;
   setSelectedBackground: (backgroundId: string) => void;
@@ -138,18 +142,6 @@ const defaultApps: App[] = [
     description: 'View running portfolio projects'
   },
   {
-    id: 'nailhub',
-    name: 'NailHub Social',
-    icon: 'heart',
-    type: 'iframe',
-    url: 'https://www.nailhub.co.za',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 350, y: 50 },
-    defaultSize: { width: 900, height: 700 },
-    description: 'Social platform for nail artists'
-  },
-  {
     id: 'github',
     name: 'GitHub',
     icon: 'github',
@@ -234,16 +226,97 @@ const defaultApps: App[] = [
   }
 ];
 
-const loadAppsFromStorage = (): App[] => {
-  const stored = localStorage.getItem('portfolioOS_apps');
-  if (stored) {
+// Helper to debounce Supabase saves
+let appsTimeout: NodeJS.Timeout;
+const saveAppsToSupabase = async (apps: App[]) => {
+  if (appsTimeout) clearTimeout(appsTimeout);
+
+  appsTimeout = setTimeout(async () => {
     try {
-      return JSON.parse(stored);
-    } catch (e) {
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({ id: 'apps', data: apps, updated_at: new Date().toISOString() });
+
+      if (error) {
+        console.error('Error saving apps to Supabase:', error);
+      }
+    } catch (e: any) {
+      console.error('Failed to save apps:', e);
+    }
+  }, 1000); // 1s debounce
+};
+
+// Fetch apps from Supabase
+const fetchAppsFromSupabase = async (): Promise<App[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('data')
+      .eq('id', 'apps')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    if (data && data.data) {
+      return data.data as App[];
+    } else {
+      // No apps found, initialize with defaults
+      await saveAppsToSupabase(defaultApps);
       return defaultApps;
     }
+  } catch (err: any) {
+    console.error('Error fetching apps:', err);
+    return defaultApps;
   }
-  return defaultApps;
+};
+
+// Backgrounds Supabase integration
+let backgroundsTimeout: NodeJS.Timeout;
+const saveBackgroundsToSupabase = async (backgrounds: DesktopBackground[]) => {
+  if (backgroundsTimeout) clearTimeout(backgroundsTimeout);
+
+  backgroundsTimeout = setTimeout(async () => {
+    try {
+      // Only save custom backgrounds (not defaults)
+      const customBackgrounds = backgrounds.filter(b => !b.id.startsWith('default-'));
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({ id: 'backgrounds', data: customBackgrounds, updated_at: new Date().toISOString() });
+
+      if (error) {
+        console.error('Error saving backgrounds to Supabase:', error);
+      }
+    } catch (e: any) {
+      console.error('Failed to save backgrounds:', e);
+    }
+  }, 1000); // 1s debounce
+};
+
+const fetchBackgroundsFromSupabase = async (): Promise<DesktopBackground[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('data')
+      .eq('id', 'backgrounds')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    if (data && data.data) {
+      const customBackgrounds = data.data as DesktopBackground[];
+      // Merge defaults with custom backgrounds
+      return [...defaultBackgrounds, ...customBackgrounds];
+    } else {
+      return defaultBackgrounds;
+    }
+  } catch (err: any) {
+    console.error('Error fetching backgrounds:', err);
+    return defaultBackgrounds;
+  }
 };
 
 const defaultBackgrounds: DesktopBackground[] = [
@@ -292,25 +365,91 @@ const defaultBackgrounds: DesktopBackground[] = [
     type: 'grid',
     config: { dotColor: '#667eea', spacing: 30 },
   },
+  // Star Citizen Themed Backgrounds
+  {
+    id: 'default-quantum',
+    name: 'Quantum Drive',
+    url: 'linear-gradient(135deg, #001a33 0%, #004d99 50%, #00d9ff 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-starcitizen-space',
+    name: 'Deep Space',
+    url: 'linear-gradient(180deg, #000000 0%, #0a1628 50%, #001a33 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-nebula-cyan',
+    name: 'Cyan Nebula',
+    url: 'linear-gradient(135deg, #001a33 0%, #00334d 25%, #00d9ff 75%, #00ffff 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-microtech',
+    name: 'Microtech Sky',
+    url: 'linear-gradient(135deg, #003d5c 0%, #0066ff 50%, #00d9ff 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-crusader',
+    name: 'Crusader Atmosphere',
+    url: 'linear-gradient(180deg, #001233 0%, #003366 25%, #0066cc 75%, #0099ff 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-starcitizen-aurora',
+    name: 'Star Citizen Aurora',
+    url: '',
+    type: 'aurora',
+    config: { colors: ['#00d9ff', '#0066ff', '#00e5cc'] },
+  },
+  {
+    id: 'default-starcitizen-beams',
+    name: 'Quantum Beams',
+    url: '',
+    type: 'beams',
+    config: { color: '#00d9ff', opacity: 0.4 },
+  },
+  {
+    id: 'default-hud-grid',
+    name: 'HUD Grid',
+    url: '',
+    type: 'grid',
+    config: { dotColor: '#00d9ff', spacing: 40 },
+  },
 ];
 
-const loadBackgroundsFromStorage = (): DesktopBackground[] => {
-  const stored = localStorage.getItem('portfolioOS_backgrounds');
-  if (stored) {
-    try {
-      const customBackgrounds = JSON.parse(stored);
-      // Merge default backgrounds with custom ones
-      return [...defaultBackgrounds, ...customBackgrounds.filter((b: DesktopBackground) => !b.id.startsWith('default-'))];
-    } catch (e) {
-      return defaultBackgrounds;
-    }
+// Selected background ID Supabase integration
+const saveSelectedBackgroundToSupabase = async (backgroundId: string) => {
+  try {
+    await supabase
+      .from('site_content')
+      .upsert({ id: 'selectedBackground', data: { backgroundId }, updated_at: new Date().toISOString() });
+  } catch (e: any) {
+    console.error('Failed to save selected background:', e);
   }
-  return defaultBackgrounds;
 };
 
-const loadSelectedBackgroundId = (): string => {
-  const stored = localStorage.getItem('portfolioOS_selectedBackground');
-  return stored || 'default-blue';
+const fetchSelectedBackgroundFromSupabase = async (): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('data')
+      .eq('id', 'selectedBackground')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    if (data && data.data && data.data.backgroundId) {
+      return data.data.backgroundId;
+    }
+    return 'default-quantum'; // Star Citizen default
+  } catch (err: any) {
+    console.error('Error fetching selected background:', err);
+    return 'default-quantum';
+  }
 };
 
 const defaultSystemPreferences: SystemPreferences = {
@@ -338,31 +477,42 @@ const saveSystemPreferences = (preferences: SystemPreferences): void => {
 };
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
-  apps: loadAppsFromStorage(),
+  apps: defaultApps, // Will be loaded from Supabase via fetchApps()
   windows: [],
   isStartMenuOpen: false,
   isAdminMode: false,
   maxZIndex: 1000,
-  backgrounds: loadBackgroundsFromStorage(),
-  selectedBackgroundId: loadSelectedBackgroundId(),
+  backgrounds: defaultBackgrounds, // Will be loaded from Supabase via fetchBackgrounds()
+  selectedBackgroundId: 'default-quantum', // Will be loaded from Supabase
   systemPreferences: loadSystemPreferences(),
+
+  fetchApps: async () => {
+    const apps = await fetchAppsFromSupabase();
+    set({ apps });
+  },
+
+  fetchBackgrounds: async () => {
+    const backgrounds = await fetchBackgroundsFromSupabase();
+    const selectedBackgroundId = await fetchSelectedBackgroundFromSupabase();
+    set({ backgrounds, selectedBackgroundId });
+  },
 
   addApp: (app) => set((state) => {
     const newApps = [...state.apps, app];
-    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    saveAppsToSupabase(newApps);
     return { apps: newApps };
   }),
 
   removeApp: (appId) => set((state) => {
     const newApps = state.apps.filter(a => a.id !== appId);
     const newWindows = state.windows.filter(w => w.appId !== appId);
-    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    saveAppsToSupabase(newApps);
     return { apps: newApps, windows: newWindows };
   }),
 
   updateApp: (appId, updates) => set((state) => {
     const newApps = state.apps.map(a => a.id === appId ? { ...a, ...updates } : a);
-    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    saveAppsToSupabase(newApps);
     return { apps: newApps };
   }),
 
@@ -370,7 +520,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const newApps = state.apps.map(a =>
       a.id === appId ? { ...a, desktopPosition: position } : a
     );
-    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    saveAppsToSupabase(newApps);
     return { apps: newApps };
   }),
 
@@ -378,7 +528,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     // Replace desktop apps with reordered ones, keep non-desktop apps
     const nonDesktopApps = state.apps.filter(a => !a.pinnedToDesktop);
     const newApps = [...reorderedApps, ...nonDesktopApps];
-    localStorage.setItem('portfolioOS_apps', JSON.stringify(newApps));
+    saveAppsToSupabase(newApps);
     return { apps: newApps };
   }),
 
@@ -448,6 +598,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     )
   })),
 
+  updateWindow: (windowId, updates) => set((state) => ({
+    windows: state.windows.map(w =>
+      w.id === windowId ? { ...w, ...updates } : w
+    )
+  })),
+
   bringToFront: (windowId) => set((state) => ({
     windows: state.windows.map(w =>
       w.id === windowId ? { ...w, zIndex: state.maxZIndex + 1 } : w
@@ -463,7 +619,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   setAdminMode: (mode) => set({ isAdminMode: mode }),
 
-  loadApps: (apps) => set({ apps }),
+  loadApps: (apps) => {
+    set({ apps });
+    saveAppsToSupabase(apps);
+  },
 
   exportConfig: () => {
     const { apps } = get();
@@ -474,18 +633,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     try {
       const apps = JSON.parse(json);
       set({ apps });
-      localStorage.setItem('portfolioOS_apps', json);
+      saveAppsToSupabase(apps);
     } catch (e) {
       console.error('Invalid JSON configuration');
     }
   },
-
   addBackground: (background) => set((state) => {
     const newBackgrounds = [...state.backgrounds, background];
-    // Only save custom backgrounds to localStorage (not defaults)
-    const customBackgrounds = newBackgrounds.filter(b => !b.id.startsWith('default-'));
-    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(customBackgrounds));
-    console.log('Saved backgrounds to localStorage:', customBackgrounds.length);
+    saveBackgroundsToSupabase(newBackgrounds);
     return { backgrounds: newBackgrounds };
   }),
 
@@ -494,17 +649,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (backgroundId.startsWith('default-')) return state;
 
     const newBackgrounds = state.backgrounds.filter(b => b.id !== backgroundId);
-    // Only save custom backgrounds to localStorage (not defaults)
-    const customBackgrounds = newBackgrounds.filter(b => !b.id.startsWith('default-'));
-    localStorage.setItem('portfolioOS_backgrounds', JSON.stringify(customBackgrounds));
-    console.log('Saved backgrounds after removal:', customBackgrounds.length);
+    saveBackgroundsToSupabase(newBackgrounds);
 
     // If removed background was selected, switch to default
     const newSelectedId = state.selectedBackgroundId === backgroundId
-      ? 'default-blue'
+      ? 'default-quantum'
       : state.selectedBackgroundId;
 
-    localStorage.setItem('portfolioOS_selectedBackground', newSelectedId);
+    saveSelectedBackgroundToSupabase(newSelectedId);
 
     return {
       backgrounds: newBackgrounds,
@@ -513,7 +665,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   }),
 
   setSelectedBackground: (backgroundId) => set((state) => {
-    localStorage.setItem('portfolioOS_selectedBackground', backgroundId);
+    saveSelectedBackgroundToSupabase(backgroundId);
     return { selectedBackgroundId: backgroundId };
   }),
 

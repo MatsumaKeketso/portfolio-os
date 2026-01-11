@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
@@ -10,25 +10,26 @@ type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
-  const { profile, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
+  const { profile, error, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
   const { isAuthenticated } = useAuthStore();
   const {
     openWindow,
-    apps,
-    backgrounds,
-    selectedBackgroundId,
-    setSelectedBackground,
-    addBackground,
-    removeBackground,
-    systemPreferences,
-    setTaskbarPosition,
-    setTaskbarSize,
-    setIconSize,
-    setWindowAnimations,
-    setAutoHideTaskbar,
+    // ... (keep existing destructured vars)
   } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Watch for store errors
+  useEffect(() => {
+    if (error) {
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: error,
+        duration: 5000,
+      });
+    }
+  }, [error, addNotification]);
 
   // Local state for editing
   const [quickEdit, setQuickEdit] = useState({
@@ -258,53 +259,53 @@ export function Settings() {
                 <>
                   <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
                     <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Update your basic information quickly here, or open the About Me app for full profile editing.
-                </p>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-white text-sm mb-2 block">Name</label>
-                    <input
-                      type="text"
-                      value={quickEdit.name}
-                      onChange={(e) => setQuickEdit({ ...quickEdit, name: e.target.value })}
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-white text-sm mb-2 block">Title</label>
-                    <input
-                      type="text"
-                      value={quickEdit.title}
-                      onChange={(e) => setQuickEdit({ ...quickEdit, title: e.target.value })}
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <Button variant="primary" size="sm" onClick={handleQuickSave}>
-                      <Icons.Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={openAboutApp}>
-                      <Icons.ExternalLink className="w-4 h-4 mr-2" />
-                      Edit Full Profile
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-primary-900/30 to-tertiary-900/30 backdrop-blur-lg rounded p-6 border border-primary-500/20">
-                <div className="flex items-start gap-4">
-                  <Icons.Info className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="text-white font-semibold mb-2">Profile Information</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      Your profile data is stored locally in your browser and automatically saved.
-                      Use the Data tab to export a backup or import profile data from another device.
+                    <p className="text-slate-400 text-sm mb-4">
+                      Update your basic information quickly here, or open the About Me app for full profile editing.
                     </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-white text-sm mb-2 block">Name</label>
+                        <input
+                          type="text"
+                          value={quickEdit.name}
+                          onChange={(e) => setQuickEdit({ ...quickEdit, name: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-white text-sm mb-2 block">Title</label>
+                        <input
+                          type="text"
+                          value={quickEdit.title}
+                          onChange={(e) => setQuickEdit({ ...quickEdit, title: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <Button variant="primary" size="sm" onClick={handleQuickSave}>
+                          <Icons.Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={openAboutApp}>
+                          <Icons.ExternalLink className="w-4 h-4 mr-2" />
+                          Edit Full Profile
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  <div className="bg-gradient-to-br from-primary-900/30 to-tertiary-900/30 backdrop-blur-lg rounded p-6 border border-primary-500/20">
+                    <div className="flex items-start gap-4">
+                      <Icons.Info className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="text-white font-semibold mb-2">Profile Information</h4>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          Your profile data is stored locally in your browser and automatically saved.
+                          Use the Data tab to export a backup or import profile data from another device.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
@@ -726,66 +727,66 @@ export function Settings() {
               {isAuthenticated ? (
                 <>
                   <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Control what contact information is publicly visible on your portfolio.
-                </p>
-                <div className="space-y-4">
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
-                    <input
-                      type="checkbox"
-                      checked={preferences.showEmail}
-                      onChange={(e) => setPreferences({ ...preferences, showEmail: e.target.checked })}
-                      className="w-5 h-5"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Icons.Mail className="w-4 h-4 text-blue-400" />
-                        <span className="text-white font-medium">Show Email Address</span>
-                      </div>
-                      <p className="text-slate-400 text-xs mt-1">
-                        Display your email on the Contact tab and public profiles
-                      </p>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
-                    <input
-                      type="checkbox"
-                      checked={preferences.showPhone}
-                      onChange={(e) => setPreferences({ ...preferences, showPhone: e.target.checked })}
-                      className="w-5 h-5"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Icons.Phone className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">Show Phone Number</span>
-                      </div>
-                      <p className="text-slate-400 text-xs mt-1">
-                        Display your phone number on the Contact tab and public profiles
-                      </p>
-                    </div>
-                  </label>
-
-                  <Button variant="primary" size="sm" onClick={handlePreferencesSave}>
-                    <Icons.Save className="w-4 h-4 mr-2" />
-                    Save Privacy Settings
-                  </Button>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-lg rounded p-6 border border-green-500/20">
-                <div className="flex items-start gap-4">
-                  <Icons.ShieldCheck className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="text-white font-semibold mb-2">Privacy & Security</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      All your data is stored locally in your browser. No information is sent to external servers.
-                      You have complete control over your privacy settings.
+                    <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                      Control what contact information is publicly visible on your portfolio.
                     </p>
+                    <div className="space-y-4">
+                      <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                        <input
+                          type="checkbox"
+                          checked={preferences.showEmail}
+                          onChange={(e) => setPreferences({ ...preferences, showEmail: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Icons.Mail className="w-4 h-4 text-blue-400" />
+                            <span className="text-white font-medium">Show Email Address</span>
+                          </div>
+                          <p className="text-slate-400 text-xs mt-1">
+                            Display your email on the Contact tab and public profiles
+                          </p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                        <input
+                          type="checkbox"
+                          checked={preferences.showPhone}
+                          onChange={(e) => setPreferences({ ...preferences, showPhone: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Icons.Phone className="w-4 h-4 text-green-400" />
+                            <span className="text-white font-medium">Show Phone Number</span>
+                          </div>
+                          <p className="text-slate-400 text-xs mt-1">
+                            Display your phone number on the Contact tab and public profiles
+                          </p>
+                        </div>
+                      </label>
+
+                      <Button variant="primary" size="sm" onClick={handlePreferencesSave}>
+                        <Icons.Save className="w-4 h-4 mr-2" />
+                        Save Privacy Settings
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-lg rounded p-6 border border-green-500/20">
+                    <div className="flex items-start gap-4">
+                      <Icons.ShieldCheck className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="text-white font-semibold mb-2">Privacy & Security</h4>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          All your data is stored locally in your browser. No information is sent to external servers.
+                          You have complete control over your privacy settings.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
@@ -804,74 +805,74 @@ export function Settings() {
             <>
               {isAuthenticated ? (
                 <>
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                  <Icons.Download className="w-5 h-5" />
-                  Export Profile
-                </h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Download your complete profile data as JSON. Use this to backup your portfolio or transfer it to another device.
-                </p>
-                <Button variant="primary" size="md" onClick={handleExport}>
-                  <Icons.Download className="w-4 h-4 mr-2" />
-                  Export Profile JSON
-                </Button>
-              </div>
+                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                    <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                      <Icons.Download className="w-5 h-5" />
+                      Export Profile
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                      Download your complete profile data as JSON. Use this to backup your portfolio or transfer it to another device.
+                    </p>
+                    <Button variant="primary" size="md" onClick={handleExport}>
+                      <Icons.Download className="w-4 h-4 mr-2" />
+                      Export Profile JSON
+                    </Button>
+                  </div>
 
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                  <Icons.Upload className="w-5 h-5" />
-                  Import Profile
-                </h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Upload a previously exported profile JSON file to restore your portfolio data.
-                </p>
-                <label className="inline-block">
-                  <Button variant="secondary" size="md">
-                    <Icons.Upload className="w-4 h-4 mr-2" />
-                    Choose File to Import
-                  </Button>
-                  <input
-                    type="file"
-                    accept="application/json,.json"
-                    onChange={handleImport}
-                    className="hidden"
-                  />
-                </label>
-                <p className="text-slate-500 text-xs mt-2">
-                  Importing will replace your current profile data
-                </p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                  <Icons.RotateCcw className="w-5 h-5" />
-                  Reset Profile
-                </h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Reset your profile to default values. This will erase all your custom data.
-                </p>
-                <Button variant="danger" size="md" onClick={handleReset}>
-                  <Icons.Trash2 className="w-4 h-4 mr-2" />
-                  Reset to Defaults
-                </Button>
-                <p className="text-red-400 text-xs mt-2 font-medium">
-                  ⚠️ Warning: This action cannot be undone
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-900/30 to-red-900/30 backdrop-blur-lg rounded p-6 border border-orange-500/20">
-                <div className="flex items-start gap-4">
-                  <Icons.AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="text-white font-semibold mb-2">Data Management</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      Regularly export your profile to keep a backup. Imported data must match the expected format.
-                      Always verify your backup after exporting.
+                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                    <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                      <Icons.Upload className="w-5 h-5" />
+                      Import Profile
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                      Upload a previously exported profile JSON file to restore your portfolio data.
+                    </p>
+                    <label className="inline-block">
+                      <Button variant="secondary" size="md">
+                        <Icons.Upload className="w-4 h-4 mr-2" />
+                        Choose File to Import
+                      </Button>
+                      <input
+                        type="file"
+                        accept="application/json,.json"
+                        onChange={handleImport}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-slate-500 text-xs mt-2">
+                      Importing will replace your current profile data
                     </p>
                   </div>
-                </div>
-              </div>
+
+                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                    <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                      <Icons.RotateCcw className="w-5 h-5" />
+                      Reset Profile
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                      Reset your profile to default values. This will erase all your custom data.
+                    </p>
+                    <Button variant="danger" size="md" onClick={handleReset}>
+                      <Icons.Trash2 className="w-4 h-4 mr-2" />
+                      Reset to Defaults
+                    </Button>
+                    <p className="text-red-400 text-xs mt-2 font-medium">
+                      ⚠️ Warning: This action cannot be undone
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-900/30 to-red-900/30 backdrop-blur-lg rounded p-6 border border-orange-500/20">
+                    <div className="flex items-start gap-4">
+                      <Icons.AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h4 className="text-white font-semibold mb-2">Data Management</h4>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          Regularly export your profile to keep a backup. Imported data must match the expected format.
+                          Always verify your backup after exporting.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">

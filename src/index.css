@@ -4,15 +4,16 @@
 
 @layer base {
   /* Theme CSS Variables - Set by themeStore */
+  /* Star Citizen Theme - Cyan/Blue/Teal Color Scheme */
   :root {
-    --color-primary: 239, 68, 68;
-    --color-secondary: 59, 130, 246;
-    --color-tertiary: 139, 92, 246;
-    --color-accent: 245, 158, 11;
-    --color-primary-hover: 220, 38, 38;
-    --color-secondary-hover: 29, 78, 216;
-    --color-tertiary-hover: 109, 40, 217;
-    --color-accent-hover: 217, 119, 6;
+    --color-primary: 0, 217, 255;
+    --color-secondary: 0, 102, 255;
+    --color-tertiary: 0, 229, 204;
+    --color-accent: 0, 255, 255;
+    --color-primary-hover: 0, 186, 230;
+    --color-secondary-hover: 0, 76, 204;
+    --color-tertiary-hover: 0, 191, 170;
+    --color-accent-hover: 0, 217, 217;
     --border-radius: 0.75rem;
     --spacing-scale: 1;
   }
