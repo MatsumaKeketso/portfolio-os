@@ -14,7 +14,18 @@ export function Settings() {
   const { isAuthenticated } = useAuthStore();
   const {
     openWindow,
-    // ... (keep existing destructured vars)
+    apps,
+    backgrounds,
+    selectedBackgroundId,
+    addBackground,
+    removeBackground,
+    setSelectedBackground,
+    systemPreferences,
+    setTaskbarPosition,
+    setTaskbarSize,
+    setAutoHideTaskbar,
+    setIconSize,
+    setWindowAnimations
   } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -208,7 +219,7 @@ export function Settings() {
       {/* Tab Navigation */}
       <div className="flex gap-2 px-6 py-3 border-b border-white/10 bg-white/5 overflow-x-auto">
         <Button
-          variant={activeTab === 'profile' ? 'primary' : 'secondary'}
+          variant={activeTab === 'profile' ? 'primary' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('profile')}
         >
@@ -216,7 +227,7 @@ export function Settings() {
           Profile
         </Button>
         <Button
-          variant={activeTab === 'appearance' ? 'primary' : 'secondary'}
+          variant={activeTab === 'appearance' ? 'primary' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('appearance')}
         >
@@ -224,7 +235,7 @@ export function Settings() {
           Appearance
         </Button>
         <Button
-          variant={activeTab === 'system' ? 'primary' : 'secondary'}
+          variant={activeTab === 'system' ? 'primary' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('system')}
         >
@@ -232,7 +243,7 @@ export function Settings() {
           System
         </Button>
         <Button
-          variant={activeTab === 'privacy' ? 'primary' : 'secondary'}
+          variant={activeTab === 'privacy' ? 'primary' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('privacy')}
         >
@@ -240,7 +251,7 @@ export function Settings() {
           Privacy
         </Button>
         <Button
-          variant={activeTab === 'data' ? 'primary' : 'secondary'}
+          variant={activeTab === 'data' ? 'primary' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('data')}
         >

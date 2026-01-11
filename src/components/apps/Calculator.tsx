@@ -283,24 +283,24 @@ export function Calculator() {
           <Button onClick={() => handleOperation('×')} variant="operation">×</Button>
           <Button onClick={() => handleOperation('-')} variant="operation">−</Button>
 
-          <Button onClick={() => handleNumber('7')}>7</Button>
-          <Button onClick={() => handleNumber('8')}>8</Button>
-          <Button onClick={() => handleNumber('9')}>9</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('7')}>7</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('8')}>8</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('9')}>9</Button>
           <Button onClick={() => handleOperation('+')} variant="operation">+</Button>
 
-          <Button onClick={() => handleNumber('4')}>4</Button>
-          <Button onClick={() => handleNumber('5')}>5</Button>
-          <Button onClick={() => handleNumber('6')}>6</Button>
-          <Button onClick={() => handleNumber('(')} variant="scientific">(</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('4')}>4</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('5')}>5</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('6')}>6</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('(')} variant="scientific">(</Button>
 
-          <Button onClick={() => handleNumber('1')}>1</Button>
-          <Button onClick={() => handleNumber('2')}>2</Button>
-          <Button onClick={() => handleNumber('3')}>3</Button>
-          <Button onClick={() => handleNumber(')')} variant="scientific">)</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('1')}>1</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('2')}>2</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('3')}>3</Button>
+          <Button variant="taskbar" onClick={() => handleNumber(')')} variant="scientific">)</Button>
 
-          <Button onClick={() => handleNumber('0')} span>0</Button>
-          <Button onClick={handleDecimal}>.</Button>
-          <Button onClick={handleEquals} variant="equals">=</Button>
+          <Button variant="taskbar" onClick={() => handleNumber('0')} span>0</Button>
+          <Button variant="taskbar" onClick={handleDecimal}>.</Button>
+          <Button variant="solid-brand-primary" onClick={handleEquals} >=</Button>
         </div>
       </div>
     </div>
