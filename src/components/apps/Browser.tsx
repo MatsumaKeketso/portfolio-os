@@ -23,14 +23,15 @@ interface HistoryEntry {
 
 export function Browser() {
   const defaultBookmarks: Bookmark[] = [
-    { name: 'NailHub', url: 'https://www.nailhub.co.za', icon: '💅' },
-    { name: 'GitHub', url: 'https://github.com', icon: '🐙' },
-    { name: 'Base44', url: 'https://base44.co.za', icon: '🚀' },
     { name: 'Udemy', url: 'https://www.udemy.com', icon: '🎓' },
+    { name: 'Wikipedia', url: 'https://www.wikipedia.org', icon: '📚' },
+    { name: 'Bing', url: 'https://www.bing.com', icon: '🔍' },
+    { name: 'NailHub', url: 'https://www.nailhub.co.za', icon: '💅' },
+    { name: 'Base44', url: 'https://base44.co.za', icon: '🚀' },
   ];
 
   const [tabs, setTabs] = useState<Tab[]>([
-    { id: 'tab-1', title: 'NailHub', url: 'https://www.nailhub.co.za' },
+    { id: 'tab-1', title: 'Udemy', url: 'https://www.udemy.com' },
   ]);
   const [activeTabId, setActiveTabId] = useState('tab-1');
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(defaultBookmarks);
@@ -128,7 +129,7 @@ export function Browser() {
 
   const handleHome = () => {
     if (activeTab) {
-      updateTabUrl(activeTab.id, 'https://www.nailhub.co.za');
+      updateTabUrl(activeTab.id, 'https://www.udemy.com');
     }
   };
 
@@ -136,7 +137,7 @@ export function Browser() {
     const newTab: Tab = {
       id: `tab-${Date.now()}`,
       title: 'New Tab',
-      url: 'https://www.google.com',
+      url: 'https://www.bing.com',
     };
     setTabs([...tabs, newTab]);
     setActiveTabId(newTab.id);
@@ -188,11 +189,10 @@ export function Browser() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={() => setActiveTabId(tab.id)}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-t transition-all min-w-[120px] max-w-[200px] ${
-                activeTabId === tab.id
+              className={`group flex items-center gap-2 px-3 py-2 rounded-t transition-all min-w-[120px] max-w-[200px] ${activeTabId === tab.id
                   ? 'bg-gray-800 text-white'
                   : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
-              }`}
+                }`}
             >
               <Icons.Globe className="w-3.5 h-3.5 shrink-0" />
               <span className="text-xs truncate flex-1">{tab.title}</span>
