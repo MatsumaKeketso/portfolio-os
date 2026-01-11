@@ -260,7 +260,20 @@ const fetchAppsFromSupabase = async (): Promise<App[]> => {
     }
 
     if (data && data.data) {
-      return data.data as App[];
+      const dbApps = data.data as App[];
+      // Merge: Add any default apps that are missing from DB
+      // This ensures new apps added to the code (defaultApps) are synced to Supabase
+      const missingApps = defaultApps.filter(defApp => !dbApps.some(dbApp => dbApp.id === defApp.id));
+
+      if (missingApps.length > 0) {
+        console.log('Found new apps in code, syncing to Supabase:', missingApps.map(a => a.name));
+        const mergedApps = [...dbApps, ...missingApps];
+        // Save back to sync immediately
+        await saveAppsToSupabase(mergedApps);
+        return mergedApps;
+      }
+
+      return dbApps;
     } else {
       // No apps found, initialize with defaults
       await saveAppsToSupabase(defaultApps);
