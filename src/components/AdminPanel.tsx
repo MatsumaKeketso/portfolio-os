@@ -895,15 +895,25 @@ export function AdminPanel() {
             {activeTab === 'backgrounds' && (
               <>
                 <div className="mb-6">
-                  <label className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold cursor-pointer">
-                    <Icons.Upload className="w-5 h-5" />
-                    Upload Background Images
+                  <label className={`bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                    {isUploading ? (
+                      <>
+                        <Icons.Loader className="w-5 h-5 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Icons.Upload className="w-5 h-5" />
+                        Upload Background Images
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={handleBackgroundUpload}
                       className="hidden"
+                      disabled={isUploading}
                     />
                   </label>
                   <p className="text-gray-400 text-sm text-center mt-2">
