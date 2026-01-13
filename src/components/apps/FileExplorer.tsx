@@ -6,6 +6,8 @@ import { useDesktopStore } from '../../store/desktopStore';
 import { supabase } from '../../lib/supabase';
 import { FileItem } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
+import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
+import { UploadProgressToast } from '../UploadProgress';
 
 export function FileExplorer() {
   const fileStore = useFileStore();
@@ -18,6 +20,7 @@ export function FileExplorer() {
   const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [isDraggingInternal, setIsDraggingInternal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,9 +153,11 @@ export function FileExplorer() {
     if (!files) return;
 
     const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+    const fileArray = Array.from(files);
+    setUploadProgress([]);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       const fileType = file.type.startsWith('image/')
         ? 'image'
         : file.type.startsWith('video/')
@@ -164,41 +169,34 @@ export function FileExplorer() {
       // Upload to Supabase Storage if it's a media file
       if (fileType === 'image' || fileType === 'video') {
         try {
-          const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-          const { data, error } = await supabase.storage
-            .from('portfolio-files')
-            .upload(fileName, file);
+          const result = await uploadFile(file, {
+            maxSizeMB: 100, // Allow larger files in file explorer
+            allowedTypes: ['image/*', 'video/*'],
+            onProgress: (progress) => {
+              setUploadProgress((prev) => {
+                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+                if (existing >= 0) {
+                  const updated = [...prev];
+                  updated[existing] = progress;
+                  return updated;
+                }
+                return [...prev, progress];
+              });
+            },
+          });
 
-          if (error) {
-            console.error('Error uploading file:', error);
-            // Fallback or alert? For now, we continue without a URL or handle as local
-            // But usually we want to stop here.
-            // Let's try to get a signed URL or public URL regardless?
-          }
-
-          if (data) {
-            const { data: publicUrlData } = supabase.storage
-              .from('portfolio-files')
-              .getPublicUrl(fileName);
-
-            dataUrl = publicUrlData.publicUrl;
+          if (result.url && !result.error) {
+            dataUrl = result.url;
+          } else {
+            console.error('Upload error:', result.error);
           }
         } catch (err) {
           console.error('Upload exception:', err);
         }
       }
 
-      // If upload failed or not a media file (or small file), maybe read as base64?
-      // For now, if no dataUrl from upload (and it was media), we might default to empty or retry local.
-      // But let's keep the local base64 fallback ONLY for non-media text files if needed,
-      // or just skip Base64 for media if we want to enforce Storage.
-
-      // Actually, let's keep the existing FileReader for non-media or fallback if needed?
-      // No, requirements say "use Supabase Storage". 
-      // So for this implementation, we will rely on dataUrl being the Supabase URL.
-
+      // Fallback to Base64 if Supabase fails or for non-media files
       if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
-        // Fallback to Base64 (legacy behavior) if Supabase fails (e.g. no creds)
         const reader = new FileReader();
         reader.onload = (event) => {
           const base64 = event.target?.result as string;
@@ -350,8 +348,11 @@ export function FileExplorer() {
       ? targetFile.id
       : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const fileArray = Array.from(files);
+    setUploadProgress([]);
+
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       const fileType = file.type.startsWith('image/')
         ? 'image'
         : file.type.startsWith('video/')
@@ -362,16 +363,26 @@ export function FileExplorer() {
 
       if (fileType === 'image' || fileType === 'video') {
         try {
-          const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-          const { data, error } = await supabase.storage
-            .from('portfolio-files')
-            .upload(fileName, file);
+          const result = await uploadFile(file, {
+            maxSizeMB: 100,
+            allowedTypes: ['image/*', 'video/*'],
+            onProgress: (progress) => {
+              setUploadProgress((prev) => {
+                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+                if (existing >= 0) {
+                  const updated = [...prev];
+                  updated[existing] = progress;
+                  return updated;
+                }
+                return [...prev, progress];
+              });
+            },
+          });
 
-          if (data) {
-            const { data: publicUrlData } = supabase.storage
-              .from('portfolio-files')
-              .getPublicUrl(fileName);
-            dataUrl = publicUrlData.publicUrl;
+          if (result.url && !result.error) {
+            dataUrl = result.url;
+          } else {
+            console.error('Upload error:', result.error);
           }
         } catch (err) {
           console.error('Upload exception:', err);
@@ -1145,6 +1156,12 @@ export function FileExplorer() {
           />
         )}
       </AnimatePresence>
+
+      {/* Upload Progress Toast */}
+      <UploadProgressToast
+        uploads={uploadProgress}
+        onClose={() => setUploadProgress([])}
+      />
     </div>
   );
 }

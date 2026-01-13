@@ -6,6 +6,8 @@ import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
+import { UploadProgress } from './UploadProgress';
 
 interface CustomizationSettingsProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ interface CustomizationSettingsProps {
 
 export function CustomizationSettings({ isOpen, onClose }: CustomizationSettingsProps) {
   const [activeTab, setActiveTab] = useState<'desktop' | 'profile' | 'appearance'>('desktop');
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const {
     backgrounds,
     selectedBackgroundId,
@@ -35,7 +39,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     resetToDefault,
   } = useThemeStore();
 
-  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
     if (files.length === 0) {
@@ -44,65 +48,55 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     }
 
     console.log(`Processing ${files.length} file(s)`);
+    setIsUploading(true);
+    setUploadProgress([]);
 
-    files.forEach((file, index) => {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert(`${file.name} is not an image file`);
-        return;
-      }
+    try {
+      // Upload files to Supabase
+      const results = await uploadFiles(files, {
+        maxSizeMB: 5,
+        allowedTypes: ['image/*'],
+        onProgress: (progress) => {
+          setUploadProgress((prev) => {
+            const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+            if (existing >= 0) {
+              const updated = [...prev];
+              updated[existing] = progress;
+              return updated;
+            }
+            return [...prev, progress];
+          });
+        },
+      });
 
-      // Validate file size
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`File ${file.name} is too large (max 5MB)`);
-        return;
-      }
-
-      console.log(`Reading file ${index + 1}: ${file.name}`);
-
-      const reader = new FileReader();
-
-      reader.onerror = () => {
-        console.error(`Failed to read file: ${file.name}`);
-        alert(`Failed to read ${file.name}. Please try again.`);
-      };
-
-      reader.onload = (event) => {
-        try {
-          const dataUrl = event.target?.result as string;
-
-          if (!dataUrl) {
-            console.error('No data URL generated');
-            alert(`Failed to process ${file.name}`);
-            return;
-          }
-
+      // Add successfully uploaded backgrounds to the store
+      results.forEach((result) => {
+        if (result.url && !result.error) {
+          const fileName = result.fileName.replace(/\.[^/.]+$/, ''); // Remove file extension
           const newBackground = {
             id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
-            url: dataUrl,
-            thumbnail: dataUrl
+            name: fileName,
+            url: result.url,
+            thumbnail: result.url,
           };
 
           console.log('Adding background:', newBackground.name);
           addBackground(newBackground);
-          console.log('Background added successfully:', newBackground.name);
-
-          // Show success message only for the last file
-          if (index === files.length - 1) {
-            alert(`Successfully uploaded ${files.length} background${files.length > 1 ? 's' : ''}!`);
-          }
-        } catch (error) {
-          console.error('Error processing file:', error);
-          alert(`Error processing ${file.name}: ${error}`);
         }
-      };
+      });
 
-      reader.readAsDataURL(file);
-    });
-
-    // Reset input
-    e.target.value = '';
+      const successCount = results.filter((r) => !r.error).length;
+      if (successCount > 0) {
+        console.log(`Successfully uploaded ${successCount} background${successCount > 1 ? 's' : ''}!`);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      alert(`Error uploading files: ${error}`);
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      e.target.value = '';
+    }
   };
 
   return (
@@ -183,6 +177,16 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6">
+                {/* Upload Progress */}
+                {uploadProgress.length > 0 && (
+                  <div className="mb-4">
+                    <UploadProgress
+                      uploads={uploadProgress}
+                      onClose={() => setUploadProgress([])}
+                    />
+                  </div>
+                )}
+
                 {/* Desktop Tab */}
                 {activeTab === 'desktop' && (
                   <div>
@@ -196,15 +200,25 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
 
                           {/* Upload Button */}
                           <div className="mb-4">
-                            <label className="bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold cursor-pointer">
-                              <Icons.Upload className="w-5 h-5" />
-                              Upload Custom Background
+                            <label className={`bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                              {isUploading ? (
+                                <>
+                                  <Icons.Loader className="w-5 h-5 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Icons.Upload className="w-5 h-5" />
+                                  Upload Custom Background
+                                </>
+                              )}
                               <input
                                 type="file"
                                 accept="image/*"
                                 multiple
                                 onChange={handleBackgroundUpload}
                                 className="hidden"
+                                disabled={isUploading}
                               />
                             </label>
                             <p className="text-gray-400 text-sm text-center mt-2">

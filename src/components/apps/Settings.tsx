@@ -5,11 +5,15 @@ import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { Button } from '../ui/button';
+import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
+import { UploadProgress } from '../UploadProgress';
 
 type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const { profile, error, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
   const { isAuthenticated } = useAuthStore();
   const {
@@ -80,47 +84,55 @@ export function Settings() {
     });
   };
 
-  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    setIsUploading(true);
+    setUploadProgress([]);
+
+    try {
+      const result = await uploadFile(file, {
+        maxSizeMB: 5,
+        allowedTypes: ['image/*'],
+        onProgress: (progress) => {
+          setUploadProgress([progress]);
+        },
+      });
+
+      if (result.url && !result.error) {
+        const newBackground = {
+          id: `custom-${Date.now()}`,
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          url: result.url,
+          type: 'image' as const,
+          thumbnail: result.url,
+        };
+        addBackground(newBackground);
+        setSelectedBackground(newBackground.id);
+        addNotification({
+          type: 'success',
+          title: 'Background Added',
+          message: 'Custom background uploaded successfully',
+        });
+      } else {
+        addNotification({
+          type: 'error',
+          title: 'Upload Failed',
+          message: result.error || 'Failed to upload background',
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading background:', error);
       addNotification({
         type: 'error',
-        title: 'Invalid File',
-        message: 'Please upload an image file',
+        title: 'Upload Error',
+        message: 'An error occurred while uploading the background',
       });
-      return;
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      addNotification({
-        type: 'error',
-        title: 'File Too Large',
-        message: 'Image must be less than 5MB',
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      const newBackground = {
-        id: `custom-${Date.now()}`,
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        url: dataUrl,
-        type: 'image' as const,
-        thumbnail: dataUrl,
-      };
-      addBackground(newBackground);
-      setSelectedBackground(newBackground.id);
-      addNotification({
-        type: 'success',
-        title: 'Background Added',
-        message: 'Custom background uploaded successfully',
-      });
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleRemoveBackground = (backgroundId: string) => {
@@ -263,6 +275,14 @@ export function Settings() {
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Upload Progress */}
+          {uploadProgress.length > 0 && (
+            <UploadProgress
+              uploads={uploadProgress}
+              onClose={() => setUploadProgress([])}
+            />
+          )}
+
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <>

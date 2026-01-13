@@ -7,6 +7,8 @@ import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardBody } from './ui/card';
+import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
+import { UploadProgress } from './UploadProgress';
 
 export function AdminPanel() {
   const {
@@ -22,6 +24,8 @@ export function AdminPanel() {
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [editingApp, setEditingApp] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'apps' | 'backgrounds' | 'milestones'>('apps');
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<Partial<App>>({
     name: '',
     icon: 'square',
@@ -268,32 +272,50 @@ export function AdminPanel() {
     return Icon;
   };
 
-  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith('image/')) {
-        alert('Please upload only image files');
-        return;
-      }
+    const fileArray = Array.from(files);
+    setIsUploading(true);
+    setUploadProgress([]);
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        const newBackground = {
-          id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
-          url: dataUrl,
-          thumbnail: dataUrl
-        };
-        addBackground(newBackground);
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const results = await uploadFiles(fileArray, {
+        maxSizeMB: 10,
+        allowedTypes: ['image/*'],
+        onProgress: (progress) => {
+          setUploadProgress((prev) => {
+            const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+            if (existing >= 0) {
+              const updated = [...prev];
+              updated[existing] = progress;
+              return updated;
+            }
+            return [...prev, progress];
+          });
+        },
+      });
 
-    // Reset input
-    e.target.value = '';
+      results.forEach((result) => {
+        if (result.url && !result.error) {
+          const fileName = result.fileName.replace(/\.[^/.]+$/, '');
+          const newBackground = {
+            id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: fileName,
+            url: result.url,
+            thumbnail: result.url,
+          };
+          addBackground(newBackground);
+        }
+      });
+    } catch (error) {
+      console.error('Error uploading backgrounds:', error);
+      alert(`Error uploading backgrounds: ${error}`);
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
   if (!isAdminMode) return null;
@@ -409,6 +431,16 @@ export function AdminPanel() {
 
             {/* Content Area - Scrollable */}
             <div className="flex-1 p-6 overflow-y-auto">
+            {/* Upload Progress */}
+            {uploadProgress.length > 0 && (
+              <div className="mb-4">
+                <UploadProgress
+                  uploads={uploadProgress}
+                  onClose={() => setUploadProgress([])}
+                />
+              </div>
+            )}
+
             {activeTab === 'apps' && (
               <>
                 <div className="mb-6 grid grid-cols-3 gap-3">
@@ -602,21 +634,30 @@ export function AdminPanel() {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                if (file.size > 2 * 1024 * 1024) {
-                                  alert('Image too large (max 2MB)');
-                                  return;
+                                try {
+                                  const result = await uploadFile(file, {
+                                    maxSizeMB: 2,
+                                    allowedTypes: ['image/*'],
+                                    onProgress: (progress) => {
+                                      setUploadProgress([progress]);
+                                    },
+                                  });
+
+                                  if (result.url && !result.error) {
+                                    setFormData({ ...formData, customIcon: result.url });
+                                  } else {
+                                    alert(result.error || 'Failed to upload icon');
+                                  }
+                                } catch (error) {
+                                  console.error('Error uploading icon:', error);
+                                  alert('Error uploading icon');
+                                } finally {
+                                  e.target.value = '';
                                 }
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
-                                  setFormData({ ...formData, customIcon: dataUrl });
-                                };
-                                reader.readAsDataURL(file);
                               }
-                              e.target.value = '';
                             }}
                             className="hidden"
                           />
