@@ -19,7 +19,7 @@ export interface FileTypeInfo {
   icon: any; // Lucide icon component
   color: string;
   canPreview: boolean;
-  viewerType: 'notepad' | 'image' | 'video' | 'audio' | 'pdf' | 'code' | 'text' | 'none';
+  viewerType: 'notepad' | 'image' | 'video' | 'audio' | 'pdf' | 'code' | 'text' | 'browser' | 'none';
   description: string;
 }
 
@@ -46,7 +46,7 @@ const extensionMap: Record<string, FileTypeInfo> = {
   kt: { category: 'code', icon: Icons.FileCode, color: 'text-purple-500', canPreview: true, viewerType: 'code', description: 'Kotlin' },
 
   // Markup & Config
-  html: { category: 'code', icon: Icons.FileCode, color: 'text-orange-400', canPreview: true, viewerType: 'code', description: 'HTML' },
+  html: { category: 'code', icon: Icons.FileCode, color: 'text-orange-400', canPreview: true, viewerType: 'browser', description: 'HTML Document' },
   css: { category: 'code', icon: Icons.FileCode, color: 'text-blue-400', canPreview: true, viewerType: 'code', description: 'CSS' },
   scss: { category: 'code', icon: Icons.FileCode, color: 'text-pink-400', canPreview: true, viewerType: 'code', description: 'SCSS' },
   json: { category: 'code', icon: Icons.Braces, color: 'text-yellow-500', canPreview: true, viewerType: 'code', description: 'JSON' },

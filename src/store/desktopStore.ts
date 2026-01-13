@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { App, WindowState } from '../types';
+import { App, WindowState, FileItem } from '../types';
 import { supabase } from '../lib/supabase';
 
 interface DesktopBackground {
@@ -35,7 +35,7 @@ interface DesktopStore {
   updateAppPosition: (appId: string, position: { x: number; y: number }) => void;
   reorderApps: (reorderedApps: App[]) => void;
 
-  openWindow: (app: App, fileData?: { fileId: string; content: string; title: string }) => void;
+  openWindow: (app: App, fileData?: { fileId?: string; content?: string; title?: string; file?: FileItem }) => void;
   closeWindow: (windowId: string) => void;
   minimizeWindow: (windowId: string) => void;
   maximizeWindow: (windowId: string) => void;
@@ -571,6 +571,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       url: app.url,
       content: fileData?.content,
       fileId: fileData?.fileId,
+      file: fileData?.file,
       position: { x: 100 + state.windows.length * 30, y: 100 + state.windows.length * 30 },
       size: app.defaultSize || { width: 800, height: 600 },
       isMinimized: false,
@@ -682,6 +683,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     saveSelectedBackgroundToSupabase(backgroundId);
     return { selectedBackgroundId: backgroundId };
   }),
+
+  resetBackgroundToDefault: async () => {
+    const defaultId = 'default-quantum';
+    saveSelectedBackgroundToSupabase(defaultId);
+    set({ selectedBackgroundId: defaultId });
+  },
 
   getSelectedBackground: () => {
     const state = get();

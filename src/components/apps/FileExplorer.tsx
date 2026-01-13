@@ -8,6 +8,7 @@ import { FileItem } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgressToast } from '../UploadProgress';
+import { getFileIcon, getFileColor, formatFileSize, canPreviewFile, getViewerType } from '../../lib/fileUtils';
 
 export function FileExplorer() {
   const fileStore = useFileStore();
@@ -265,13 +266,6 @@ export function FileExplorer() {
     // Get the appropriate viewer type for this file
     const viewerType = getViewerType(file.name, file.mimeType);
 
-    // Check if file can be previewed
-    if (!canPreviewFile(file.name, file.mimeType)) {
-      // Show info dialog for non-previewable files
-      setPreviewFile(file);
-      return;
-    }
-
     // Handle text files that should open in Notepad (editable)
     if (viewerType === 'notepad' || file.name.endsWith('.txt')) {
       openWindow(
@@ -307,6 +301,7 @@ export function FileExplorer() {
       {
         file: file,
         title: file.name,
+        fileId: file.id,
       }
     );
   };
@@ -849,8 +844,8 @@ export function FileExplorer() {
                     onDrop={(e) => handleDrop(e, file)}
                     whileHover={{ scale: 1.05 }}
                     className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${isSelected
-                        ? 'bg-primary-500/20 border-2 border-primary-500'
-                        : 'hover:bg-white/10 border-2 border-transparent'
+                      ? 'bg-primary-500/20 border-2 border-primary-500'
+                      : 'hover:bg-white/10 border-2 border-transparent'
                       } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     {file.type === 'image' && file.dataUrl ? (
@@ -923,8 +918,8 @@ export function FileExplorer() {
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
                     className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${isSelected
-                        ? 'bg-primary-500/20 border-primary-500'
-                        : 'hover:bg-white/10'
+                      ? 'bg-primary-500/20 border-primary-500'
+                      : 'hover:bg-white/10'
                       } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     <div className="flex items-center justify-center">
@@ -978,84 +973,7 @@ export function FileExplorer() {
           )}
         </div>
 
-        {fileStore.selectedFileIds.length === 1 && (() => {
-          const selectedFile = fileStore.getFileById(fileStore.selectedFileIds[0]);
-          return selectedFile && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="w-64 border-l border-white/10 p-4 bg-white/5 backdrop-blur-md overflow-y-auto"
-            >
-              <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
-                <Icons.Info className="w-4 h-4" />
-                Properties
-              </h3>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-gray-400">Name</label>
-                  <p className="text-sm text-white break-words">{selectedFile.name}</p>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-gray-400">Type</label>
-                  <p className="text-sm text-white capitalize">{selectedFile.type}</p>
-                </div>
-
-                {selectedFile.size && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400">Size</label>
-                    <p className="text-sm text-white">{formatFileSize(selectedFile.size)}</p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-xs font-semibold text-gray-400">Created</label>
-                  <p className="text-sm text-white">
-                    {new Date(selectedFile.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-gray-400">Modified</label>
-                  <p className="text-sm text-white">
-                    {new Date(selectedFile.modifiedAt).toLocaleDateString()}
-                  </p>
-                </div>
-
-                {selectedFile.type === 'document' && selectedFile.content && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-400">Preview</label>
-                    <p className="text-xs text-gray-300 bg-gray-700/40 p-2 rounded max-h-24 overflow-y-auto border border-gray-600/50">
-                      {selectedFile.content.substring(0, 200)}
-                      {selectedFile.content.length > 200 && '...'}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <button
-                    onClick={() => {
-                      if (selectedFile.type === 'document' || selectedFile.type === 'image') {
-                        setPreviewFile(selectedFile);
-                      }
-                    }}
-                    disabled={!['document', 'image'].includes(selectedFile.type)}
-                    className="flex-1 px-2 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600/50 disabled:cursor-not-allowed text-white text-xs rounded transition-all"
-                  >
-                    Open
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMultiple()}
-                    className="flex-1 px-2 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-xs rounded transition-all"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })()}
       </div>
 
       <AnimatePresence>
