@@ -9,6 +9,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 const Calculator = lazy(() => import('./apps/Calculator').then(m => ({ default: m.Calculator })));
 const Notepad = lazy(() => import('./apps/Notepad').then(m => ({ default: m.Notepad })));
 const FileExplorer = lazy(() => import('./apps/FileExplorer').then(m => ({ default: m.FileExplorer })));
+const FileViewer = lazy(() => import('./apps/FileViewer').then(m => ({ default: m.FileViewer })));
 const Browser = lazy(() => import('./apps/Browser').then(m => ({ default: m.Browser })));
 const Weather = lazy(() => import('./apps/Weather').then(m => ({ default: m.Weather })));
 const TaskManager = lazy(() => import('./apps/TaskManager').then(m => ({ default: m.TaskManager })));
@@ -84,6 +85,8 @@ export function WindowManager() {
             return <Notepad window={window} />;
           case 'FileExplorer':
             return <FileExplorer />;
+          case 'FileViewer':
+            return <FileViewer file={window.file} />;
           case 'Browser':
             return <Browser />;
           case 'Weather':
