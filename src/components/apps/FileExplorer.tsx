@@ -6,6 +6,7 @@ import { useDesktopStore } from '../../store/desktopStore';
 import { supabase } from '../../lib/supabase';
 import { FileItem } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
+import { getFileIcon, getFileColor, canPreviewFile, getViewerType, formatFileSize } from '../../lib/fileUtils';
 
 export function FileExplorer() {
   const fileStore = useFileStore();
@@ -31,15 +32,12 @@ export function FileExplorer() {
   const currentFiles = fileStore.getCurrentFolderFiles();
   const pathString = fileStore.getPathString();
 
-  const getFileIcon = (file: FileItem) => {
-    const iconMap: any = {
-      folder: Icons.Folder,
-      file: Icons.FileText,
-      document: Icons.FileText,
-      image: Icons.Image,
-      video: Icons.Video,
-    };
-    return iconMap[file.type] || Icons.File;
+  const getFileIconComponent = (file: FileItem) => {
+    return getFileIcon(file.name, file.type, file.mimeType);
+  };
+
+  const getFileColorClass = (file: FileItem) => {
+    return getFileColor(file.name, file.type, file.mimeType);
   };
 
   // Filter and sort files
@@ -264,8 +262,21 @@ export function FileExplorer() {
     e.stopPropagation();
     if (file.type === 'folder') {
       handleFolderDouble(file);
-    } else if (file.type === 'file' || file.mimeType === 'text/plain' || file.name.endsWith('.txt')) {
-      // Open text files in Notepad
+      return;
+    }
+
+    // Get the appropriate viewer type for this file
+    const viewerType = getViewerType(file.name, file.mimeType);
+
+    // Check if file can be previewed
+    if (!canPreviewFile(file.name, file.mimeType)) {
+      // Show info dialog for non-previewable files
+      setPreviewFile(file);
+      return;
+    }
+
+    // Handle text files that should open in Notepad (editable)
+    if (viewerType === 'notepad' || file.name.endsWith('.txt')) {
       openWindow(
         {
           id: 'notepad',
@@ -282,9 +293,25 @@ export function FileExplorer() {
           title: file.name,
         }
       );
-    } else if (file.type === 'document' || file.type === 'image') {
-      setPreviewFile(file);
+      return;
     }
+
+    // Open all other previewable files in FileViewer
+    openWindow(
+      {
+        id: 'file-viewer',
+        name: 'File Viewer',
+        icon: 'file',
+        type: 'component',
+        component: 'FileViewer',
+        defaultSize: { width: 800, height: 600 },
+        description: 'Universal file viewer',
+      },
+      {
+        file: file,
+        title: file.name,
+      }
+    );
   };
 
   // Drag and drop handlers
@@ -584,13 +611,6 @@ export function FileExplorer() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [fileStore.selectedFileIds, renamingFileId]);
 
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '0 B';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col border-b border-white/10">
       {/* Navigation Bar */}
@@ -800,7 +820,8 @@ export function FileExplorer() {
           ) : viewMode === 'grid' ? (
             <div className={`grid ${getGridColumns()} gap-4`}>
               {displayFiles.map((file) => {
-                const FileIcon = getFileIcon(file);
+                const FileIcon = getFileIconComponent(file);
+                const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
                 const isCut = fileStore.clipboard.operation === 'cut' &&
                   fileStore.clipboard.fileIds.includes(file.id);
@@ -825,8 +846,7 @@ export function FileExplorer() {
                     {file.type === 'image' && file.dataUrl ? (
                       <img src={file.dataUrl} alt={file.name} className={`${getIconSizeClasses()} object-cover rounded`} />
                     ) : (
-                      <FileIcon className={`${getIconSizeClasses()} ${file.type === 'folder' ? 'text-yellow-500' : 'text-primary-500'
-                        }`} />
+                      <FileIcon className={`${getIconSizeClasses()} ${fileColor}`} />
                     )}
                     {renamingFileId === file.id ? (
                       <input
@@ -875,7 +895,8 @@ export function FileExplorer() {
 
               {/* List View Items */}
               {displayFiles.map((file) => {
-                const FileIcon = getFileIcon(file);
+                const FileIcon = getFileIconComponent(file);
+                const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
                 const isCut = fileStore.clipboard.operation === 'cut' &&
                   fileStore.clipboard.fileIds.includes(file.id);
@@ -900,8 +921,7 @@ export function FileExplorer() {
                       {file.type === 'image' && file.dataUrl ? (
                         <img src={file.dataUrl} alt={file.name} className="w-6 h-6 object-cover rounded" />
                       ) : (
-                        <FileIcon className={`w-6 h-6 ${file.type === 'folder' ? 'text-yellow-500' : 'text-primary-500'
-                          }`} />
+                        <FileIcon className={`w-6 h-6 ${fileColor}`} />
                       )}
                     </div>
 
