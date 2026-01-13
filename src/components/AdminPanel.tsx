@@ -1135,20 +1135,38 @@ export function AdminPanel() {
                                 const files = e.target.files;
                                 if (!files) return;
 
-                                Array.from(files).forEach((file) => {
-                                  if (file.size > 2 * 1024 * 1024) {
-                                    alert('Image too large (max 2MB)');
-                                    return;
+                                const fileArray = Array.from(files);
+
+                                fileArray.forEach(async (file) => {
+                                  try {
+                                    const result = await uploadFile(file, {
+                                      maxSizeMB: 2,
+                                      allowedTypes: ['image/*'],
+                                      onProgress: (progress) => {
+                                        setUploadProgress((prev) => {
+                                          const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+                                          if (existing >= 0) {
+                                            const updated = [...prev];
+                                            updated[existing] = progress;
+                                            return updated;
+                                          }
+                                          return [...prev, progress];
+                                        });
+                                      },
+                                    });
+
+                                    if (result.url && !result.error) {
+                                      setMilestoneFormData(prev => ({
+                                        ...prev,
+                                        images: [...prev.images, result.url]
+                                      }));
+                                    } else {
+                                      alert(result.error || 'Failed to upload image');
+                                    }
+                                  } catch (error) {
+                                    console.error('Error uploading milestone image:', error);
+                                    alert('Error uploading image');
                                   }
-                                  const reader = new FileReader();
-                                  reader.onload = (event) => {
-                                    const dataUrl = event.target?.result as string;
-                                    setMilestoneFormData(prev => ({
-                                      ...prev,
-                                      images: [...prev.images, dataUrl]
-                                    }));
-                                  };
-                                  reader.readAsDataURL(file);
                                 });
                                 e.target.value = '';
                               }}

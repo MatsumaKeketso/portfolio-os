@@ -5,6 +5,8 @@ import { useDesktopStore } from '../store/desktopStore';
 import { useFileStore } from '../store/fileStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
+import { uploadFile, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
+import { UploadProgressToast } from './UploadProgress';
 import { Taskbar } from './Taskbar';
 import { StartMenu } from './StartMenu';
 import { DesktopIcons } from './DesktopIcons';
@@ -44,6 +46,7 @@ export function Desktop() {
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
 
   // Auto-hide timeline when a window is maximized
   const hasMaximizedWindow = windows.some(w => w.isMaximized && !w.isMinimized);
@@ -154,25 +157,69 @@ export function Desktop() {
       }
     };
 
-    const handleDrop = (e: DragEvent) => {
+    const handleDrop = async (e: DragEvent) => {
       e.preventDefault();
       setIsDraggingOver(false);
 
       const files = e.dataTransfer?.files;
       if (!files) return;
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
+      const fileArray = Array.from(files);
+      setUploadProgress([]);
 
-        reader.onload = (event) => {
-          const dataUrl = event.target?.result as string;
-          const fileType = file.type.startsWith('image/')
-            ? 'image'
-            : file.type.startsWith('video/')
-              ? 'video'
-              : 'file';
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        const fileType = file.type.startsWith('image/')
+          ? 'image'
+          : file.type.startsWith('video/')
+            ? 'video'
+            : 'file';
 
+        let dataUrl = '';
+
+        // Upload media files to Supabase
+        if (fileType === 'image' || fileType === 'video') {
+          try {
+            const result = await uploadFile(file, {
+              maxSizeMB: 100,
+              allowedTypes: ['image/*', 'video/*'],
+              onProgress: (progress) => {
+                setUploadProgress((prev) => {
+                  const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+                  if (existing >= 0) {
+                    const updated = [...prev];
+                    updated[existing] = progress;
+                    return updated;
+                  }
+                  return [...prev, progress];
+                });
+              },
+            });
+
+            if (result.url && !result.error) {
+              dataUrl = result.url;
+            } else {
+              console.error('Upload error:', result.error);
+            }
+          } catch (error) {
+            console.error('Upload exception:', error);
+          }
+        }
+
+        // Fallback to base64 if upload fails
+        if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            addFileToStore(base64);
+          };
+          reader.readAsDataURL(file);
+          continue;
+        }
+
+        addFileToStore(dataUrl);
+
+        function addFileToStore(urlOrContent: string) {
           fileStore.addFile({
             id: `file-${Date.now()}-${i}`,
             name: file.name,
@@ -181,13 +228,11 @@ export function Desktop() {
             path: `/${file.name}`,
             size: file.size,
             mimeType: file.type,
-            dataUrl: dataUrl,
+            dataUrl: urlOrContent,
             createdAt: Date.now(),
             modifiedAt: Date.now(),
           });
-        };
-
-        reader.readAsDataURL(file);
+        }
       }
     };
 
@@ -476,6 +521,12 @@ export function Desktop() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Upload Progress Toast */}
+        <UploadProgressToast
+          uploads={uploadProgress}
+          onClose={() => setUploadProgress([])}
+        />
       </div>
     </div>
   );
