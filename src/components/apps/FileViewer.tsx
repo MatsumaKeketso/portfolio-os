@@ -26,6 +26,9 @@ export function FileViewer({ file }: FileViewerProps) {
     setError(null);
 
     try {
+      console.log('Loading file:', file);
+      console.log('File type info:', fileTypeInfo);
+
       // If file has content property, use it
       if (file.content) {
         setContent(file.content);
@@ -33,7 +36,8 @@ export function FileViewer({ file }: FileViewerProps) {
         // For files with dataUrl, we'll display them directly
         setContent(file.dataUrl);
       } else {
-        setError('File content not available');
+        console.error('File missing content and dataUrl:', file);
+        setError(`File content not available. File type: ${file.type}, Has dataUrl: ${!!file.dataUrl}, Has content: ${!!file.content}`);
       }
     } catch (err) {
       setError('Failed to load file');
@@ -123,14 +127,43 @@ export function FileViewer({ file }: FileViewerProps) {
         );
 
       case 'video':
+        if (!file.dataUrl) {
+          return (
+            <div className="flex items-center justify-center h-full bg-black">
+              <div className="text-center text-white p-8">
+                <Icons.AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Video Not Available</h3>
+                <p className="text-gray-400 mb-4">This video file doesn't have a valid URL.</p>
+                <p className="text-xs text-gray-500">File: {file.name}</p>
+                <p className="text-xs text-gray-500">Type: {file.type}</p>
+                <p className="text-xs text-gray-500 mt-2">Try re-uploading the video file.</p>
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="flex flex-col h-full bg-black">
-            <div className="flex-1 flex items-center justify-center">
+            {/* Video Controls Bar */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-900/90 border-b border-white/10">
+              <Icons.Video className="w-4 h-4 text-purple-400" />
+              <span className="text-sm text-gray-300">{file.name}</span>
+              <div className="flex-1" />
+              {file.size && (
+                <span className="text-xs text-gray-400">{formatFileSize(file.size)}</span>
+              )}
+            </div>
+
+            {/* Video Player */}
+            <div className="flex-1 flex items-center justify-center p-4">
               <video
                 src={file.dataUrl}
                 controls
-                className="max-w-full max-h-full"
+                className="max-w-full max-h-full rounded shadow-2xl"
                 autoPlay={false}
+                onError={(e) => {
+                  console.error('Video load error:', e);
+                  setError('Failed to load video. The file may be corrupted or in an unsupported format.');
+                }}
               >
                 Your browser does not support the video tag.
               </video>
@@ -272,6 +305,28 @@ export function FileViewer({ file }: FileViewerProps) {
       className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col"
     >
       {renderContent()}
+
+      {/* Debug Panel (can be toggled) */}
+      <details className="border-t border-white/10 bg-gray-900/50">
+        <summary className="px-4 py-2 text-xs text-gray-400 cursor-pointer hover:bg-white/5">
+          Debug Info (Click to expand)
+        </summary>
+        <div className="px-4 py-2 text-xs text-gray-300 space-y-1 max-h-32 overflow-auto">
+          <div><span className="text-gray-500">File ID:</span> {file.id}</div>
+          <div><span className="text-gray-500">Name:</span> {file.name}</div>
+          <div><span className="text-gray-500">Type:</span> {file.type}</div>
+          <div><span className="text-gray-500">MIME Type:</span> {file.mimeType || 'N/A'}</div>
+          <div><span className="text-gray-500">Viewer Type:</span> {fileTypeInfo.viewerType}</div>
+          <div><span className="text-gray-500">Has dataUrl:</span> {file.dataUrl ? 'Yes' : 'No'}</div>
+          <div><span className="text-gray-500">Has content:</span> {file.content ? 'Yes' : 'No'}</div>
+          <div><span className="text-gray-500">Size:</span> {file.size ? formatFileSize(file.size) : 'N/A'}</div>
+          {file.dataUrl && (
+            <div className="break-all">
+              <span className="text-gray-500">Data URL (first 100 chars):</span> {file.dataUrl.substring(0, 100)}...
+            </div>
+          )}
+        </div>
+      </details>
     </motion.div>
   );
 }
