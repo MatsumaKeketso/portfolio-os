@@ -45,58 +45,6 @@ const getFilePath = (files: FileItem[], fileId: string | null): string => {
   return `${parentPath}/${file.name}`;
 };
 
-interface FileStoreState extends FileSystemState {
-  // Loading state
-  isLoading: boolean;
-  error: string | null;
-
-  // Clipboard
-  clipboard: {
-    fileIds: string[];
-    operation: 'cut' | 'copy' | null;
-  };
-
-  // Multi-select
-  selectedFileIds: string[];
-  lastSelectedFileId: string | null;
-
-  // Core Actions
-  fetchFileSystem: () => Promise<void>;
-
-  // Existing operations
-  addFile: (file: FileItem) => void;
-  removeFile: (fileId: string) => void;
-  updateFile: (fileId: string, updates: Partial<FileItem>) => void;
-  updateFileContent: (fileId: string, content: string) => void;
-  navigateToFolder: (folderId: string | null) => void;
-  navigateTo: (path: string[]) => void;
-  navigateUp: () => void;
-  getCurrentFolderFiles: () => FileItem[];
-  getFileById: (fileId: string) => FileItem | undefined;
-  getPathString: () => string;
-  getAllFiles: () => FileItem[];
-
-  // File operations
-  moveFiles: (fileIds: string[], newParentId: string | null) => void;
-  copyFilesTo: (fileIds: string[], newParentId: string | null) => void;
-  renameFile: (fileId: string, newName: string) => void;
-  duplicateFiles: (fileIds: string[]) => void;
-
-  // Selection operations
-  setSelectedFiles: (fileIds: string[]) => void;
-  addToSelection: (fileId: string) => void;
-  removeFromSelection: (fileId: string) => void;
-  selectRange: (fromFileId: string, toFileId: string) => void;
-  clearSelection: () => void;
-  selectAll: (folderId: string | null) => void;
-
-  // Clipboard operations
-  cutFiles: (fileIds: string[]) => void;
-  copyFiles: (fileIds: string[]) => void;
-  pasteFiles: (targetFolderId: string | null) => void;
-  clearClipboard: () => void;
-}
-
 const defaultFiles: FileItem[] = [
   // ... (keep existing default files)
   {
@@ -547,7 +495,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
       lastSelectedFileId: null
     }),
 
-    selectAll: (folderId) => set(() => {
+    selectAll: () => set(() => {
       const filesInFolder = get().getCurrentFolderFiles();
       return {
         selectedFileIds: filesInFolder.map(f => f.id),

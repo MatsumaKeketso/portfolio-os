@@ -1,26 +1,25 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useFileStore } from '../../store/fileStore';
 import { useDesktopStore } from '../../store/desktopStore';
-import { supabase } from '../../lib/supabase';
 import { FileItem } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
-import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
+import { useNotificationStore } from '../../store/notificationStore';
+import { uploadFileWithFallback, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgressToast } from '../UploadProgress';
-import { getFileIcon, getFileColor, formatFileSize, canPreviewFile, getViewerType } from '../../lib/fileUtils';
+import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
 
 export function FileExplorer() {
   const fileStore = useFileStore();
   const { openWindow } = useDesktopStore();
+  const { addNotification } = useNotificationStore();
   const [showNewDialog, setShowNewDialog] = useState<'folder' | 'file' | null>(null);
   const [newName, setNewName] = useState('');
   const [newFileContent, setNewFileContent] = useState('');
-  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-  const [isDraggingInternal, setIsDraggingInternal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +43,7 @@ export function FileExplorer() {
   };
 
   // Filter and sort files
-  const filteredAndSortedFiles = () => {
+  const displayFiles = useMemo(() => {
     let files = [...currentFiles];
 
     // Filter by search query
@@ -81,9 +80,7 @@ export function FileExplorer() {
     });
 
     return files;
-  };
-
-  const displayFiles = filteredAndSortedFiles();
+  }, [currentFiles, searchQuery, sortBy, sortOrder]);
 
   // Icon size classes
   const getIconSizeClasses = () => {
@@ -146,13 +143,16 @@ export function FileExplorer() {
     setShowNewDialog(null);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
-    if (!files) return;
+  const processFiles = async (files: FileList | File[], targetFolderId?: string | null) => {
+    const destFolderId = targetFolderId !== undefined
+      ? targetFolderId
+      : (fileStore.currentPath[fileStore.currentPath.length - 1] || null);
 
-    const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
     const fileArray = Array.from(files);
     setUploadProgress([]);
+
+    let successCount = 0;
+    let errorCount = 0;
 
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
@@ -162,65 +162,69 @@ export function FileExplorer() {
           ? 'video'
           : 'file';
 
-      let dataUrl = '';
-
-      // Upload to Supabase Storage if it's a media file
-      if (fileType === 'image' || fileType === 'video') {
-        try {
-          const result = await uploadFile(file, {
-            maxSizeMB: 100, // Allow larger files in file explorer
-            allowedTypes: ['image/*', 'video/*'],
-            onProgress: (progress) => {
-              setUploadProgress((prev) => {
-                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
-                if (existing >= 0) {
-                  const updated = [...prev];
-                  updated[existing] = progress;
-                  return updated;
-                }
-                return [...prev, progress];
-              });
-            },
-          });
-
-          if (result.url && !result.error) {
-            dataUrl = result.url;
-          } else {
-            console.error('Upload error:', result.error);
-          }
-        } catch (err) {
-          console.error('Upload exception:', err);
-        }
-      }
-
-      // Fallback to Base64 if Supabase fails or for non-media files
-      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          createFileItem(base64);
-        };
-        reader.readAsDataURL(file);
-        continue;
-      }
-
-      createFileItem(dataUrl);
-
-      function createFileItem(urlOrContent: string) {
-        fileStore.addFile({
-          id: `file-${Date.now()}-${i}`,
-          name: file.name,
-          type: fileType,
-          parentId: currentFolderId,
-          path: `${pathString}/${file.name}`,
-          size: file.size,
-          mimeType: file.type,
-          dataUrl: urlOrContent,
-          createdAt: Date.now(),
-          modifiedAt: Date.now(),
+      try {
+        const result = await uploadFileWithFallback(file, {
+          maxSizeMB: 100,
+          allowedTypes: ['image/*', 'video/*', 'application/pdf', 'text/*'],
+          onProgress: (progress) => {
+            setUploadProgress((prev) => {
+              const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+              if (existing >= 0) {
+                const updated = [...prev];
+                updated[existing] = progress;
+                return updated;
+              }
+              return [...prev, progress];
+            });
+          },
         });
+
+        if (result.url) {
+          fileStore.addFile({
+            id: `file-${Date.now()}-${i}`,
+            name: file.name,
+            type: fileType,
+            parentId: destFolderId,
+            path: `${pathString}/${file.name}`,
+            size: file.size,
+            mimeType: file.type,
+            dataUrl: result.url,
+            createdAt: Date.now(),
+            modifiedAt: Date.now(),
+          });
+          successCount++;
+        } else {
+          errorCount++;
+          console.error('File processing failed:', result.error);
+        }
+      } catch (err) {
+        errorCount++;
+        console.error('Upload exception:', err);
       }
     }
+
+    if (successCount > 0) {
+      addNotification({
+        type: 'success',
+        title: 'Upload Complete',
+        message: `Successfully uploaded ${successCount} file${successCount > 1 ? 's' : ''}.`,
+      });
+    }
+
+    if (errorCount > 0) {
+      addNotification({
+        type: 'error',
+        title: 'Upload Failed',
+        message: `Failed to upload ${errorCount} file${errorCount > 1 ? 's' : ''}.`,
+      });
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+    if (!files) return;
+
+    await processFiles(files);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -311,8 +315,6 @@ export function FileExplorer() {
     if (!fileStore.selectedFileIds.includes(file.id)) {
       fileStore.setSelectedFiles([file.id]);
     }
-
-    setIsDraggingInternal(true);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('application/x-fileexplorer-file',
       JSON.stringify(fileStore.selectedFileIds));
@@ -342,6 +344,7 @@ export function FileExplorer() {
 
   const handleDrop = (e: React.DragEvent, targetFile?: FileItem) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const isInternalDrag = e.dataTransfer.types.includes('application/x-fileexplorer-file');
 
@@ -359,84 +362,15 @@ export function FileExplorer() {
         handleExternalFileDrop(files, targetFile);
       }
     }
-
-    setIsDraggingInternal(false);
     setDropTargetId(null);
   };
 
   const handleExternalFileDrop = async (files: FileList, targetFile?: FileItem) => {
-    const currentFolderId = targetFile?.type === 'folder'
+    const targetFolderId = targetFile?.type === 'folder'
       ? targetFile.id
-      : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+      : (fileStore.currentPath[fileStore.currentPath.length - 1] || null);
 
-    const fileArray = Array.from(files);
-    setUploadProgress([]);
-
-    for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
-      const fileType = file.type.startsWith('image/')
-        ? 'image'
-        : file.type.startsWith('video/')
-          ? 'video'
-          : 'file';
-
-      let dataUrl = '';
-
-      if (fileType === 'image' || fileType === 'video') {
-        try {
-          const result = await uploadFile(file, {
-            maxSizeMB: 100,
-            allowedTypes: ['image/*', 'video/*'],
-            onProgress: (progress) => {
-              setUploadProgress((prev) => {
-                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
-                if (existing >= 0) {
-                  const updated = [...prev];
-                  updated[existing] = progress;
-                  return updated;
-                }
-                return [...prev, progress];
-              });
-            },
-          });
-
-          if (result.url && !result.error) {
-            dataUrl = result.url;
-          } else {
-            console.error('Upload error:', result.error);
-          }
-        } catch (err) {
-          console.error('Upload exception:', err);
-        }
-      }
-
-      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
-        // Fallback
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          createFileItem(event.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-        continue;
-      }
-
-      createFileItem(dataUrl);
-
-      function createFileItem(urlOrContent: string) {
-        fileStore.addFile({
-          id: `file-${Date.now()}-${i}`,
-          name: file.name,
-          type: fileType,
-          parentId: currentFolderId,
-          path: `${pathString}/${file.name}`,
-          size: file.size,
-          mimeType: file.type,
-          dataUrl: urlOrContent,
-          createdAt: Date.now(),
-          modifiedAt: Date.now(),
-        });
-      }
-    }
+    await processFiles(files, targetFolderId);
   };
 
   // Rename handlers
@@ -635,23 +569,23 @@ export function FileExplorer() {
         </button>
 
         {/* Breadcrumb Path */}
-        <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white flex items-center gap-1 overflow-x-auto">
+        <div className="flex-1 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 text-sm text-white flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button
             onClick={() => fileStore.navigateTo([])}
-            className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap"
+            className="hover:text-primary-400 hover:bg-white/10 px-2 py-0.5 rounded transition-all flex items-center gap-1.5 whitespace-nowrap"
           >
-            <Icons.Home className="w-3.5 h-3.5" />
-            Home
+            <Icons.Monitor className="w-3.5 h-3.5" />
+            <span className="font-medium">OS</span>
           </button>
           {fileStore.currentPath.map((folderId, index) => {
             const folder = fileStore.getFileById(folderId);
             if (!folder) return null;
             return (
               <div key={folderId} className="flex items-center gap-1">
-                <Icons.ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                <Icons.ChevronRight className="w-3.5 h-3.5 text-white/30" />
                 <button
                   onClick={() => fileStore.navigateTo(fileStore.currentPath.slice(0, index + 1))}
-                  className="hover:text-primary-400 transition-colors whitespace-nowrap"
+                  className="hover:text-primary-400 hover:bg-white/10 px-2 py-0.5 rounded transition-all whitespace-nowrap"
                 >
                   {folder.name}
                 </button>
@@ -835,15 +769,16 @@ export function FileExplorer() {
                 return (
                   <motion.button
                     key={file.id}
+                    layout
                     onClick={(e) => handleFileClick(file, e)}
                     onDoubleClick={(e) => handleFileDoubleClick(file, e)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, file)}
-                    onDragOver={(e) => handleDragOver(e, file)}
-                    onDrop={(e) => handleDrop(e, file)}
+                    onDragStart={(e: any) => handleDragStart(e, file)}
+                    onDragOver={(e: any) => handleDragOver(e, file)}
+                    onDrop={(e: any) => handleDrop(e, file)}
                     whileHover={{ scale: 1.05 }}
-                    className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${isSelected
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all ${isSelected
                       ? 'bg-primary-500/20 border-2 border-primary-500'
                       : 'hover:bg-white/10 border-2 border-transparent'
                       } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
@@ -869,7 +804,12 @@ export function FileExplorer() {
                         className="text-xs text-center w-full bg-gray-700/70 text-white border border-primary-500 rounded px-1 focus:outline-none"
                       />
                     ) : (
-                      <span className="text-xs text-center line-clamp-2 text-white">{file.name}</span>
+                      <span
+                        className="text-xs text-center line-clamp-2 text-white break-words w-full px-1"
+                        title={file.name}
+                      >
+                        {file.name}
+                      </span>
                     )}
                   </motion.button>
                 );
@@ -910,13 +850,14 @@ export function FileExplorer() {
                 return (
                   <motion.button
                     key={file.id}
+                    layout
                     onClick={(e) => handleFileClick(file, e)}
                     onDoubleClick={(e) => handleFileDoubleClick(file, e)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, file)}
-                    onDragOver={(e) => handleDragOver(e, file)}
-                    onDrop={(e) => handleDrop(e, file)}
+                    onDragStart={(e: any) => handleDragStart(e, file)}
+                    onDragOver={(e: any) => handleDragOver(e, file)}
+                    onDrop={(e: any) => handleDrop(e, file)}
                     className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${isSelected
                       ? 'bg-primary-500/20 border-primary-500'
                       : 'hover:bg-white/10'
@@ -947,7 +888,7 @@ export function FileExplorer() {
                           className="w-full bg-gray-700/70 text-white text-sm border border-primary-500 rounded px-2 py-1 focus:outline-none"
                         />
                       ) : (
-                        <span className="text-sm text-white truncate">{file.name}</span>
+                        <span className="text-sm text-white truncate" title={file.name}>{file.name}</span>
                       )}
                     </div>
 
@@ -982,7 +923,7 @@ export function FileExplorer() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[15000]"
             onClick={() => setShowNewDialog(null)}
           >
             <motion.div
@@ -1035,49 +976,6 @@ export function FileExplorer() {
                   >
                     Cancel
                   </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {previewFile && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]"
-            onClick={() => setPreviewFile(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col"
-            >
-              {/* Top gradient accent line */}
-              <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-              <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
-                <div className="shrink-0 flex items-center justify-between p-4">
-                  <h2 className="text-lg font-semibold text-white">{previewFile.name}</h2>
-                  <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/10 rounded text-white transition-colors">
-                    <Icons.X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Gradient divider */}
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-
-                <div className="flex-1 overflow-auto p-4">
-                  {previewFile.type === 'document' && (
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">
-                      {previewFile.content}
-                    </pre>
-                  )}
-                  {previewFile.type === 'image' && previewFile.dataUrl && (
-                    <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto rounded" />
-                  )}
                 </div>
               </div>
             </motion.div>

@@ -138,7 +138,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
               </div>
               <div>
                 <h3 className="text-primary-400 font-bold text-sm tracking-wider uppercase">
-                  Mission Timeline
+                  Life Timeline
                 </h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
@@ -301,9 +301,6 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
           })}
         </div>
 
-        {/* Scroll gradient overlays */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-950 to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-950 to-transparent pointer-events-none" />
       </div>
 
       {/* Ambient glow effects */}

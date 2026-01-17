@@ -140,6 +140,59 @@ export const uploadFile = async (
 };
 
 /**
+ * Uploads a file to Supabase storage with an automatic Base64 fallback
+ */
+export const uploadFileWithFallback = async (
+  file: File,
+  options: UploadOptions = {}
+): Promise<{ url: string; error?: string; isFallback: boolean }> => {
+  const fileType = file.type.startsWith('image/')
+    ? 'image'
+    : file.type.startsWith('video/')
+      ? 'video'
+      : 'file';
+
+  // Only attempt Supabase for media files by default if no allowedTypes specified
+  const shouldTrySupabase = options.allowedTypes
+    ? options.allowedTypes.some(t => {
+      if (t.endsWith('/*')) return file.type.startsWith(t.slice(0, -2));
+      return file.type === t;
+    })
+    : (fileType === 'image' || fileType === 'video');
+
+  if (shouldTrySupabase) {
+    try {
+      const result = await uploadFile(file, options);
+      if (result.url && !result.error) {
+        return { url: result.url, isFallback: false };
+      }
+      console.warn('Supabase upload failed, falling back to Base64:', result.error);
+    } catch (err) {
+      console.error('Supabase upload exception, falling back to Base64:', err);
+    }
+  }
+
+  // Fallback to Base64
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      resolve({
+        url: event.target?.result as string,
+        isFallback: true
+      });
+    };
+    reader.onerror = () => {
+      resolve({
+        url: '',
+        error: 'Failed to read file as data URL',
+        isFallback: true
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
  * Uploads multiple files to Supabase storage with progress tracking
  */
 export const uploadFiles = async (
