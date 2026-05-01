@@ -4,7 +4,13 @@
       "Bash(npm run build:*)",
       "Bash(npm run build:check:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(npx tsc *)",
+      "Bash(node -e ' *)",
+      "Bash(git diff *)",
+      "Bash(git ls-files *)"
     ]
   }
 }

@@ -109,8 +109,6 @@ export function Weather() {
   const [selectedCityId, setSelectedCityId] = useState('jhb');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
   const [showHourly, setShowHourly] = useState(true);
-  const [showAddCity, setShowAddCity] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const selectedCity = cities.find(c => c.id === selectedCityId) || cities[0];
   const currentWeather = selectedCity.weather;

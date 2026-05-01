@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Helper to generate unique IDs
 const generateId = () => `${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
@@ -242,29 +243,21 @@ interface UserStore {
 // Create the Zustand store
 export const useUserStore = create<UserStore>((set, get) => {
   // Helper to debounce database updates
-  let saveTimeout: NodeJS.Timeout;
-  const saveToSupabase = async (profile: UserProfile) => {
-    if (saveTimeout) clearTimeout(saveTimeout);
-
+  let saveTimeout: ReturnType<typeof setTimeout>;
+  const saveToFirestore = async (profile: UserProfile) => {
+    clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
       try {
-        const { error } = await supabase
-          .from('site_content')
-          .upsert({ id: 'profile', data: profile, updated_at: new Date().toISOString() });
-
-        if (error) {
-          console.error('Error saving profile to Supabase:', error);
-          set({ error: 'Failed to save changes: ' + error.message });
-        } else {
-          console.log('Profile saved to Supabase');
-          // Clear error if save successful
-          if (get().error) set({ error: null });
-        }
+        await setDoc(doc(db, 'os-site_content', 'profile'), {
+          data: profile,
+          updated_at: new Date().toISOString(),
+        });
+        if (get().error) set({ error: null });
       } catch (e: any) {
         console.error('Failed to save profile:', e);
         set({ error: 'Failed to save profile: ' + e.message });
       }
-    }, 1000); // Debounce for 1 second
+    }, 1000);
   };
 
   return {
@@ -275,25 +268,11 @@ export const useUserStore = create<UserStore>((set, get) => {
     fetchProfile: async () => {
       try {
         set({ isLoading: true, error: null });
-
-        const { data, error } = await supabase
-          .from('site_content')
-          .select('data')
-          .eq('id', 'profile')
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
-          throw error;
-        }
-
-        if (data && data.data) {
-          // Merge with default profile to ensure schema compatibility if fields are missing
-          // This is a simple deep merge strategy or we can just assume data is good
-          // For simplicity, let's just use the data, potentially needing validation
-          set({ profile: { ...defaultProfile, ...data.data as UserProfile }, isLoading: false });
+        const docSnap = await getDoc(doc(db, 'os-site_content', 'profile'));
+        if (docSnap.exists() && docSnap.data().data) {
+          set({ profile: { ...defaultProfile, ...docSnap.data().data as UserProfile }, isLoading: false });
         } else {
-          // No profile found, stick with default but save it to init the DB row
-          saveToSupabase(defaultProfile);
+          saveToFirestore(defaultProfile);
           set({ isLoading: false });
         }
 
@@ -314,7 +293,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Social links actions
@@ -326,7 +305,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     addCustomSocialLink: (link) => {
@@ -340,7 +319,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeCustomSocialLink: (id) => {
@@ -354,7 +333,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateCustomSocialLink: (id, updates) => {
@@ -368,7 +347,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Projects actions
@@ -380,7 +359,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateProject: (id, updates) => {
@@ -391,7 +370,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeProject: (id) => {
@@ -402,7 +381,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Experience actions
@@ -417,7 +396,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateExperience: (id, updates) => {
@@ -431,7 +410,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeExperience: (id) => {
@@ -445,7 +424,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Education actions
@@ -460,7 +439,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateEducation: (id, updates) => {
@@ -474,7 +453,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeEducation: (id) => {
@@ -488,7 +467,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Certification actions
@@ -503,7 +482,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateCertification: (id, updates) => {
@@ -517,7 +496,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeCertification: (id) => {
@@ -531,7 +510,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Skills actions
@@ -545,7 +524,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateSkillCategory: (id, updates) => {
@@ -558,7 +537,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeSkillCategory: (id) => {
@@ -571,7 +550,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     addSkillToCategory: (categoryId, skill) => {
@@ -588,7 +567,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeSkillFromCategory: (categoryId, skillName) => {
@@ -605,7 +584,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Resume summary
@@ -619,7 +598,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
     updatePreferences: (updates) => {
       const state = get();
@@ -629,7 +608,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     // Milestones actions
@@ -641,7 +620,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     updateMilestone: (id, updates) => {
@@ -652,7 +631,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     removeMilestone: (id) => {
@@ -663,7 +642,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         metadata: { ...state.profile.metadata, lastModified: Date.now() }
       };
       set({ profile: newProfile });
-      saveToSupabase(newProfile);
+      saveToFirestore(newProfile);
     },
 
     getMilestonesByYear: (year) => {
@@ -684,7 +663,7 @@ export const useUserStore = create<UserStore>((set, get) => {
 
     resetProfile: () => {
       set({ profile: defaultProfile });
-      saveToSupabase(defaultProfile);
+      saveToFirestore(defaultProfile);
     },
 
     exportProfile: () => {
@@ -713,7 +692,7 @@ export const useUserStore = create<UserStore>((set, get) => {
         }
       };
       set({ profile: mergedProfile });
-      saveToSupabase(mergedProfile);
+      saveToFirestore(mergedProfile);
     },
   };
 });

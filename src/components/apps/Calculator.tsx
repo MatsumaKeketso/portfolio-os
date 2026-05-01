@@ -255,30 +255,30 @@ export function Calculator() {
           {/* Memory row */}
           {isScientific && (
             <>
-              <Button onClick={() => handleMemoryOp('MC')} variant="memory">MC</Button>
-              <Button onClick={() => handleMemoryOp('MR')} variant="memory">MR</Button>
-              <Button onClick={() => handleMemoryOp('M+')} variant="memory">M+</Button>
-              <Button onClick={() => handleMemoryOp('M-')} variant="memory">M-</Button>
+              <CalcButton onClick={() => handleMemoryOp('MC')} variant="memory">MC</CalcButton>
+              <CalcButton onClick={() => handleMemoryOp('MR')} variant="memory">MR</CalcButton>
+              <CalcButton onClick={() => handleMemoryOp('M+')} variant="memory">M+</CalcButton>
+              <CalcButton onClick={() => handleMemoryOp('M-')} variant="memory">M-</CalcButton>
             </>
           )}
 
           {/* Scientific functions */}
           {isScientific && (
             <>
-              <Button onClick={() => handleScientificOp('sin')} variant="scientific">sin</Button>
-              <Button onClick={() => handleScientificOp('cos')} variant="scientific">cos</Button>
-              <Button onClick={() => handleScientificOp('tan')} variant="scientific">tan</Button>
-              <Button onClick={() => handleOperation('^')} variant="scientific">x^y</Button>
+              <CalcButton onClick={() => handleScientificOp('sin')} variant="scientific">sin</CalcButton>
+              <CalcButton onClick={() => handleScientificOp('cos')} variant="scientific">cos</CalcButton>
+              <CalcButton onClick={() => handleScientificOp('tan')} variant="scientific">tan</CalcButton>
+              <CalcButton onClick={() => handleOperation('^')} variant="scientific">x^y</CalcButton>
 
-              <Button onClick={() => handleScientificOp('sqrt')} variant="scientific">√</Button>
-              <Button onClick={() => handleScientificOp('square')} variant="scientific">x²</Button>
-              <Button onClick={() => handleScientificOp('1/x')} variant="scientific">1/x</Button>
-              <Button onClick={() => handleScientificOp('log')} variant="scientific">log</Button>
+              <CalcButton onClick={() => handleScientificOp('sqrt')} variant="scientific">√</CalcButton>
+              <CalcButton onClick={() => handleScientificOp('square')} variant="scientific">x²</CalcButton>
+              <CalcButton onClick={() => handleScientificOp('1/x')} variant="scientific">1/x</CalcButton>
+              <CalcButton onClick={() => handleScientificOp('log')} variant="scientific">log</CalcButton>
             </>
           )}
 
           {/* Standard calculator */}
-          <Button onClick={handleClear} variant="clear">C</Button>
+          <CalcButton onClick={handleClear} variant="clear">C</CalcButton>
           <Button onClick={() => handleOperation('÷')} variant="primary">÷</Button>
           <Button onClick={() => handleOperation('×')} variant="primary">×</Button>
           <Button onClick={() => handleOperation('-')} variant="primary">−</Button>
@@ -298,7 +298,7 @@ export function Calculator() {
           <Button onClick={() => handleNumber('3')}>3</Button>
           <Button onClick={() => handleNumber(')')} variant="primary">)</Button>
 
-          <Button onClick={() => handleNumber('0')} span>0</Button>
+          <CalcButton onClick={() => handleNumber('0')} span>0</CalcButton>
           <Button onClick={handleDecimal}>.</Button>
           <Button variant="solid-brand-primary" onClick={handleEquals} >=</Button>
         </div>

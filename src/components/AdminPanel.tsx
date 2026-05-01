@@ -6,7 +6,7 @@ import { useUserStore } from '../store/userStore';
 import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardBody } from './ui/card';
+import { Surface, SurfaceHeader } from './ui/surface';
 import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
 
@@ -778,7 +778,7 @@ export function AdminPanel() {
                         value={formData.defaultSize?.width}
                         onChange={(e) => setFormData({
                           ...formData,
-                          defaultSize: { ...formData.defaultSize, width: parseInt(e.target.value) || 800 }
+                          defaultSize: { width: parseInt(e.target.value) || 800, height: formData.defaultSize?.height ?? 600 }
                         })}
                         variant="solid"
                         min={300}
@@ -791,7 +791,7 @@ export function AdminPanel() {
                         value={formData.defaultSize?.height}
                         onChange={(e) => setFormData({
                           ...formData,
-                          defaultSize: { ...formData.defaultSize, height: parseInt(e.target.value) || 600 }
+                          defaultSize: { width: formData.defaultSize?.width ?? 800, height: parseInt(e.target.value) || 600 }
                         })}
                         variant="solid"
                         min={200}

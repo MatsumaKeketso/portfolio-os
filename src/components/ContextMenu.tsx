@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
-import { Button } from './ui/button';
+import { cn } from '../lib/utils';
 
 export interface ContextMenuItem {
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   onClick: () => void;
   disabled?: boolean;
+  danger?: boolean;
   divider?: boolean;
   shortcut?: string;
 }
@@ -28,7 +29,6 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       if (e.key === 'Escape') onClose();
     };
 
-    // Delay to prevent immediate close on right-click
     setTimeout(() => {
       document.addEventListener('click', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
@@ -41,64 +41,86 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }, [onClose]);
 
   useEffect(() => {
-    if (menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const adjustedX = x + rect.width > window.innerWidth
-        ? window.innerWidth - rect.width - 10
-        : x;
-      const adjustedY = y + rect.height > window.innerHeight
-        ? window.innerHeight - rect.height - 10
-        : y;
-
-      menuRef.current.style.left = `${adjustedX}px`;
-      menuRef.current.style.top = `${adjustedY}px`;
-    }
+    if (!menuRef.current) return;
+    const rect = menuRef.current.getBoundingClientRect();
+    const adjustedX = x + rect.width > window.innerWidth ? window.innerWidth - rect.width - 10 : x;
+    const adjustedY = y + rect.height > window.innerHeight ? window.innerHeight - rect.height - 10 : y;
+    menuRef.current.style.left = `${adjustedX}px`;
+    menuRef.current.style.top = `${adjustedY}px`;
   }, [x, y]);
 
   return (
     <motion.div
       ref={menuRef}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.1 }}
-      className="fixed z-[15002] min-w-[200px]"
-      style={{ left: x, top: y }}
+      initial={{ opacity: 0, scale: 0.97, y: -4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97, y: -4 }}
+      transition={{ duration: 0.08, ease: 'easeOut' }}
+      className="fixed z-[15002] min-w-[200px] py-1 rounded-lg overflow-hidden"
+      style={{
+        left: x,
+        top: y,
+        background: '#1f1f21',
+        border: '1px solid rgba(255,255,255,0.10)',
+        boxShadow: '0 18px 50px rgba(0,0,0,0.42), 0 4px 16px rgba(0,0,0,0.32)',
+      }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Top gradient accent line */}
-      <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
+      {items.map((item, index) => {
+        if (item.divider) {
+          return (
+            <div
+              key={`divider-${index}`}
+              className="my-1 mx-2 h-px"
+              style={{ background: 'rgba(255,255,255,0.07)' }}
+            />
+          );
+        }
 
-      <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl py-1">
-        {items.map((item, index) => (
-          item.divider ? (
-            <div key={`divider-${index}`} className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-1" />
-          ) : (
-            <Button
-              key={`item-${index}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!item.disabled) {
-                  item.onClick();
-                  onClose();
-                }
-              }}
-              disabled={item.disabled}
-              variant="menu-item"
-              className="w-full flex items-center justify-between h-auto py-2"
-            >
-              <div className="flex items-center gap-2">
-                <item.icon className="w-4 h-4 text-primary-400" />
-                <span>{item.label}</span>
-              </div>
-              {item.shortcut && (
-                <span className="text-xs text-gray-400">{item.shortcut}</span>
+        const Icon = item.icon;
+
+        return (
+          <button
+            key={`item-${index}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!item.disabled) {
+                item.onClick();
+                onClose();
+              }
+            }}
+            disabled={item.disabled}
+            className={cn(
+              'flex items-center justify-between gap-3 w-full px-3 py-[7px] text-left select-none',
+              'text-[13px] font-medium leading-[18px]',
+              'transition-colors duration-75',
+              item.disabled
+                ? 'opacity-40 pointer-events-none text-white/50'
+                : item.danger
+                  ? 'text-red-400 hover:bg-red-500/[0.12] hover:text-red-300'
+                  : 'text-white/80 hover:bg-white/[0.07] hover:text-white',
+            )}
+          >
+            <span className="flex items-center gap-2.5 min-w-0">
+              {Icon && (
+                <Icon
+                  className={cn(
+                    'w-[15px] h-[15px] flex-shrink-0',
+                    item.danger ? 'text-red-400/70' : 'text-white/35',
+                  )}
+                />
               )}
-            </Button>
-          )
-        ))}
-      </div>
+              <span className="truncate">{item.label}</span>
+            </span>
+            {item.shortcut && (
+              <span className="text-[11px] text-white/25 flex-shrink-0 ml-4">
+                {item.shortcut}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </motion.div>
   );
 }

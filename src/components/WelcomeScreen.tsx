@@ -19,8 +19,8 @@ const features: Feature[] = [
   },
   {
     icon: Icons.Briefcase,
-    title: 'Portfolio Showcase',
-    description: 'View projects, resume, skills, and contact information in dedicated applications.',
+    title: 'The OS Is The Portfolio',
+    description: 'Projects launch as apps. CV, skills, and contact live together in one tabbed surface.',
   },
   {
     icon: Icons.Zap,
@@ -106,10 +106,10 @@ export function WelcomeScreen() {
                     <Icons.Sparkles className="w-10 h-10 text-white" />
                   </div>
                   <h1 className="text-4xl font-bold text-white mb-3">
-                    Welcome to GenOS
+                    Welcome to Keketso OS
                   </h1>
                   <p className="text-gray-300 text-lg">
-                    An interactive desktop experience for exploring Keketso's portfolio
+                    A portfolio operating system by Keketso — built by Generative Studio
                   </p>
                 </div>
 

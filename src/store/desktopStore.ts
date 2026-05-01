@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { App, WindowState, FileItem } from '../types';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface DesktopBackground {
   id: string;
@@ -76,94 +77,38 @@ const defaultApps: App[] = [
     icon: 'folder',
     type: 'component',
     component: 'FileExplorer',
+    surfaceMode: 'utilityDark',
     pinnedToTaskbar: true,
     pinnedToDesktop: true,
     desktopPosition: { x: 50, y: 50 },
-    defaultSize: { width: 800, height: 600 },
-    description: 'Browse portfolio files and projects'
+    defaultSize: { width: 860, height: 600 },
+    description: 'Browse and manage portfolio files',
   },
   {
-    id: 'browser',
-    name: 'Portfolio Browser',
-    icon: 'globe',
+    id: 'cv',
+    name: 'CV',
+    icon: 'user-check',
     type: 'component',
-    component: 'Browser',
+    component: 'CV',
+    surfaceMode: 'content',
     pinnedToTaskbar: true,
     pinnedToDesktop: true,
     desktopPosition: { x: 50, y: 150 },
-    defaultSize: { width: 900, height: 700 },
-    description: 'Browse portfolio websites'
+    defaultSize: { width: 780, height: 640 },
+    description: 'Profile, experience, skills, projects, and contact',
   },
   {
-    id: 'calculator',
-    name: 'Calculator',
-    icon: 'calculator',
+    id: 'browser',
+    name: 'Browser',
+    icon: 'globe',
     type: 'component',
-    component: 'Calculator',
-    pinnedToTaskbar: false,
+    component: 'Browser',
+    surfaceMode: 'iframe',
+    pinnedToTaskbar: true,
     pinnedToDesktop: true,
     desktopPosition: { x: 150, y: 50 },
-    defaultSize: { width: 320, height: 480 },
-    description: 'Simple calculator app'
-  },
-  {
-    id: 'notepad',
-    name: 'Notepad',
-    icon: 'file-text',
-    type: 'component',
-    component: 'Notepad',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 150, y: 150 },
-    defaultSize: { width: 600, height: 400 },
-    description: 'Simple text editor'
-  },
-  {
-    id: 'weather',
-    name: 'Weather',
-    icon: 'cloud',
-    type: 'component',
-    component: 'Weather',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 250, y: 50 },
-    defaultSize: { width: 400, height: 500 },
-    description: 'Johannesburg weather widget'
-  },
-  {
-    id: 'task-manager',
-    name: 'Task Manager',
-    icon: 'activity',
-    type: 'component',
-    component: 'TaskManager',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 250, y: 150 },
-    defaultSize: { width: 700, height: 500 },
-    description: 'View running portfolio projects'
-  },
-  {
-    id: 'github',
-    name: 'GitHub',
-    icon: 'github',
-    type: 'iframe',
-    url: 'https://github.com',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: false,
     defaultSize: { width: 900, height: 700 },
-    description: 'View GitHub profile'
-  },
-  {
-    id: 'about',
-    name: 'About Me',
-    icon: 'user',
-    type: 'component',
-    component: 'About',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 350, y: 150 },
-    defaultSize: { width: 600, height: 500 },
-    description: 'Software Developer from Johannesburg'
+    description: 'Browse the web and project links',
   },
   {
     id: 'settings',
@@ -171,162 +116,149 @@ const defaultApps: App[] = [
     icon: 'settings',
     type: 'component',
     component: 'Settings',
+    surfaceMode: 'utilityDark',
     pinnedToTaskbar: false,
     pinnedToDesktop: true,
-    desktopPosition: { x: 450, y: 50 },
+    desktopPosition: { x: 150, y: 150 },
     defaultSize: { width: 700, height: 600 },
-    description: 'Portfolio settings and preferences'
+    description: 'System preferences and profile editing',
   },
   {
-    id: 'resume',
-    name: 'Resume',
+    id: 'about-os',
+    name: 'About This OS',
+    icon: 'info',
+    type: 'component',
+    component: 'AboutOS',
+    surfaceMode: 'content',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 250, y: 50 },
+    defaultSize: { width: 700, height: 580 },
+    description: 'Keketso OS — concept, stack, and build info',
+  },
+  {
+    id: 'task-manager',
+    name: 'Task Manager',
+    icon: 'activity',
+    type: 'component',
+    component: 'TaskManager',
+    surfaceMode: 'utilityDark',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 250, y: 150 },
+    defaultSize: { width: 700, height: 500 },
+    description: 'Running processes and system info',
+  },
+  {
+    id: 'calculator',
+    name: 'Calculator',
+    icon: 'calculator',
+    type: 'component',
+    component: 'Calculator',
+    surfaceMode: 'utilityDark',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 320, height: 480 },
+    description: 'System calculator',
+  },
+  {
+    id: 'notepad',
+    name: 'Notepad',
     icon: 'file-text',
     type: 'component',
-    component: 'Resume',
-    pinnedToTaskbar: true,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 550, y: 50 },
-    defaultSize: { width: 800, height: 700 },
-    description: 'Professional resume and CV'
+    component: 'Notepad',
+    surfaceMode: 'utilityDark',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 600, height: 400 },
+    description: 'Plain text editor',
   },
   {
-    id: 'portfolio',
-    name: 'Portfolio',
-    icon: 'briefcase',
+    id: 'weather',
+    name: 'Weather',
+    icon: 'cloud',
     type: 'component',
-    component: 'Portfolio',
-    pinnedToTaskbar: true,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 550, y: 150 },
+    component: 'Weather',
+    surfaceMode: 'utilityDark',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 400, height: 500 },
+    description: 'Johannesburg weather',
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    icon: 'github',
+    type: 'iframe',
+    surfaceMode: 'iframe',
+    url: 'https://github.com/MatsumaKeketso',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
     defaultSize: { width: 900, height: 700 },
-    description: 'Portfolio projects showcase'
+    description: 'Keketso on GitHub',
   },
-  {
-    id: 'skills',
-    name: 'Skills',
-    icon: 'zap',
-    type: 'component',
-    component: 'Skills',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 650, y: 50 },
-    defaultSize: { width: 700, height: 600 },
-    description: 'Skills and technologies showcase'
-  },
-  {
-    id: 'contact',
-    name: 'Contact',
-    icon: 'mail',
-    type: 'component',
-    component: 'Contact',
-    pinnedToTaskbar: false,
-    pinnedToDesktop: true,
-    desktopPosition: { x: 650, y: 150 },
-    defaultSize: { width: 500, height: 400 },
-    description: 'Contact information and links'
-  }
 ];
 
-// Helper to debounce Supabase saves
-let appsTimeout: NodeJS.Timeout;
-const saveAppsToSupabase = async (apps: App[]) => {
-  if (appsTimeout) clearTimeout(appsTimeout);
-
+let appsTimeout: ReturnType<typeof setTimeout>;
+const saveAppsToFirestore = (apps: App[]): void => {
+  clearTimeout(appsTimeout);
   appsTimeout = setTimeout(async () => {
     try {
-      const { error } = await supabase
-        .from('site_content')
-        .upsert({ id: 'apps', data: apps, updated_at: new Date().toISOString() });
-
-      if (error) {
-        console.error('Error saving apps to Supabase:', error);
-      }
+      await setDoc(doc(db, 'os-site_content', 'apps'), {
+        data: apps,
+        updated_at: new Date().toISOString(),
+      });
     } catch (e: any) {
       console.error('Failed to save apps:', e);
     }
-  }, 1000); // 1s debounce
+  }, 1000);
 };
 
-// Fetch apps from Supabase
-const fetchAppsFromSupabase = async (): Promise<App[]> => {
+const fetchAppsFromFirestore = async (): Promise<App[]> => {
   try {
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('data')
-      .eq('id', 'apps')
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      throw error;
-    }
-
-    if (data && data.data) {
-      const dbApps = data.data as App[];
-      // Merge: Add any default apps that are missing from DB
-      // This ensures new apps added to the code (defaultApps) are synced to Supabase
+    const docSnap = await getDoc(doc(db, 'os-site_content', 'apps'));
+    if (docSnap.exists() && docSnap.data().data) {
+      const dbApps = docSnap.data().data as App[];
       const missingApps = defaultApps.filter(defApp => !dbApps.some(dbApp => dbApp.id === defApp.id));
-
       if (missingApps.length > 0) {
-        console.log('Found new apps in code, syncing to Supabase:', missingApps.map(a => a.name));
         const mergedApps = [...dbApps, ...missingApps];
-        // Save back to sync immediately
-        await saveAppsToSupabase(mergedApps);
+        saveAppsToFirestore(mergedApps);
         return mergedApps;
       }
-
       return dbApps;
-    } else {
-      // No apps found, initialize with defaults
-      await saveAppsToSupabase(defaultApps);
-      return defaultApps;
     }
+    saveAppsToFirestore(defaultApps);
+    return defaultApps;
   } catch (err: any) {
     console.error('Error fetching apps:', err);
     return defaultApps;
   }
 };
 
-// Backgrounds Supabase integration
-let backgroundsTimeout: NodeJS.Timeout;
-const saveBackgroundsToSupabase = async (backgrounds: DesktopBackground[]) => {
-  if (backgroundsTimeout) clearTimeout(backgroundsTimeout);
-
+let backgroundsTimeout: ReturnType<typeof setTimeout>;
+const saveBackgroundsToFirestore = (backgrounds: DesktopBackground[]): void => {
+  clearTimeout(backgroundsTimeout);
   backgroundsTimeout = setTimeout(async () => {
     try {
-      // Only save custom backgrounds (not defaults)
       const customBackgrounds = backgrounds.filter(b => !b.id.startsWith('default-'));
-      const { error } = await supabase
-        .from('site_content')
-        .upsert({ id: 'backgrounds', data: customBackgrounds, updated_at: new Date().toISOString() });
-
-      if (error) {
-        console.error('Error saving backgrounds to Supabase:', error);
-      }
+      await setDoc(doc(db, 'os-site_content', 'backgrounds'), {
+        data: customBackgrounds,
+        updated_at: new Date().toISOString(),
+      });
     } catch (e: any) {
       console.error('Failed to save backgrounds:', e);
     }
-  }, 1000); // 1s debounce
+  }, 1000);
 };
 
-const fetchBackgroundsFromSupabase = async (): Promise<DesktopBackground[]> => {
+const fetchBackgroundsFromFirestore = async (): Promise<DesktopBackground[]> => {
   try {
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('data')
-      .eq('id', 'backgrounds')
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      throw error;
-    }
-
-    if (data && data.data) {
-      const customBackgrounds = data.data as DesktopBackground[];
-      // Merge defaults with custom backgrounds
+    const docSnap = await getDoc(doc(db, 'os-site_content', 'backgrounds'));
+    if (docSnap.exists() && docSnap.data().data) {
+      const customBackgrounds = docSnap.data().data as DesktopBackground[];
       return [...defaultBackgrounds, ...customBackgrounds];
-    } else {
-      return defaultBackgrounds;
     }
+    return defaultBackgrounds;
   } catch (err: any) {
     console.error('Error fetching backgrounds:', err);
     return defaultBackgrounds;
@@ -433,33 +365,24 @@ const defaultBackgrounds: DesktopBackground[] = [
   },
 ];
 
-// Selected background ID Supabase integration
-const saveSelectedBackgroundToSupabase = async (backgroundId: string) => {
+const saveSelectedBackgroundToFirestore = async (backgroundId: string): Promise<void> => {
   try {
-    await supabase
-      .from('site_content')
-      .upsert({ id: 'selectedBackground', data: { backgroundId }, updated_at: new Date().toISOString() });
+    await setDoc(doc(db, 'os-site_content', 'selectedBackground'), {
+      data: { backgroundId },
+      updated_at: new Date().toISOString(),
+    });
   } catch (e: any) {
     console.error('Failed to save selected background:', e);
   }
 };
 
-const fetchSelectedBackgroundFromSupabase = async (): Promise<string> => {
+const fetchSelectedBackgroundFromFirestore = async (): Promise<string> => {
   try {
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('data')
-      .eq('id', 'selectedBackground')
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      throw error;
+    const docSnap = await getDoc(doc(db, 'os-site_content', 'selectedBackground'));
+    if (docSnap.exists() && docSnap.data().data?.backgroundId) {
+      return docSnap.data().data.backgroundId;
     }
-
-    if (data && data.data && data.data.backgroundId) {
-      return data.data.backgroundId;
-    }
-    return 'default-quantum'; // Star Citizen default
+    return 'default-quantum';
   } catch (err: any) {
     console.error('Error fetching selected background:', err);
     return 'default-quantum';
@@ -501,32 +424,32 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   systemPreferences: loadSystemPreferences(),
 
   fetchApps: async () => {
-    const apps = await fetchAppsFromSupabase();
+    const apps = await fetchAppsFromFirestore();
     set({ apps });
   },
 
   fetchBackgrounds: async () => {
-    const backgrounds = await fetchBackgroundsFromSupabase();
-    const selectedBackgroundId = await fetchSelectedBackgroundFromSupabase();
+    const backgrounds = await fetchBackgroundsFromFirestore();
+    const selectedBackgroundId = await fetchSelectedBackgroundFromFirestore();
     set({ backgrounds, selectedBackgroundId });
   },
 
   addApp: (app) => set((state) => {
     const newApps = [...state.apps, app];
-    saveAppsToSupabase(newApps);
+    saveAppsToFirestore(newApps);
     return { apps: newApps };
   }),
 
   removeApp: (appId) => set((state) => {
     const newApps = state.apps.filter(a => a.id !== appId);
     const newWindows = state.windows.filter(w => w.appId !== appId);
-    saveAppsToSupabase(newApps);
+    saveAppsToFirestore(newApps);
     return { apps: newApps, windows: newWindows };
   }),
 
   updateApp: (appId, updates) => set((state) => {
     const newApps = state.apps.map(a => a.id === appId ? { ...a, ...updates } : a);
-    saveAppsToSupabase(newApps);
+    saveAppsToFirestore(newApps);
     return { apps: newApps };
   }),
 
@@ -534,7 +457,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const newApps = state.apps.map(a =>
       a.id === appId ? { ...a, desktopPosition: position } : a
     );
-    saveAppsToSupabase(newApps);
+    saveAppsToFirestore(newApps);
     return { apps: newApps };
   }),
 
@@ -542,7 +465,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     // Replace desktop apps with reordered ones, keep non-desktop apps
     const nonDesktopApps = state.apps.filter(a => !a.pinnedToDesktop);
     const newApps = [...reorderedApps, ...nonDesktopApps];
-    saveAppsToSupabase(newApps);
+    saveAppsToFirestore(newApps);
     return { apps: newApps };
   }),
 
@@ -566,6 +489,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       appId: app.id,
       title: fileData?.title || app.name,
       icon: app.icon,
+      customIcon: app.customIcon,
       type: app.type,
       component: app.component,
       url: app.url,
@@ -576,7 +500,8 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       size: app.defaultSize || { width: 800, height: 600 },
       isMinimized: false,
       isMaximized: false,
-      zIndex: state.maxZIndex + 1
+      zIndex: state.maxZIndex + 1,
+      surfaceMode: app.surfaceMode ?? (app.type === 'iframe' ? 'iframe' : 'utilityDark'),
     };
 
     return {
@@ -636,7 +561,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   loadApps: (apps) => {
     set({ apps });
-    saveAppsToSupabase(apps);
+    saveAppsToFirestore(apps);
   },
 
   exportConfig: () => {
@@ -648,14 +573,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     try {
       const apps = JSON.parse(json);
       set({ apps });
-      saveAppsToSupabase(apps);
+      saveAppsToFirestore(apps);
     } catch (e) {
       console.error('Invalid JSON configuration');
     }
   },
   addBackground: (background) => set((state) => {
     const newBackgrounds = [...state.backgrounds, background];
-    saveBackgroundsToSupabase(newBackgrounds);
+    saveBackgroundsToFirestore(newBackgrounds);
     return { backgrounds: newBackgrounds };
   }),
 
@@ -664,14 +589,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     if (backgroundId.startsWith('default-')) return state;
 
     const newBackgrounds = state.backgrounds.filter(b => b.id !== backgroundId);
-    saveBackgroundsToSupabase(newBackgrounds);
+    saveBackgroundsToFirestore(newBackgrounds);
 
     // If removed background was selected, switch to default
     const newSelectedId = state.selectedBackgroundId === backgroundId
       ? 'default-quantum'
       : state.selectedBackgroundId;
 
-    saveSelectedBackgroundToSupabase(newSelectedId);
+    saveSelectedBackgroundToFirestore(newSelectedId);
 
     return {
       backgrounds: newBackgrounds,
@@ -679,14 +604,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     };
   }),
 
-  setSelectedBackground: (backgroundId) => set((state) => {
-    saveSelectedBackgroundToSupabase(backgroundId);
+  setSelectedBackground: (backgroundId) => set(() => {
+    saveSelectedBackgroundToFirestore(backgroundId);
     return { selectedBackgroundId: backgroundId };
   }),
 
   resetBackgroundToDefault: async () => {
     const defaultId = 'default-quantum';
-    saveSelectedBackgroundToSupabase(defaultId);
+    saveSelectedBackgroundToFirestore(defaultId);
     set({ selectedBackgroundId: defaultId });
   },
 

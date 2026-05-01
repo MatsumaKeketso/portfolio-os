@@ -22,6 +22,42 @@ Welcome to the PortfolioOS documentation directory. This folder contains detaile
   - User profile management
   - Migration guides
 
+- **[LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md)** - Product mono visual direction
+  - Reference-image interpretation for the OS interface
+  - Dark chrome and light work-surface design rules
+  - Component guidance for taskbar, start menu, windows, apps, and admin surfaces
+  - Implementation phases and acceptance checklist
+
+- **[PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md)** - Keketso OS product architecture
+  - Positions the OS itself as the portfolio
+  - Defines project apps, CV tabs, system About, and Generative Studio branding
+  - Documents the image-only visitor folder concept
+  - Provides app simplification and implementation phases
+
+- **[OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md)** - Windows-inspired web OS behavior model
+  - Defines desktop, taskbar, window, File Explorer, app, and settings behaviors
+  - Specifies context-aware right-click menu contexts and action groups
+  - Separates web-supported OS features from native-only capabilities
+  - Provides implementation phases for OS-like frontend behavior
+
+- **[INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md)** - Codebase-aware refinement sequence
+  - Reviews the current implementation foundation
+  - Defines section-by-section execution without repeated overhauls
+  - Identifies current gaps in context menus, File Explorer, windows, surfaces, and feedback
+  - Adds the Feedback app as a web-native experience
+
+- **[IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)** - Current actioned vs pending tracker
+  - Audits sections 1-5 against the actual codebase
+  - Lists what is implemented, partially implemented, and pending
+  - Identifies next smallest actions by section
+  - Tracks future sections for Feedback and system components
+
+- **[LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md)** - Build spec for the new OS experience
+  - Defines the phased UI and IA update plan
+  - Maps changes to likely source files
+  - Specifies Product Mono, CV tabs, project apps, Visitor Gallery, chrome restyling, system components, and OS behavior
+  - Includes acceptance criteria for implementation
+
 ### Technical References
 
 - **[ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md)** - Admin panel functionality audit
@@ -49,6 +85,9 @@ The following documentation files are kept in the project root for easy access:
   - Customization guide
   - Best practices
 
+- **[../UPLOAD_SETUP.md](../UPLOAD_SETUP.md)** - Upload functionality setup guide
+- **[../FILE_UPLOAD_GUIDE.md](../FILE_UPLOAD_GUIDE.md)** - File upload and authentication setup guide
+
 ## 📖 Quick Links
 
 ### For New Users
@@ -58,9 +97,15 @@ The following documentation files are kept in the project root for easy access:
 
 ### For Developers
 1. Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
-2. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
-3. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
-4. Review component examples in source code
+2. Read [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) for product architecture
+3. Read [OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md) for OS-like interaction behavior
+4. Check [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) for current actioned vs pending work
+5. Use [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md) for codebase-aware sequencing
+6. Use [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md) for the implementation plan
+7. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
+8. Follow [LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md) for the target OS visual language
+9. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
+10. Review component examples in source code
 
 ### For Contributors
 1. Review [../README.md](../README.md) Contributing section
@@ -78,6 +123,12 @@ portfolio-os/
 │   ├── README.md              # This file
 │   ├── ARCHITECTURE.md        # System architecture
 │   ├── CHANGELOG.md           # Version history
+│   ├── IMPLEMENTATION_PROGRESS.md # Current actioned vs pending tracker
+│   ├── INCREMENTAL_REFINEMENT_PLAN.md # Codebase-aware refinement sequence
+│   ├── LOOK_AND_FEEL.md       # Visual direction
+│   ├── LOOK_AND_FEEL_UPDATE_SPEC.md # New OS experience implementation spec
+│   ├── OS_BEHAVIOR_MODEL.md   # Web OS behavior model
+│   ├── PRODUCT_DIRECTION.md   # Product architecture
 │   └── ADMINPANEL_AUDIT.md    # Admin panel audit
 ├── supabase-setup.sql         # Database setup
 └── storage-setup.sql          # Storage setup
@@ -125,5 +176,5 @@ For documentation questions or improvements:
 
 ---
 
-**Last Updated:** 2026-01-12
+**Last Updated:** 2026-05-01
 **Maintained by:** Keketso Matsuma

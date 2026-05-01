@@ -1,18 +1,35 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useFileStore } from '../../store/fileStore';
 import { useDesktopStore } from '../../store/desktopStore';
-import { supabase } from '../../lib/supabase';
-import { FileItem } from '../../types';
+import { useAuthStore } from '../../store/authStore';
+import { FileItem, VISITOR_GALLERY_ID } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
+import { SystemRow, SystemRowGroup, SystemRowDivider } from '../ui/SystemRow';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgressToast } from '../UploadProgress';
-import { getFileIcon, getFileColor, formatFileSize, canPreviewFile, getViewerType } from '../../lib/fileUtils';
+import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
+import { getLocationContext, getPermissions, fileIsWritable } from '../../lib/filePermissions';
+
+// ---------------------------------------------------------------------------
+// Sidebar location definitions
+// ---------------------------------------------------------------------------
+
+const SIDEBAR_LOCATIONS = [
+  { id: 'home', label: 'Home', icon: Icons.Home, folderId: null as string | null },
+  { id: 'folder-documents', label: 'Documents', icon: Icons.FileText, folderId: 'folder-documents' },
+  { id: 'folder-downloads', label: 'Downloads', icon: Icons.Download, folderId: 'folder-downloads' },
+  { id: 'folder-projects', label: 'Projects', icon: Icons.Briefcase, folderId: 'folder-projects' },
+  { id: 'folder-images', label: 'Images', icon: Icons.Image, folderId: 'folder-images' },
+  { id: VISITOR_GALLERY_ID, label: 'Visitor Gallery', icon: Icons.Users, folderId: VISITOR_GALLERY_ID },
+] as const;
 
 export function FileExplorer() {
   const fileStore = useFileStore();
   const { openWindow } = useDesktopStore();
+  const { isAuthenticated } = useAuthStore();
+
   const [showNewDialog, setShowNewDialog] = useState<'folder' | 'file' | null>(null);
   const [newName, setNewName] = useState('');
   const [newFileContent, setNewFileContent] = useState('');
@@ -20,72 +37,102 @@ export function FileExplorer() {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [renamingFileId, setRenamingFileId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
-  const [isDraggingInternal, setIsDraggingInternal] = useState(false);
+  const [, setIsDraggingInternal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // New view options
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size' | 'type'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ---------------------------------------------------------------------------
+  // Permissions — derived from current path + auth state
+  // ---------------------------------------------------------------------------
+
+  const locationContext = useMemo(
+    () => getLocationContext(fileStore.currentPath, fileStore.files),
+    [fileStore.currentPath, fileStore.files],
+  );
+
+  const permissions = useMemo(
+    () => getPermissions(locationContext, isAuthenticated),
+    [locationContext, isAuthenticated],
+  );
+
   const currentFiles = fileStore.getCurrentFolderFiles();
   const pathString = fileStore.getPathString();
 
-  const getFileIconComponent = (file: FileItem) => {
-    return getFileIcon(file.name, file.type, file.mimeType);
+  // ---------------------------------------------------------------------------
+  // Sidebar helpers
+  // ---------------------------------------------------------------------------
+
+  const isLocationActive = (loc: (typeof SIDEBAR_LOCATIONS)[number]) => {
+    if (loc.folderId === null) return fileStore.currentPath.length === 0;
+    return fileStore.currentPath[0] === loc.folderId;
   };
 
-  const getFileColorClass = (file: FileItem) => {
-    return getFileColor(file.name, file.type, file.mimeType);
+  const navigateToLocation = (folderId: string | null) => {
+    if (folderId === null) {
+      fileStore.navigateTo([]);
+      return;
+    }
+    // Create the system folder on first access if it doesn't yet exist in the loaded filesystem
+    const exists = fileStore.getFileById(folderId);
+    if (!exists) {
+      const loc = SIDEBAR_LOCATIONS.find((l) => l.folderId === folderId);
+      if (loc) {
+        fileStore.addFile({
+          id: folderId,
+          name: loc.label,
+          type: 'folder',
+          parentId: null,
+          path: `/${loc.label}`,
+          isProtected: true,
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
+        });
+      }
+    }
+    fileStore.navigateTo([folderId]);
   };
 
-  // Filter and sort files
+  // ---------------------------------------------------------------------------
+  // File display helpers
+  // ---------------------------------------------------------------------------
+
+  const getFileIconComponent = (file: FileItem) =>
+    getFileIcon(file.name, file.type, file.mimeType);
+
+  const getFileColorClass = (file: FileItem) =>
+    getFileColor(file.name, file.type, file.mimeType);
+
   const filteredAndSortedFiles = () => {
     let files = [...currentFiles];
-
-    // Filter by search query
     if (searchQuery.trim()) {
-      files = files.filter(file =>
-        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+      files = files.filter((f) =>
+        f.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
-
-    // Sort files
     files.sort((a, b) => {
-      // Always put folders first
       if (a.type === 'folder' && b.type !== 'folder') return -1;
       if (a.type !== 'folder' && b.type === 'folder') return 1;
-
       let comparison = 0;
-
       switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'date':
-          comparison = (a.modifiedAt || a.createdAt) - (b.modifiedAt || b.createdAt);
-          break;
-        case 'size':
-          comparison = (a.size || 0) - (b.size || 0);
-          break;
-        case 'type':
-          comparison = a.type.localeCompare(b.type);
-          break;
+        case 'name': comparison = a.name.localeCompare(b.name); break;
+        case 'date': comparison = (a.modifiedAt || a.createdAt) - (b.modifiedAt || b.createdAt); break;
+        case 'size': comparison = (a.size || 0) - (b.size || 0); break;
+        case 'type': comparison = a.type.localeCompare(b.type); break;
       }
-
       return sortOrder === 'asc' ? comparison : -comparison;
     });
-
     return files;
   };
 
   const displayFiles = filteredAndSortedFiles();
 
-  // Icon size classes
   const getIconSizeClasses = () => {
     switch (iconSize) {
       case 'small': return 'w-8 h-8';
@@ -102,12 +149,14 @@ export function FileExplorer() {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // Create / upload handlers
+  // ---------------------------------------------------------------------------
+
   const handleCreateFolder = () => {
     if (!newName.trim()) return;
-
     const folderId = `folder-${Date.now()}`;
     const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
-
     fileStore.addFile({
       id: folderId,
       name: newName,
@@ -117,18 +166,15 @@ export function FileExplorer() {
       createdAt: Date.now(),
       modifiedAt: Date.now(),
     });
-
     setNewName('');
     setShowNewDialog(null);
   };
 
   const handleCreateFile = () => {
-    if (!newName.trim()) return;
-
+    if (!newName.trim() || !permissions.canCreateFile) return;
     const fileId = `file-${Date.now()}`;
     const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
     const fileName = newName.endsWith('.txt') ? newName : `${newName}.txt`;
-
     fileStore.addFile({
       id: fileId,
       name: fileName,
@@ -140,7 +186,6 @@ export function FileExplorer() {
       createdAt: Date.now(),
       modifiedAt: Date.now(),
     });
-
     setNewName('');
     setNewFileContent('');
     setShowNewDialog(null);
@@ -156,224 +201,10 @@ export function FileExplorer() {
 
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
-      const fileType = file.type.startsWith('image/')
-        ? 'image'
-        : file.type.startsWith('video/')
-          ? 'video'
-          : 'file';
 
-      let dataUrl = '';
+      // Enforce Visitor Gallery image-only restriction
+      if (locationContext === 'visitorGallery' && !file.type.startsWith('image/')) continue;
 
-      // Upload to Supabase Storage if it's a media file
-      if (fileType === 'image' || fileType === 'video') {
-        try {
-          const result = await uploadFile(file, {
-            maxSizeMB: 100, // Allow larger files in file explorer
-            allowedTypes: ['image/*', 'video/*'],
-            onProgress: (progress) => {
-              setUploadProgress((prev) => {
-                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
-                if (existing >= 0) {
-                  const updated = [...prev];
-                  updated[existing] = progress;
-                  return updated;
-                }
-                return [...prev, progress];
-              });
-            },
-          });
-
-          if (result.url && !result.error) {
-            dataUrl = result.url;
-          } else {
-            console.error('Upload error:', result.error);
-          }
-        } catch (err) {
-          console.error('Upload exception:', err);
-        }
-      }
-
-      // Fallback to Base64 if Supabase fails or for non-media files
-      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          createFileItem(base64);
-        };
-        reader.readAsDataURL(file);
-        continue;
-      }
-
-      createFileItem(dataUrl);
-
-      function createFileItem(urlOrContent: string) {
-        fileStore.addFile({
-          id: `file-${Date.now()}-${i}`,
-          name: file.name,
-          type: fileType,
-          parentId: currentFolderId,
-          path: `${pathString}/${file.name}`,
-          size: file.size,
-          mimeType: file.type,
-          dataUrl: urlOrContent,
-          createdAt: Date.now(),
-          modifiedAt: Date.now(),
-        });
-      }
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-
-  const handleFolderDouble = (file: FileItem) => {
-    if (file.type === 'folder') {
-      fileStore.navigateToFolder(file.id);
-    }
-  };
-
-  // Multi-select click handlers
-  const handleFileClick = (file: FileItem, e: React.MouseEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      // Toggle selection
-      if (fileStore.selectedFileIds.includes(file.id)) {
-        fileStore.removeFromSelection(file.id);
-      } else {
-        fileStore.addToSelection(file.id);
-      }
-    } else if (e.shiftKey) {
-      // Range selection
-      if (fileStore.lastSelectedFileId) {
-        fileStore.selectRange(fileStore.lastSelectedFileId, file.id);
-      } else {
-        fileStore.setSelectedFiles([file.id]);
-      }
-    } else {
-      // Single selection
-      fileStore.setSelectedFiles([file.id]);
-    }
-  };
-
-  const handleFileDoubleClick = (file: FileItem, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (file.type === 'folder') {
-      handleFolderDouble(file);
-      return;
-    }
-
-    // Get the appropriate viewer type for this file
-    const viewerType = getViewerType(file.name, file.mimeType);
-
-    // Handle text files that should open in Notepad (editable)
-    if (viewerType === 'notepad' || file.name.endsWith('.txt')) {
-      openWindow(
-        {
-          id: 'notepad',
-          name: 'Notepad',
-          icon: 'file-text',
-          type: 'component',
-          component: 'Notepad',
-          defaultSize: { width: 600, height: 400 },
-          description: 'Simple text editor',
-        },
-        {
-          fileId: file.id,
-          content: file.content || '',
-          title: file.name,
-        }
-      );
-      return;
-    }
-
-    // Open all other previewable files in FileViewer
-    openWindow(
-      {
-        id: 'file-viewer',
-        name: 'File Viewer',
-        icon: 'file',
-        type: 'component',
-        component: 'FileViewer',
-        defaultSize: { width: 800, height: 600 },
-        description: 'Universal file viewer',
-      },
-      {
-        file: file,
-        title: file.name,
-        fileId: file.id,
-      }
-    );
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, file: FileItem) => {
-    if (!fileStore.selectedFileIds.includes(file.id)) {
-      fileStore.setSelectedFiles([file.id]);
-    }
-
-    setIsDraggingInternal(true);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/x-fileexplorer-file',
-      JSON.stringify(fileStore.selectedFileIds));
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetFile?: FileItem) => {
-    e.preventDefault();
-
-    const isInternalDrag = e.dataTransfer.types.includes('application/x-fileexplorer-file');
-
-    if (isInternalDrag) {
-      if (targetFile?.type === 'folder') {
-        setDropTargetId(targetFile.id);
-        e.dataTransfer.dropEffect = 'move';
-      } else if (!targetFile) {
-        setDropTargetId('__current__');
-        e.dataTransfer.dropEffect = 'move';
-      }
-    } else {
-      e.dataTransfer.dropEffect = 'copy';
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDropTargetId(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetFile?: FileItem) => {
-    e.preventDefault();
-
-    const isInternalDrag = e.dataTransfer.types.includes('application/x-fileexplorer-file');
-
-    if (isInternalDrag) {
-      const fileIds = JSON.parse(e.dataTransfer.getData('application/x-fileexplorer-file'));
-      const targetFolderId = targetFile?.type === 'folder'
-        ? targetFile.id
-        : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
-
-      fileStore.moveFiles(fileIds, targetFolderId);
-    } else {
-      // External file upload - handle via existing upload logic
-      const files = e.dataTransfer.files;
-      if (files) {
-        handleExternalFileDrop(files, targetFile);
-      }
-    }
-
-    setIsDraggingInternal(false);
-    setDropTargetId(null);
-  };
-
-  const handleExternalFileDrop = async (files: FileList, targetFile?: FileItem) => {
-    const currentFolderId = targetFile?.type === 'folder'
-      ? targetFile.id
-      : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
-
-    const fileArray = Array.from(files);
-    setUploadProgress([]);
-
-    for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
       const fileType = file.type.startsWith('image/')
         ? 'image'
         : file.type.startsWith('video/')
@@ -399,11 +230,8 @@ export function FileExplorer() {
               });
             },
           });
-
           if (result.url && !result.error) {
             dataUrl = result.url;
-          } else {
-            console.error('Upload error:', result.error);
           }
         } catch (err) {
           console.error('Upload exception:', err);
@@ -411,11 +239,8 @@ export function FileExplorer() {
       }
 
       if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
-        // Fallback
         const reader = new FileReader();
-        reader.onload = (event) => {
-          createFileItem(event.target?.result as string);
-        };
+        reader.onload = (event) => createFileItem(event.target?.result as string);
         reader.readAsDataURL(file);
         continue;
       }
@@ -434,65 +259,192 @@ export function FileExplorer() {
           dataUrl: urlOrContent,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
+          isVisitorOwned: !isAuthenticated,
+        });
+      }
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // ---------------------------------------------------------------------------
+  // Navigation / selection
+  // ---------------------------------------------------------------------------
+
+  const handleFolderDouble = (file: FileItem) => {
+    if (file.type === 'folder') fileStore.navigateToFolder(file.id);
+  };
+
+  const handleFileClick = (file: FileItem, e: React.MouseEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      fileStore.selectedFileIds.includes(file.id)
+        ? fileStore.removeFromSelection(file.id)
+        : fileStore.addToSelection(file.id);
+    } else if (e.shiftKey && fileStore.lastSelectedFileId) {
+      fileStore.selectRange(fileStore.lastSelectedFileId, file.id);
+    } else {
+      fileStore.setSelectedFiles([file.id]);
+    }
+  };
+
+  const handleFileDoubleClick = (file: FileItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (file.type === 'folder') { handleFolderDouble(file); return; }
+
+    const viewerType = getViewerType(file.name, file.mimeType);
+    if (viewerType === 'notepad' || file.name.endsWith('.txt')) {
+      openWindow(
+        { id: 'notepad', name: 'Notepad', icon: 'file-text', type: 'component', component: 'Notepad', defaultSize: { width: 600, height: 400 }, description: 'Simple text editor' },
+        { fileId: file.id, content: file.content || '', title: file.name },
+      );
+      return;
+    }
+    openWindow(
+      { id: 'file-viewer', name: 'File Viewer', icon: 'file', type: 'component', component: 'FileViewer', defaultSize: { width: 800, height: 600 }, description: 'Universal file viewer' },
+      { file, title: file.name, fileId: file.id },
+    );
+  };
+
+  // ---------------------------------------------------------------------------
+  // Drag and drop
+  // ---------------------------------------------------------------------------
+
+  const handleDragStart = (e: React.DragEvent, file: FileItem) => {
+    if (!fileStore.selectedFileIds.includes(file.id)) fileStore.setSelectedFiles([file.id]);
+    setIsDraggingInternal(true);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/x-fileexplorer-file', JSON.stringify(fileStore.selectedFileIds));
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetFile?: FileItem) => {
+    e.preventDefault();
+    const isInternalDrag = e.dataTransfer.types.includes('application/x-fileexplorer-file');
+    if (isInternalDrag) {
+      if (targetFile?.type === 'folder') { setDropTargetId(targetFile.id); e.dataTransfer.dropEffect = 'move'; }
+      else if (!targetFile) { setDropTargetId('__current__'); e.dataTransfer.dropEffect = 'move'; }
+    } else {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const handleDragLeave = () => setDropTargetId(null);
+
+  const handleDrop = (e: React.DragEvent, targetFile?: FileItem) => {
+    e.preventDefault();
+    const isInternalDrag = e.dataTransfer.types.includes('application/x-fileexplorer-file');
+    if (isInternalDrag) {
+      const fileIds = JSON.parse(e.dataTransfer.getData('application/x-fileexplorer-file'));
+      const targetFolderId = targetFile?.type === 'folder'
+        ? targetFile.id
+        : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+      fileStore.moveFiles(fileIds, targetFolderId);
+    } else if (e.dataTransfer.files) {
+      handleExternalFileDrop(e.dataTransfer.files, targetFile);
+    }
+    setIsDraggingInternal(false);
+    setDropTargetId(null);
+  };
+
+  const handleExternalFileDrop = async (files: FileList, targetFile?: FileItem) => {
+    const currentFolderId = targetFile?.type === 'folder'
+      ? targetFile.id
+      : fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+    const fileArray = Array.from(files);
+    setUploadProgress([]);
+
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      if (locationContext === 'visitorGallery' && !file.type.startsWith('image/')) continue;
+
+      const fileType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file';
+      let dataUrl = '';
+
+      if (fileType === 'image' || fileType === 'video') {
+        try {
+          const result = await uploadFile(file, {
+            maxSizeMB: 100,
+            allowedTypes: ['image/*', 'video/*'],
+            onProgress: (progress) => {
+              setUploadProgress((prev) => {
+                const existing = prev.findIndex((p) => p.fileName === progress.fileName);
+                if (existing >= 0) { const u = [...prev]; u[existing] = progress; return u; }
+                return [...prev, progress];
+              });
+            },
+          });
+          if (result.url && !result.error) dataUrl = result.url;
+        } catch (err) { console.error('Upload exception:', err); }
+      }
+
+      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
+        const reader = new FileReader();
+        reader.onload = (event) => createFile(event.target?.result as string);
+        reader.readAsDataURL(file);
+        continue;
+      }
+      createFile(dataUrl);
+
+      function createFile(urlOrContent: string) {
+        fileStore.addFile({
+          id: `file-${Date.now()}-${i}`,
+          name: file.name,
+          type: fileType,
+          parentId: currentFolderId,
+          path: `${pathString}/${file.name}`,
+          size: file.size,
+          mimeType: file.type,
+          dataUrl: urlOrContent,
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
+          isVisitorOwned: !isAuthenticated,
         });
       }
     }
   };
 
-  // Rename handlers
+  // ---------------------------------------------------------------------------
+  // Rename
+  // ---------------------------------------------------------------------------
+
   const startRename = (fileId: string) => {
     const file = fileStore.getFileById(fileId);
-    if (file) {
+    if (file && fileIsWritable(file, isAuthenticated)) {
       setRenamingFileId(fileId);
       setRenameValue(file.name);
     }
   };
 
   const finishRename = () => {
-    if (renamingFileId && renameValue.trim()) {
-      fileStore.renameFile(renamingFileId, renameValue.trim());
-    }
+    if (renamingFileId && renameValue.trim()) fileStore.renameFile(renamingFileId, renameValue.trim());
     setRenamingFileId(null);
     setRenameValue('');
   };
 
-  const cancelRename = () => {
-    setRenamingFileId(null);
-    setRenameValue('');
-  };
+  const cancelRename = () => { setRenamingFileId(null); setRenameValue(''); };
 
-  // Context menu handlers
+  // ---------------------------------------------------------------------------
+  // Context menu
+  // ---------------------------------------------------------------------------
+
   const handleContextMenu = (e: React.MouseEvent, file?: FileItem) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent desktop context menu from opening
-
-    if (file && !fileStore.selectedFileIds.includes(file.id)) {
-      fileStore.setSelectedFiles([file.id]);
-    }
-
+    e.stopPropagation();
+    if (file && !fileStore.selectedFileIds.includes(file.id)) fileStore.setSelectedFiles([file.id]);
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const getContextMenuItems = (): ContextMenuItem[] => {
     const selectedCount = fileStore.selectedFileIds.length;
     const hasClipboard = fileStore.clipboard.fileIds.length > 0;
+    const selectedFiles = fileStore.selectedFileIds.map((id) => fileStore.getFileById(id)).filter(Boolean) as FileItem[];
+    const allWritable = selectedFiles.every((f) => fileIsWritable(f, isAuthenticated));
 
     const items: ContextMenuItem[] = [];
 
-    if (selectedCount > 0) {
+    if (selectedCount > 0 && permissions.canMove) {
       items.push(
-        {
-          label: 'Cut',
-          icon: Icons.Scissors,
-          onClick: () => fileStore.cutFiles(fileStore.selectedFileIds),
-          shortcut: 'Ctrl+X'
-        },
-        {
-          label: 'Copy',
-          icon: Icons.Copy,
-          onClick: () => fileStore.copyFiles(fileStore.selectedFileIds),
-          shortcut: 'Ctrl+C'
-        }
+        { label: 'Cut', icon: Icons.Scissors, onClick: () => fileStore.cutFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+X' },
+        { label: 'Copy', icon: Icons.Copy, onClick: () => fileStore.copyFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+C' },
       );
     }
 
@@ -504,50 +456,31 @@ export function FileExplorer() {
           const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
           fileStore.pasteFiles(currentFolderId);
         },
-        shortcut: 'Ctrl+V'
+        shortcut: 'Ctrl+V',
       });
     }
 
-    if (selectedCount === 1) {
+    if (selectedCount === 1 && permissions.canRename && allWritable) {
       items.push(
         { divider: true } as ContextMenuItem,
-        {
-          label: 'Rename',
-          icon: Icons.Edit,
-          onClick: () => startRename(fileStore.selectedFileIds[0]),
-          shortcut: 'F2'
-        }
+        { label: 'Rename', icon: Icons.Edit, onClick: () => startRename(fileStore.selectedFileIds[0]), shortcut: 'F2' },
       );
     }
 
     if (selectedCount > 0) {
-      items.push(
-        {
-          label: 'Duplicate',
-          icon: Icons.CopyPlus,
-          onClick: () => fileStore.duplicateFiles(fileStore.selectedFileIds)
-        },
-        {
-          label: 'Delete',
-          icon: Icons.Trash2,
-          onClick: () => handleDeleteMultiple(),
-          shortcut: 'Del'
-        }
-      );
+      items.push({ label: 'Duplicate', icon: Icons.CopyPlus, onClick: () => fileStore.duplicateFiles(fileStore.selectedFileIds) });
+    }
+
+    if (selectedCount > 0 && permissions.canDelete && allWritable) {
+      items.push({ label: 'Delete', icon: Icons.Trash2, danger: true, onClick: handleDeleteMultiple, shortcut: 'Del' });
     }
 
     if (selectedCount === 0) {
+      items.push({ label: 'New Folder', icon: Icons.FolderPlus, onClick: () => setShowNewDialog('folder') });
+      if (permissions.canCreateFile) {
+        items.push({ label: 'New File', icon: Icons.FilePlus, onClick: () => setShowNewDialog('file') });
+      }
       items.push(
-        {
-          label: 'New Folder',
-          icon: Icons.FolderPlus,
-          onClick: () => setShowNewDialog('folder')
-        },
-        {
-          label: 'New File',
-          icon: Icons.FilePlus,
-          onClick: () => setShowNewDialog('file')
-        },
         { divider: true } as ContextMenuItem,
         {
           label: 'Select All',
@@ -556,8 +489,8 @@ export function FileExplorer() {
             const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
             fileStore.selectAll(currentFolderId);
           },
-          shortcut: 'Ctrl+A'
-        }
+          shortcut: 'Ctrl+A',
+        },
       );
     }
 
@@ -565,27 +498,23 @@ export function FileExplorer() {
   };
 
   const handleDeleteMultiple = () => {
-    fileStore.selectedFileIds.forEach(fileId => {
-      fileStore.removeFile(fileId);
-    });
+    fileStore.selectedFileIds.forEach((id) => fileStore.removeFile(id));
     fileStore.clearSelection();
   };
 
+  // ---------------------------------------------------------------------------
   // Keyboard shortcuts
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (renamingFileId) return;
-
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
         e.preventDefault();
-        if (fileStore.selectedFileIds.length > 0) {
-          fileStore.copyFiles(fileStore.selectedFileIds);
-        }
+        if (fileStore.selectedFileIds.length > 0) fileStore.copyFiles(fileStore.selectedFileIds);
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
         e.preventDefault();
-        if (fileStore.selectedFileIds.length > 0) {
-          fileStore.cutFiles(fileStore.selectedFileIds);
-        }
+        if (fileStore.selectedFileIds.length > 0) fileStore.cutFiles(fileStore.selectedFileIds);
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
         const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
@@ -596,14 +525,10 @@ export function FileExplorer() {
         fileStore.selectAll(currentFolderId);
       } else if (e.key === 'F2') {
         e.preventDefault();
-        if (fileStore.selectedFileIds.length === 1) {
-          startRename(fileStore.selectedFileIds[0]);
-        }
+        if (fileStore.selectedFileIds.length === 1) startRename(fileStore.selectedFileIds[0]);
       } else if (e.key === 'Delete') {
         e.preventDefault();
-        if (fileStore.selectedFileIds.length > 0) {
-          handleDeleteMultiple();
-        }
+        if (fileStore.selectedFileIds.length > 0 && permissions.canDelete) handleDeleteMultiple();
       } else if (e.key === 'Escape') {
         e.preventDefault();
         fileStore.clearSelection();
@@ -611,10 +536,13 @@ export function FileExplorer() {
         setRenamingFileId(null);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [fileStore.selectedFileIds, renamingFileId]);
+  }, [fileStore.selectedFileIds, renamingFileId, permissions]);
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col border-b border-white/10">
@@ -626,20 +554,13 @@ export function FileExplorer() {
         <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Forward">
           <Icons.ChevronRight className="w-4 h-4" />
         </button>
-        <button
-          onClick={() => window.location.reload()}
-          className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
-          title="Refresh"
-        >
+        <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Refresh">
           <Icons.RefreshCw className="w-4 h-4" />
         </button>
 
-        {/* Breadcrumb Path */}
+        {/* Breadcrumb */}
         <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white flex items-center gap-1 overflow-x-auto">
-          <button
-            onClick={() => fileStore.navigateTo([])}
-            className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap"
-          >
+          <button onClick={() => fileStore.navigateTo([])} className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap">
             <Icons.Home className="w-3.5 h-3.5" />
             Home
           </button>
@@ -661,34 +582,20 @@ export function FileExplorer() {
         </div>
 
         <div className="flex gap-1">
-          <button
-            onClick={() => setShowNewDialog('folder')}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
-            title="New Folder"
-          >
+          <button onClick={() => setShowNewDialog('folder')} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="New Folder">
             <Icons.FolderPlus className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => setShowNewDialog('file')}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
-            title="New File"
-          >
-            <Icons.FilePlus className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
-            title="Upload"
-          >
-            <Icons.Upload className="w-4 h-4" />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleUpload}
-            className="hidden"
-          />
+          {permissions.canCreateFile && (
+            <button onClick={() => setShowNewDialog('file')} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="New File">
+              <Icons.FilePlus className="w-4 h-4" />
+            </button>
+          )}
+          {permissions.canUpload && (
+            <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Upload">
+              <Icons.Upload className="w-4 h-4" />
+            </button>
+          )}
+          <input ref={fileInputRef} type="file" multiple accept={permissions.allowedUploadTypes} onChange={handleUpload} className="hidden" />
         </div>
       </div>
 
@@ -698,32 +605,26 @@ export function FileExplorer() {
         <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-              }`}
-            title="Grid View"
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
-            <Icons.Grid3x3 className="w-3 h-3" />
-            Grid
+            <Icons.Grid3x3 className="w-3 h-3" /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-              }`}
-            title="List View"
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
-            <Icons.List className="w-3 h-3" />
-            List
+            <Icons.List className="w-3 h-3" /> List
           </button>
         </div>
 
         <div className="h-6 w-px bg-gray-600 mx-1" />
 
-        {/* Sort Options */}
+        {/* Sort */}
         <div className="flex items-center gap-1">
           <Icons.ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="px-2 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500"
           >
             <option value="name">Name</option>
@@ -736,49 +637,36 @@ export function FileExplorer() {
             className="p-1 hover:bg-white/10 rounded text-white transition-colors"
             title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
           >
-            {sortOrder === 'asc' ? (
-              <Icons.ArrowUp className="w-3.5 h-3.5" />
-            ) : (
-              <Icons.ArrowDown className="w-3.5 h-3.5" />
-            )}
+            {sortOrder === 'asc' ? <Icons.ArrowUp className="w-3.5 h-3.5" /> : <Icons.ArrowDown className="w-3.5 h-3.5" />}
           </button>
         </div>
 
         {viewMode === 'grid' && (
           <>
             <div className="h-6 w-px bg-gray-600 mx-1" />
-
-            {/* Icon Size */}
             <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
-              <button
-                onClick={() => setIconSize('small')}
-                className={`px-2 py-1 text-xs rounded transition-all ${iconSize === 'small' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                title="Small Icons"
-              >
-                S
-              </button>
-              <button
-                onClick={() => setIconSize('medium')}
-                className={`px-2 py-1 text-xs rounded transition-all ${iconSize === 'medium' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                title="Medium Icons"
-              >
-                M
-              </button>
-              <button
-                onClick={() => setIconSize('large')}
-                className={`px-2 py-1 text-xs rounded transition-all ${iconSize === 'large' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                title="Large Icons"
-              >
-                L
-              </button>
+              {(['small', 'medium', 'large'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setIconSize(s)}
+                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                >
+                  {s[0].toUpperCase()}
+                </button>
+              ))}
             </div>
           </>
         )}
 
         <div className="flex-1" />
+
+        {/* Visitor Gallery badge */}
+        {locationContext === 'visitorGallery' && (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.06] rounded text-[11px] text-white/40">
+            <Icons.Users className="w-3 h-3" />
+            Images only
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative">
@@ -791,23 +679,52 @@ export function FileExplorer() {
             className="pl-7 pr-3 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500 w-48"
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-            >
+            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
               <Icons.X className="w-3 h-3" />
             </button>
           )}
         </div>
 
-        {/* File Count */}
         <span className="text-xs text-gray-400">
           {displayFiles.length} {displayFiles.length === 1 ? 'item' : 'items'}
           {fileStore.selectedFileIds.length > 0 && ` (${fileStore.selectedFileIds.length} selected)`}
         </span>
       </div>
 
+      {/* Main area: sidebar + content */}
       <div className="flex-1 flex overflow-hidden">
+
+        {/* Sidebar */}
+        <div className="w-[188px] flex-shrink-0 border-r border-white/10 overflow-y-auto flex flex-col bg-black/20">
+          <SystemRowGroup context="chrome" className="pt-3">Locations</SystemRowGroup>
+          {SIDEBAR_LOCATIONS.map((loc) => {
+            const Icon = loc.icon;
+            return (
+              <SystemRow
+                key={loc.id}
+                icon={<Icon />}
+                label={loc.label}
+                context="chrome"
+                selected={isLocationActive(loc)}
+                accentRail={false}
+                onClick={() => navigateToLocation(loc.folderId ?? null)}
+              />
+            );
+          })}
+          <SystemRowDivider context="chrome" className="mt-2" />
+          <SystemRowGroup context="chrome">Info</SystemRowGroup>
+          <div className="px-3 py-2">
+            <p className="text-[11px] text-white/25 leading-relaxed">
+              {locationContext === 'visitorGallery'
+                ? 'Visitor Gallery: folders and images only.'
+                : locationContext === 'system'
+                  ? isAuthenticated ? 'System folder: full access.' : 'System folder: read-only.'
+                  : 'Open location for full access.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Content area */}
         <div
           className="flex-1 p-4 overflow-y-auto"
           onContextMenu={(e) => handleContextMenu(e)}
@@ -828,8 +745,7 @@ export function FileExplorer() {
                 const FileIcon = getFileIconComponent(file);
                 const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
-                const isCut = fileStore.clipboard.operation === 'cut' &&
-                  fileStore.clipboard.fileIds.includes(file.id);
+                const isCut = fileStore.clipboard.operation === 'cut' && fileStore.clipboard.fileIds.includes(file.id);
                 const isDropTarget = dropTargetId === file.id;
 
                 return (
@@ -839,14 +755,13 @@ export function FileExplorer() {
                     onDoubleClick={(e) => handleFileDoubleClick(file, e)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, file)}
+                    onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
                     whileHover={{ scale: 1.05 }}
-                    className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${isSelected
-                      ? 'bg-primary-500/20 border-2 border-primary-500'
-                      : 'hover:bg-white/10 border-2 border-transparent'
-                      } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
+                    className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${
+                      isSelected ? 'bg-primary-500/20 border-2 border-primary-500' : 'hover:bg-white/10 border-2 border-transparent'
+                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     {file.type === 'image' && file.dataUrl ? (
                       <img src={file.dataUrl} alt={file.name} className={`${getIconSizeClasses()} object-cover rounded`} />
@@ -859,11 +774,7 @@ export function FileExplorer() {
                         value={renameValue}
                         onChange={(e) => setRenameValue(e.target.value)}
                         onBlur={finishRename}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          if (e.key === 'Enter') finishRename();
-                          if (e.key === 'Escape') cancelRename();
-                        }}
+                        onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
                         onClick={(e) => e.stopPropagation()}
                         autoFocus
                         className="text-xs text-center w-full bg-gray-700/70 text-white border border-primary-500 rounded px-1 focus:outline-none"
@@ -877,34 +788,28 @@ export function FileExplorer() {
             </div>
           ) : (
             <div className="flex flex-col">
-              {/* List View Header */}
+              {/* List header */}
               <div className="grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 bg-white/5 backdrop-blur-md border-b border-white/10 text-xs font-semibold text-gray-400 sticky top-0">
-                <div></div>
+                <div />
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('name')}>
-                  Name
-                  {sortBy === 'name' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                  Name {sortBy === 'name' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
                 </div>
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('size')}>
-                  Size
-                  {sortBy === 'size' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                  Size {sortBy === 'size' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
                 </div>
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('type')}>
-                  Type
-                  {sortBy === 'type' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                  Type {sortBy === 'type' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
                 </div>
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('date')}>
-                  Date Modified
-                  {sortBy === 'date' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
+                  Date Modified {sortBy === 'date' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
                 </div>
               </div>
 
-              {/* List View Items */}
               {displayFiles.map((file) => {
                 const FileIcon = getFileIconComponent(file);
                 const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
-                const isCut = fileStore.clipboard.operation === 'cut' &&
-                  fileStore.clipboard.fileIds.includes(file.id);
+                const isCut = fileStore.clipboard.operation === 'cut' && fileStore.clipboard.fileIds.includes(file.id);
                 const isDropTarget = dropTargetId === file.id;
 
                 return (
@@ -914,22 +819,19 @@ export function FileExplorer() {
                     onDoubleClick={(e) => handleFileDoubleClick(file, e)}
                     onContextMenu={(e) => handleContextMenu(e, file)}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, file)}
+                    onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
-                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${isSelected
-                      ? 'bg-primary-500/20 border-primary-500'
-                      : 'hover:bg-white/10'
-                      } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
+                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${
+                      isSelected ? 'bg-primary-500/20 border-primary-500' : 'hover:bg-white/10'
+                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     <div className="flex items-center justify-center">
-                      {file.type === 'image' && file.dataUrl ? (
-                        <img src={file.dataUrl} alt={file.name} className="w-6 h-6 object-cover rounded" />
-                      ) : (
-                        <FileIcon className={`w-6 h-6 ${fileColor}`} />
-                      )}
+                      {file.type === 'image' && file.dataUrl
+                        ? <img src={file.dataUrl} alt={file.name} className="w-6 h-6 object-cover rounded" />
+                        : <FileIcon className={`w-6 h-6 ${fileColor}`} />
+                      }
                     </div>
-
                     <div className="flex items-center min-w-0">
                       {renamingFileId === file.id ? (
                         <input
@@ -937,11 +839,7 @@ export function FileExplorer() {
                           value={renameValue}
                           onChange={(e) => setRenameValue(e.target.value)}
                           onBlur={finishRename}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                            if (e.key === 'Enter') finishRename();
-                            if (e.key === 'Escape') cancelRename();
-                          }}
+                          onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
                           onClick={(e) => e.stopPropagation()}
                           autoFocus
                           className="w-full bg-gray-700/70 text-white text-sm border border-primary-500 rounded px-2 py-1 focus:outline-none"
@@ -950,21 +848,10 @@ export function FileExplorer() {
                         <span className="text-sm text-white truncate">{file.name}</span>
                       )}
                     </div>
-
+                    <div className="flex items-center text-sm text-gray-400">{file.type === 'folder' ? '—' : formatFileSize(file.size)}</div>
+                    <div className="flex items-center text-sm text-gray-400 capitalize">{file.type}</div>
                     <div className="flex items-center text-sm text-gray-400">
-                      {file.type === 'folder' ? '—' : formatFileSize(file.size)}
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-400 capitalize">
-                      {file.type}
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-400">
-                      {new Date(file.modifiedAt || file.createdAt).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {new Date(file.modifiedAt || file.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </motion.button>
                 );
@@ -972,47 +859,31 @@ export function FileExplorer() {
             </div>
           )}
         </div>
-
-
       </div>
 
+      {/* Dialogs */}
       <AnimatePresence>
         {showNewDialog && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]"
             onClick={() => setShowNewDialog(null)}
           >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-sm w-full mx-4"
-            >
-              {/* Top gradient accent line */}
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} onClick={(e) => e.stopPropagation()} className="max-w-sm w-full mx-4">
               <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
               <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-6">
                 <h2 className="text-lg font-semibold mb-4 text-white">
                   {showNewDialog === 'folder' ? 'New Folder' : 'New Text File'}
                 </h2>
-
                 <input
                   type="text"
                   placeholder={showNewDialog === 'folder' ? 'Folder name' : 'File name'}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile();
-                    }
-                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile(); }}
                   autoFocus
                   className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500"
                 />
-
                 {showNewDialog === 'file' && (
                   <textarea
                     placeholder="File content (optional)"
@@ -1021,20 +892,9 @@ export function FileExplorer() {
                     className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500 resize-none h-24"
                   />
                 )}
-
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => (showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile())}
-                    className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-all"
-                  >
-                    Create
-                  </button>
-                  <button
-                    onClick={() => setShowNewDialog(null)}
-                    className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition-all"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile()} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-all">Create</button>
+                  <button onClick={() => setShowNewDialog(null)} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition-all">Cancel</button>
                 </div>
               </div>
             </motion.div>
@@ -1043,41 +903,21 @@ export function FileExplorer() {
 
         {previewFile && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]"
             onClick={() => setPreviewFile(null)}
           >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col"
-            >
-              {/* Top gradient accent line */}
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} onClick={(e) => e.stopPropagation()} className="max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
               <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
               <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
                 <div className="shrink-0 flex items-center justify-between p-4">
                   <h2 className="text-lg font-semibold text-white">{previewFile.name}</h2>
-                  <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/10 rounded text-white transition-colors">
-                    <Icons.X className="w-5 h-5" />
-                  </button>
+                  <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/10 rounded text-white transition-colors"><Icons.X className="w-5 h-5" /></button>
                 </div>
-
-                {/* Gradient divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-
                 <div className="flex-1 overflow-auto p-4">
-                  {previewFile.type === 'document' && (
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">
-                      {previewFile.content}
-                    </pre>
-                  )}
-                  {previewFile.type === 'image' && previewFile.dataUrl && (
-                    <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto rounded" />
-                  )}
+                  {previewFile.type === 'document' && <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">{previewFile.content}</pre>}
+                  {previewFile.type === 'image' && previewFile.dataUrl && <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto rounded" />}
                 </div>
               </div>
             </motion.div>
@@ -1094,11 +934,7 @@ export function FileExplorer() {
         )}
       </AnimatePresence>
 
-      {/* Upload Progress Toast */}
-      <UploadProgressToast
-        uploads={uploadProgress}
-        onClose={() => setUploadProgress([])}
-      />
+      <UploadProgressToast uploads={uploadProgress} onClose={() => setUploadProgress([])} />
     </div>
   );
 }

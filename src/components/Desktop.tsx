@@ -18,6 +18,7 @@ import { LoginModal } from './LoginModal';
 import { WelcomeScreen } from './WelcomeScreen';
 import { NotificationContainer } from './NotificationContainer';
 import { Timeline } from './Timeline';
+import { ContextMenu, ContextMenuItem } from './ContextMenu';
 
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
@@ -115,10 +116,6 @@ export function Desktop() {
       if (!target.closest('.start-menu') && !target.closest('.taskbar')) {
         setStartMenuOpen(false);
       }
-      // Close context menu on any click
-      if (!target.closest('.desktop-context-menu')) {
-        setContextMenu(null);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -127,8 +124,6 @@ export function Desktop() {
 
   const handleDesktopContextMenu = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-
-    // Prevent default context menu if not clicking on specific interactive elements
     const isInteractiveElement =
       target.closest('.window') ||
       target.closest('.taskbar') ||
@@ -143,6 +138,71 @@ export function Desktop() {
       setContextMenu({ x: e.clientX, y: e.clientY });
     }
   };
+
+  const getDesktopMenuItems = (): ContextMenuItem[] => [
+    {
+      label: 'Large icons',
+      icon: Icons.LayoutGrid,
+      shortcut: systemPreferences.iconSize === 'large' ? '✓' : undefined,
+      onClick: () => setIconSize('large'),
+    },
+    {
+      label: 'Medium icons',
+      icon: Icons.Grid2X2,
+      shortcut: systemPreferences.iconSize === 'medium' ? '✓' : undefined,
+      onClick: () => setIconSize('medium'),
+    },
+    {
+      label: 'Small icons',
+      icon: Icons.LayoutList,
+      shortcut: systemPreferences.iconSize === 'small' ? '✓' : undefined,
+      onClick: () => setIconSize('small'),
+    },
+    { label: '', divider: true, onClick: () => {} },
+    {
+      label: 'Sort by Name',
+      icon: Icons.SortAsc,
+      shortcut: sortBy === 'name' ? '✓' : undefined,
+      onClick: () => setSortBy('name'),
+    },
+    {
+      label: 'Sort by Type',
+      icon: Icons.Layers,
+      shortcut: sortBy === 'type' ? '✓' : undefined,
+      onClick: () => setSortBy('type'),
+    },
+    {
+      label: 'Sort by Date',
+      icon: Icons.Calendar,
+      shortcut: sortBy === 'date' ? '✓' : undefined,
+      onClick: () => setSortBy('date'),
+    },
+    { label: '', divider: true, onClick: () => {} },
+    {
+      label: showTimeline ? 'Hide Timeline' : 'Show Timeline',
+      icon: Icons.PanelRight,
+      onClick: () => setShowTimeline(!showTimeline),
+    },
+    {
+      label: 'Refresh Desktop',
+      icon: Icons.RotateCw,
+      onClick: () => window.location.reload(),
+    },
+    {
+      label: 'Change Background',
+      icon: Icons.Image,
+      onClick: () => setShowBackgroundSelector(true),
+    },
+    { label: '', divider: true, onClick: () => {} },
+    {
+      label: isAuthenticated ? 'Admin Panel' : 'Admin Login',
+      icon: Icons.Settings,
+      onClick: () => {
+        if (isAuthenticated) toggleAdminMode();
+        else setShowLoginModal(true);
+      },
+    },
+  ];
 
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
@@ -312,122 +372,12 @@ export function Desktop() {
         {/* Desktop Context Menu */}
         <AnimatePresence>
           {contextMenu && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.1 }}
-              className="desktop-context-menu fixed bg-gray-900/95 backdrop-blur-xl rounded-lg shadow-2xl border border-gray-700/50 py-2 min-w-[220px] z-[10002]"
-              style={{
-                left: `${contextMenu.x}px`,
-                top: `${contextMenu.y}px`,
-              }}
-            >
-              {/* View Options */}
-              <div className="px-2 py-1">
-                <div className="text-gray-400 text-xs font-semibold px-2 py-1">View</div>
-                <div className="space-y-0.5">
-                  {(['large', 'medium', 'small'] as const).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => {
-                        setIconSize(size);
-                        setContextMenu(null);
-                      }}
-                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center justify-between ${systemPreferences.iconSize === size
-                        ? 'text-primary-300 bg-primary-500/20'
-                        : 'text-white hover:bg-white/10'
-                        }`}
-                    >
-                      <span className="capitalize">{size} icons</span>
-                      {systemPreferences.iconSize === size && <Icons.Check className="w-3 h-3" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-px bg-gray-700 my-2" />
-
-              {/* Sort Options */}
-              <div className="px-2 py-1">
-                <div className="text-gray-400 text-xs font-semibold px-2 py-1">Sort by</div>
-                <div className="space-y-0.5">
-                  {[
-                    { value: 'name' as const, label: 'Name', icon: Icons.SortAsc },
-                    { value: 'type' as const, label: 'Type', icon: Icons.Layers },
-                    { value: 'date' as const, label: 'Date Added', icon: Icons.Calendar },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSortBy(option.value);
-                        setContextMenu(null);
-                      }}
-                      className={`w-full px-3 py-1.5 text-left text-sm rounded transition-colors flex items-center gap-2 ${sortBy === option.value
-                        ? 'text-primary-300 bg-primary-500/20'
-                        : 'text-white hover:bg-white/10'
-                        }`}
-                    >
-                      <option.icon className="w-3.5 h-3.5" />
-                      {option.label}
-                      {sortBy === option.value && <Icons.Check className="w-3 h-3 ml-auto" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-px bg-gray-700 my-2" />
-
-              {/* Actions */}
-              <button
-                onClick={() => {
-                  setShowTimeline(!showTimeline);
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
-              >
-                <Icons.Calendar className="w-4 h-4" />
-                {showTimeline ? 'Hide Timeline' : 'Show Timeline'}
-              </button>
-
-              <button
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
-              >
-                <Icons.RotateCw className="w-4 h-4" />
-                Refresh Desktop
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowBackgroundSelector(true);
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-3 rounded mx-1"
-              >
-                <Icons.Image className="w-4 h-4" />
-                Change Background
-              </button>
-
-              <div className="h-px bg-gray-700 my-2" />
-
-              <button
-                onClick={() => {
-                  if (isAuthenticated) {
-                    toggleAdminMode();
-                  } else {
-                    setShowLoginModal(true);
-                  }
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-white hover:bg-primary-600 transition-colors flex items-center gap-3 rounded mx-1"
-              >
-                <Icons.Settings className="w-4 h-4" />
-                {isAuthenticated ? 'Admin Panel' : 'Admin Login'}
-              </button>
-            </motion.div>
+            <ContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              items={getDesktopMenuItems()}
+              onClose={() => setContextMenu(null)}
+            />
           )}
         </AnimatePresence>
 

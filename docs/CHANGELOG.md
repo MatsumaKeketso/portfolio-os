@@ -1,6 +1,43 @@
-# PortfolioOS - Interactive Web Desktop (Update 2)
+# PortfolioOS Changelog
 
-> **AI-Generated Documentation** - Last Updated: 2026-01-01  
+---
+
+## v2.1.0 — Firebase Migration & Stability (2026-05-01)
+
+### Breaking Changes
+- **Supabase removed.** All backend work now uses Firebase. Update your `.env` file with Firebase credentials (see README).
+
+### Backend
+- Replaced `@supabase/supabase-js` with `firebase ^11.10.0`
+- New `src/lib/firebase.ts` — initializes `auth`, `db` (Firestore), `storage`
+- Deleted `src/lib/supabase.ts`
+- All Firestore reads/writes use collection `os-site_content` (prefixed to avoid multi-project conflicts)
+- `uploadUtils.ts` rewritten for Firebase Storage with real `uploadBytesResumable` progress events
+
+### Stores migrated to Firebase
+- `authStore` — `signInWithEmailAndPassword`, `onAuthStateChanged` persistent listener
+- `themeStore` — `getDoc`/`setDoc` to `os-site_content/theme`, 500ms debounce
+- `userStore` — `getDoc`/`setDoc` to `os-site_content/profile`, debounced saves
+- `desktopStore` — Firestore for apps, backgrounds, selectedBackground
+- `fileStore` — Firestore for filesystem; Firebase Storage for media files
+
+### Bug Fixes
+- `fileStore`: Fixed infinite loop in `generateUniqueName` (while loop never updated `newName`)
+- `fileStore`: Removed duplicate `FileStoreState` interface definition
+- `notificationStore`: Fixed `duration` possibly-undefined type error
+- `AdminPanel`: Added missing `Surface`/`SurfaceHeader` imports; fixed `defaultSize` partial-object spread
+- `Calculator`: Fixed invalid Button variants using `CalcButton` wrapper
+- `FileExplorer`: Removed stale Supabase import; fixed Framer Motion DragEvent type conflict
+- `theme/helpers.ts`: Fixed `getSpacing` return type; fixed `getComponentDefaults` generic indexing
+
+### Themes
+- Added **Product Mono** preset — dark ink base (#111111) with emerald accent, compact spacing
+
+---
+
+## v2.0.0 — Authentication, Customization & Enhanced UX (2026-01-01)
+
+> **Documentation** - Last Updated: 2026-01-01  
 > **Major Update**: Authentication, Customization, Theming & Enhanced UX
 
 ## 📋 What's New in This Update

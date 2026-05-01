@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { cn } from '../../../lib/utils';
 
 /**
@@ -136,7 +136,7 @@ interface BorderBeamProps {
 export function BorderBeam({
   children,
   className,
-  size = 200,
+  size: _size = 200,
   duration = 8,
   borderWidth = 2,
   colorFrom = '#667eea',

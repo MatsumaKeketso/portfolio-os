@@ -29,7 +29,7 @@ export function getColor(path: string): string {
  * @example getSpacing('md') => '1rem'
  */
 export function getSpacing(size: keyof typeof theme.spacing): string {
-  return theme.spacing[size] || theme.spacing.md;
+  return String(theme.spacing[size] || theme.spacing.md);
 }
 
 /**
@@ -75,8 +75,8 @@ export function getTransitionDuration(speed: keyof typeof theme.transitions.dura
  */
 export function getComponentDefaults<T extends keyof typeof theme.components>(
   component: T
-): typeof theme.components[T]['defaultProps'] {
-  return theme.components[component].defaultProps;
+): Record<string, unknown> {
+  return (theme.components[component] as any).defaultProps ?? {};
 }
 
 /**

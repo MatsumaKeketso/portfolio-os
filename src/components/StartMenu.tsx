@@ -3,40 +3,163 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
+import { App } from '../types';
 import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { ContextMenu, ContextMenuItem } from './ContextMenu';
+import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
+
+// ---------------------------------------------------------------------------
+// App grouping
+// ---------------------------------------------------------------------------
+
+const SYSTEM_APP_IDS = new Set([
+  'file-explorer', 'settings', 'about-os',
+  'task-manager', 'calculator', 'notepad', 'weather',
+]);
+
+type AppGroup = 'system' | 'work' | 'projects';
+
+function getAppGroup(app: App): AppGroup {
+  if (SYSTEM_APP_IDS.has(app.id)) return 'system';
+  if (app.projectStatus) return 'projects';
+  return 'work';
+}
+
+const GROUP_LABELS: Record<AppGroup, string> = {
+  system: 'System',
+  work: 'Work',
+  projects: 'Projects',
+};
+
+const GROUP_ORDER: AppGroup[] = ['work', 'projects', 'system'];
+
+// ---------------------------------------------------------------------------
+// Icon helper — 24×24 app icon for the SystemRow icon slot
+// ---------------------------------------------------------------------------
+
+function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any }) {
+  if (app.customIcon) {
+    return (
+      <img
+        src={app.customIcon}
+        alt=""
+        className="w-5 h-5 rounded object-contain"
+      />
+    );
+  }
+  const Icon = getIcon(app.icon);
+  return (
+    <span className="w-5 h-5 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
+      <Icon className="w-3 h-3 text-white/80" />
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function StartMenu() {
-  const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode } = useDesktopStore();
+  const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp } =
+    useDesktopStore();
   const { isAuthenticated, logout } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomization, setShowCustomization] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [appMenu, setAppMenu] = useState<{ app: App; x: number; y: number } | null>(null);
 
   const getIcon = (iconName: string) => {
-    const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join('')] || Icons.Square;
+    const Icon =
+      (Icons as any)[
+        iconName
+          .split('-')
+          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join('')
+      ] || Icons.Square;
     return Icon;
   };
 
-  const filteredApps = apps.filter(app =>
-    app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleOpenApp = (app: any) => {
+  const handleOpenApp = (app: App) => {
     openWindow(app);
     setStartMenuOpen(false);
     setSearchQuery('');
   };
 
+  const handleAppContextMenu = (e: React.MouseEvent, app: App) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAppMenu({ app, x: e.clientX, y: e.clientY });
+  };
+
+  const getAppMenuItems = (app: App): ContextMenuItem[] => [
+    {
+      label: 'Open',
+      icon: Icons.ExternalLink,
+      onClick: () => handleOpenApp(app),
+    },
+    { label: '', divider: true, onClick: () => {} },
+    {
+      label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
+      icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
+      onClick: () => updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }),
+    },
+    {
+      label: app.pinnedToDesktop ? 'Unpin from Desktop' : 'Pin to Desktop',
+      icon: app.pinnedToDesktop ? Icons.MonitorOff : Icons.Monitor,
+      onClick: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
+    },
+    ...(app.description
+      ? [
+          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
+          {
+            label: 'App Info',
+            icon: Icons.Info,
+            disabled: true,
+            onClick: () => {},
+            shortcut: app.description?.slice(0, 28) + (app.description && app.description.length > 28 ? '…' : ''),
+          } as ContextMenuItem,
+        ]
+      : []),
+    ...(isAuthenticated && isAdminMode
+      ? [
+          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
+          {
+            label: 'Edit in Admin',
+            icon: Icons.Settings,
+            onClick: () => {
+              // Admin panel opens via the global keyboard shortcut Ctrl+Shift+A
+              setStartMenuOpen(false);
+            },
+          } as ContextMenuItem,
+        ]
+      : []),
+  ];
+
+  // Determine which apps to show
+  const searchActive = searchQuery.trim().length > 0;
+  const filteredApps = searchActive
+    ? apps.filter(
+        (app) =>
+          app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          app.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : null;
+
+  // Group apps for non-search view
+  const groupedApps = GROUP_ORDER.reduce<Record<AppGroup, App[]>>(
+    (acc, g) => {
+      acc[g] = apps.filter((a) => getAppGroup(a) === g);
+      return acc;
+    },
+    { system: [], work: [], projects: [] },
+  );
+
   return (
     <AnimatePresence>
       {isStartMenuOpen && (
         <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -44,154 +167,193 @@ export function StartMenu() {
             className="fixed inset-0 z-[9998]"
             onClick={() => setStartMenuOpen(false)}
           />
+
+          {/* Menu panel */}
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-16 left-2 w-[600px] h-[650px] z-[9999] flex flex-col"
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-14 left-2 w-[340px] z-[9999] flex flex-col"
+            style={{ maxHeight: 'calc(100vh - 80px)' }}
           >
-            {/* Top gradient accent line - Netflix style */}
-            <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-            <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 overflow-hidden flex flex-col shadow-2xl p-6">
-
-              <div className="relative mb-6">
-                <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
-                <Input
-                  type="text"
-                  placeholder="Search apps, files, settings..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  variant="glass"
-                  size="md"
-                  className="pl-10"
-                  autoFocus
-                />
-              </div>
-
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
-
-              <div className="mb-4">
-                <h3 className="text-white text-sm font-semibold mb-3">Pinned</h3>
-                <div className="grid grid-cols-4 gap-3">
-                  {filteredApps.slice(0, 8).map((app) => {
-                    const Icon = getIcon(app.icon);
-                    return (
-                      <Button
-                        key={app.id}
-                        onClick={() => handleOpenApp(app)}
-                        variant="ghost"
-                        className="flex flex-col items-center gap-2 p-3 h-auto group"
-                      >
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-white text-xs text-center line-clamp-2">{app.name}</span>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
-
-              <div className="flex-1 overflow-y-auto">
-                <h3 className="text-white text-sm font-semibold mb-3">All Apps</h3>
-                <div className="space-y-1">
-                  {filteredApps.map((app) => {
-                    const Icon = getIcon(app.icon);
-                    return (
-                      <Button
-                        key={app.id}
-                        onClick={() => handleOpenApp(app)}
-                        variant="menu-item"
-                        className="w-full flex items-center gap-3 p-2.5 h-auto group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1 text-left">
-                          <div className="text-white text-sm font-medium">{app.name}</div>
-                          {app.description && (
-                            <div className="text-gray-400 text-xs line-clamp-1">{app.description}</div>
-                          )}
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mt-4 mb-4" />
-
-              <div className="flex items-center justify-between">
+            <div
+              className="flex flex-col overflow-hidden rounded-lg"
+              style={{
+                background: '#151515',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 18px 50px rgba(0,0,0,0.42), 0 4px 16px rgba(0,0,0,0.28)',
+              }}
+            >
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-4 py-2.5"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+              >
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-tertiary-600 flex items-center justify-center">
-                    <Icons.User className="w-4 h-4 text-white" />
+                  <div className="w-[18px] h-[18px] bg-white/10 rounded flex items-center justify-center">
+                    <Icons.Grid3x3 className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <div>
-                    <div className="text-white text-sm font-medium">
-                      {isAuthenticated ? 'Portfolio Admin' : 'Visitor'}
+                  <span className="text-[12px] font-semibold text-white tracking-wide">
+                    Keketso OS
+                  </span>
+                </div>
+                <button
+                  onClick={() => setStartMenuOpen(false)}
+                  className="text-white/30 hover:text-white/70 transition-colors"
+                >
+                  <Icons.X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="px-3 pt-3 pb-1">
+                <div className="relative">
+                  <Icons.Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search apps..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/20 transition-colors"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* App list */}
+              <div className="flex-1 overflow-y-auto py-1" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+                {searchActive ? (
+                  // Flat search results
+                  filteredApps!.length > 0 ? (
+                    <>
+                      <SystemRowGroup context="chrome">Results</SystemRowGroup>
+                      {filteredApps!.map((app) => (
+                        <SystemRow
+                          key={app.id}
+                          icon={<AppIcon app={app} getIcon={getIcon} />}
+                          label={app.name}
+                          description={app.description}
+                          context="chrome"
+                          onClick={() => handleOpenApp(app)}
+                          onContextMenu={(e) => handleAppContextMenu(e, app)}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <div className="px-4 py-6 text-center text-[12px] text-white/25">
+                      No apps match "{searchQuery}"
                     </div>
-                    {isAuthenticated && isAdminMode && (
-                      <div className="text-green-400 text-xs">Admin Mode Active</div>
-                    )}
-                    {isAuthenticated && !isAdminMode && (
-                      <div className="text-blue-400 text-xs">Authenticated</div>
-                    )}
-                    {!isAuthenticated && (
-                      <div className="text-gray-400 text-xs">View Only</div>
+                  )
+                ) : (
+                  // Grouped view
+                  GROUP_ORDER.map((group) => {
+                    const groupApps = groupedApps[group];
+                    if (groupApps.length === 0) return null;
+                    return (
+                      <div key={group}>
+                        <SystemRowGroup context="chrome">{GROUP_LABELS[group]}</SystemRowGroup>
+                        {groupApps.map((app) => (
+                          <SystemRow
+                            key={app.id}
+                            icon={<AppIcon app={app} getIcon={getIcon} />}
+                            label={app.name}
+                            description={app.description}
+                            context="chrome"
+                            badge={
+                              app.projectStatus === 'featured'
+                                ? 'Featured'
+                                : app.projectStatus === 'live'
+                                  ? 'Live'
+                                  : app.projectStatus === 'wip'
+                                    ? 'WIP'
+                                    : undefined
+                            }
+                            onClick={() => handleOpenApp(app)}
+                            onContextMenu={(e) => handleAppContextMenu(e, app)}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Footer */}
+              <SystemRowDivider context="chrome" className="mx-0 my-0" />
+              <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <Icons.User className="w-3 h-3 text-white/50" />
+                  </div>
+                  <div className="leading-tight">
+                    <div className="text-[11px] text-white/70">
+                      {isAuthenticated ? 'Keketso' : 'Visitor'}
+                    </div>
+                    {isAuthenticated && isAdminMode ? (
+                      <div className="text-[10px] text-emerald-400">Admin mode on</div>
+                    ) : (
+                      <div className="text-[10px] text-white/25">
+                        {isAuthenticated ? 'Authenticated' : 'View only'}
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button
+                <div className="flex items-center gap-0.5">
+                  <button
                     onClick={() => setShowCustomization(true)}
-                    variant="ghost"
-                    size="icon"
-                    title="Customization Settings"
+                    title="Appearance"
+                    className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-white/[0.07] hover:text-white/70 transition-colors"
                   >
-                    <Icons.Settings className="w-4 h-4" />
-                  </Button>
+                    <Icons.Palette className="w-3.5 h-3.5" />
+                  </button>
                   {isAuthenticated ? (
-                    <Button
-                      onClick={() => {
-                        logout();
-                        setStartMenuOpen(false);
-                      }}
-                      variant="ghost-danger"
-                      size="icon"
+                    <button
+                      onClick={() => { logout(); setStartMenuOpen(false); }}
                       title="Logout"
+                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-red-500/[0.12] hover:text-red-400 transition-colors"
                     >
-                      <Icons.LogOut className="w-4 h-4" />
-                    </Button>
+                      <Icons.LogOut className="w-3.5 h-3.5" />
+                    </button>
                   ) : (
-                    <Button
+                    <button
                       onClick={() => setShowLoginModal(true)}
-                      variant="ghost"
-                      size="icon"
                       title="Admin Login"
-                      className="hover:bg-accent-500/20"
+                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-white/[0.07] hover:text-white/70 transition-colors"
                     >
-                      <Icons.LogIn className="w-4 h-4 text-accent-400" />
-                    </Button>
+                      <Icons.LogIn className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
+              </div>
+
+              {/* Studio credit */}
+              <div
+                className="text-center py-1"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                <span className="text-[10px] text-white/15">Built by Generative Studio</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Customization Settings Modal - Accessible to all */}
+          {/* App context menu */}
+          <AnimatePresence>
+            {appMenu && (
+              <ContextMenu
+                x={appMenu.x}
+                y={appMenu.y}
+                items={getAppMenuItems(appMenu.app)}
+                onClose={() => setAppMenu(null)}
+              />
+            )}
+          </AnimatePresence>
+
           <CustomizationSettings
             isOpen={showCustomization}
             onClose={() => setShowCustomization(false)}
           />
 
-          {/* Login Modal */}
           <LoginModal
             isOpen={showLoginModal}
             onClose={() => setShowLoginModal(false)}

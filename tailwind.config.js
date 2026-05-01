@@ -96,6 +96,33 @@ export default {
         'hud-border': 'rgba(6, 182, 212, 0.6)',
         'hud-border-dim': 'rgba(6, 182, 212, 0.25)',
         'hud-border-accent': 'rgba(236, 72, 153, 0.6)',
+
+        // OS Design Tokens — Product Mono base palette (static, not theme-variable)
+        os: {
+          ink: {
+            950: '#111111',  // Main chrome
+            900: '#151515',  // Menus, title bars
+            800: '#1f1f1f',  // Hover tiles, raised chrome
+            700: '#2a2a2a',  // Inputs on dark chrome
+          },
+          canvas: {
+            DEFAULT: '#ffffff',  // Main app body
+            warm: '#f7f7f5',     // Desktop background, app bg
+            raised: '#fbfbfa',   // Cards and controls
+          },
+          line: {
+            dark: 'rgba(255,255,255,0.08)',
+            'dark-hover': 'rgba(255,255,255,0.14)',
+            light: '#e8e8e5',
+            'light-hover': '#d8d8d4',
+          },
+          text: {
+            strong: '#171717',
+            muted: '#666666',
+            faint: '#9a9a9a',
+            inverse: '#ffffff',
+          },
+        },
       },
 
       // Premium shadows (Framer-style elevation)
@@ -133,6 +160,11 @@ export default {
 
         // Subtle hairline edge definition (not glow)
         'hud-hairline': '0 0 0 1px rgba(6, 182, 212, 0.15)',
+
+        // OS semantic shadows
+        'os-floating': '0 18px 50px rgba(0,0,0,0.28)',
+        'os-window':   '0 24px 60px rgba(0,0,0,0.24)',
+        'os-card':     '0 8px 24px rgba(0,0,0,0.06)',
       },
 
       // Enhanced backdrop blur

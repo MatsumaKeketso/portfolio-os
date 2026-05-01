@@ -16,6 +16,23 @@
     --color-accent-hover: 0, 217, 217;
     --border-radius: 0.75rem;
     --spacing-scale: 1;
+
+    /* OS Design Tokens — Product Mono base palette (static, not theme-variable) */
+    --os-ink-950: #111111;
+    --os-ink-900: #151515;
+    --os-ink-800: #1f1f1f;
+    --os-ink-700: #2a2a2a;
+    --os-canvas: #ffffff;
+    --os-canvas-warm: #f7f7f5;
+    --os-canvas-raised: #fbfbfa;
+    --os-line-dark: rgba(255, 255, 255, 0.08);
+    --os-line-dark-hover: rgba(255, 255, 255, 0.14);
+    --os-line-light: #e8e8e5;
+    --os-line-light-hover: #d8d8d4;
+    --os-text-strong: #171717;
+    --os-text-muted: #666666;
+    --os-text-faint: #9a9a9a;
+    --os-text-inverse: #ffffff;
   }
 
   /* Custom Scrollbar - Futuristic Minimal Space UI */
@@ -155,5 +172,33 @@
   [data-icon-style="default"] .desktop-icon,
   [data-icon-style="default"] .app-icon {
     border-radius: 0.5rem !important;
+  }
+}
+
+@layer utilities {
+  /* Halftone dot hover effect — use on project/preview imagery */
+  .halftone-hover {
+    position: relative;
+    overflow: hidden;
+  }
+  .halftone-hover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.72) 1px, transparent 1.4px);
+    background-size: 5px 5px;
+    mix-blend-mode: multiply;
+    transition: opacity 180ms ease;
+  }
+  .halftone-hover:hover::after,
+  .halftone-hover:focus-within::after {
+    opacity: 0.8;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .halftone-hover::after {
+      transition: none;
+    }
   }
 }

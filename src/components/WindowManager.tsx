@@ -13,6 +13,9 @@ const FileViewer = lazy(() => import('./apps/FileViewer').then(m => ({ default: 
 const Browser = lazy(() => import('./apps/Browser').then(m => ({ default: m.Browser })));
 const Weather = lazy(() => import('./apps/Weather').then(m => ({ default: m.Weather })));
 const TaskManager = lazy(() => import('./apps/TaskManager').then(m => ({ default: m.TaskManager })));
+const CV = lazy(() => import('./apps/CV').then(m => ({ default: m.CV })));
+const AboutOS = lazy(() => import('./apps/AboutOS').then(m => ({ default: m.AboutOS })));
+// Legacy apps — still launchable if pinned/bookmarked, not in default app list
 const About = lazy(() => import('./apps/About').then(m => ({ default: m.About })));
 const Settings = lazy(() => import('./apps/Settings').then(m => ({ default: m.Settings })));
 const Resume = lazy(() => import('./apps/Resume').then(m => ({ default: m.Resume })));
@@ -93,6 +96,10 @@ export function WindowManager() {
             return <Weather />;
           case 'TaskManager':
             return <TaskManager />;
+          case 'CV':
+            return <CV />;
+          case 'AboutOS':
+            return <AboutOS />;
           case 'About':
             return <About />;
           case 'Settings':

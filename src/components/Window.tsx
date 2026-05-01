@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
-import { Button } from './ui/button';
+import { cn } from '../lib/utils';
 
 interface WindowProps {
   window: WindowState;
@@ -63,7 +63,6 @@ export function Window({ window, children }: WindowProps) {
 
         // Detect snap zones
         const screenWidth = globalThis.window.innerWidth;
-        const screenHeight = globalThis.window.innerHeight - TASKBAR_HEIGHT;
 
         if (e.clientX <= SNAP_THRESHOLD) {
           setSnapZone('left');
@@ -165,102 +164,106 @@ export function Window({ window, children }: WindowProps) {
       height: `${window.size.height}px`
     };
 
+  const surfaceMode = window.surfaceMode ?? 'utilityDark';
+  const isContent = surfaceMode === 'content';
+
+  // Window body background based on surface mode
+  const bodyBg = {
+    content: 'bg-os-canvas',
+    utilityDark: 'bg-[#111111]',
+    immersive: 'bg-black',
+    iframe: 'bg-white',
+  }[surfaceMode];
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      initial={{ opacity: 0, scale: 0.95, y: 16 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: 20 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute flex flex-col"
+      exit={{ opacity: 0, scale: 0.95, y: 16 }}
+      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+      className="absolute flex flex-col rounded-lg overflow-hidden"
       style={{
         ...windowStyle,
         zIndex: window.zIndex,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.28)',
       }}
       onMouseDown={() => bringToFront(window.id)}
     >
-      {/* Top gradient accent line - Netflix style */}
-      <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t shrink-0" />
-
       <div
         ref={windowRef}
-        className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl"
+        className="flex-1 flex flex-col overflow-hidden"
+        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
       >
-        {/* Window Header/Chrome */}
+        {/* Title bar — always dark OS chrome */}
         <div
           ref={headerRef}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
-          className="flex items-center justify-between px-4 py-2 cursor-move select-none bg-white/5 shrink-0"
+          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-os-ink-950"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
         >
-          <div className="flex items-center gap-2">
-            {renderIcon(window.icon, window.customIcon, "w-4 h-4 text-primary-400")}
-            <span className="text-sm font-medium text-white">
+          <div className="flex items-center gap-2 min-w-0">
+            {renderIcon(window.icon, window.customIcon, 'w-[14px] h-[14px] text-white/40 flex-shrink-0')}
+            <span className="text-[13px] font-medium text-white/70 truncate leading-none">
               {window.title}
             </span>
           </div>
 
-          {/* Window Control Buttons */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
+          {/* Window controls */}
+          <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
+            <button
               onClick={() => minimizeWindow(window.id)}
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-white/[0.08] hover:text-white/80 transition-colors"
             >
-              <Icons.Minus className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
+              <Icons.Minus className="w-3.5 h-3.5" />
+            </button>
+            <button
               onClick={() => maximizeWindow(window.id)}
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-white/[0.08] hover:text-white/80 transition-colors"
             >
-              {window.isMaximized ? (
-                <Icons.Minimize2 className="w-3.5 h-3.5" />
-              ) : (
-                <Icons.Square className="w-3.5 h-3.5" />
-              )}
-            </Button>
-
-            <Button
-              variant="ghost-danger"
-              size="icon"
+              {window.isMaximized
+                ? <Icons.Minimize2 className="w-3 h-3" />
+                : <Icons.Square className="w-3 h-3" />}
+            </button>
+            <button
               onClick={() => closeWindow(window.id)}
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-red-500/20 hover:text-red-400 transition-colors"
             >
-              <Icons.X className="w-4 h-4" />
-            </Button>
+              <Icons.X className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* Gradient divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent shrink-0" />
-
-        {/* Window Body */}
-        <div className="flex-1 overflow-hidden relative">
+        {/* Window body */}
+        <div className={cn('flex-1 overflow-hidden relative', bodyBg)}>
           {children}
         </div>
 
-        {/* Resize Handle */}
+        {/* Resize handle */}
         {!window.isMaximized && (
           <div
             onMouseDown={handleResizeMouseDown}
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize group"
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize group z-10"
           >
-            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-primary-400/30 group-hover:border-primary-400/60 transition-colors" />
+            <div className={cn(
+              'absolute bottom-1 right-1 w-2.5 h-2.5 border-r-2 border-b-2 transition-colors',
+              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/20 group-hover:border-white/40',
+            )} />
           </div>
         )}
       </div>
 
-      {/* Snap Zone Indicators */}
+      {/* Snap zone indicators */}
       {isDragging && snapZone && (
         <div className="fixed inset-0 pointer-events-none z-[9996]">
           {snapZone === 'left' && (
-            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
           )}
           {snapZone === 'right' && (
-            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
           )}
           {snapZone === 'top' && (
-            <div className="absolute left-0 right-0 top-0 bottom-12 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute left-0 right-0 top-0 bottom-12 bg-white/[0.06] border-2 border-white/20 border-dashed" />
           )}
         </div>
       )}

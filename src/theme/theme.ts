@@ -218,6 +218,40 @@ export const theme = {
     },
   },
 
+  // ==================== OS DESIGN TOKENS ====================
+  // Static base palette — Product Mono chrome/content system.
+  // Not per-theme; defines chrome vs content surfaces.
+  os: {
+    ink: {
+      950: '#111111',
+      900: '#151515',
+      800: '#1f1f1f',
+      700: '#2a2a2a',
+    },
+    canvas: {
+      default: '#ffffff',
+      warm: '#f7f7f5',
+      raised: '#fbfbfa',
+    },
+    line: {
+      dark: 'rgba(255,255,255,0.08)',
+      darkHover: 'rgba(255,255,255,0.14)',
+      light: '#e8e8e5',
+      lightHover: '#d8d8d4',
+    },
+    text: {
+      strong: '#171717',
+      muted: '#666666',
+      faint: '#9a9a9a',
+      inverse: '#ffffff',
+    },
+    shadow: {
+      floating: '0 18px 50px rgba(0,0,0,0.28)',
+      window: '0 24px 60px rgba(0,0,0,0.24)',
+      card: '0 8px 24px rgba(0,0,0,0.06)',
+    },
+  },
+
   // ==================== BACKDROP BLUR ====================
   blur: {
     sm: '4px',

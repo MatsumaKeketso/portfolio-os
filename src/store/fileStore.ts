@@ -1,6 +1,9 @@
 import { create } from 'zustand';
-import { FileItem, FileSystemState } from '../types';
-import { supabase } from '../lib/supabase';
+import { FileItem, FileSystemState, VISITOR_GALLERY_ID } from '../types';
+import { db, storage } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
+import { getFilePathFromUrl } from '../lib/uploadUtils';
 
 // Helper functions
 const generateUniqueName = (files: FileItem[], baseName: string, parentId: string | null): string => {
@@ -20,7 +23,7 @@ const generateUniqueName = (files: FileItem[], baseName: string, parentId: strin
 
   while (siblingNames.has(newName)) {
     counter++;
-    // newName = `${name} - Copy (${counter})${ext}`;
+    newName = `${name} - Copy (${counter})${ext}`;
   }
 
   return newName;
@@ -97,14 +100,53 @@ interface FileStoreState extends FileSystemState {
   clearClipboard: () => void;
 }
 
+// Well-known system folder IDs — referenced by the sidebar location list
+export const SYSTEM_FOLDER_IDS = {
+  documents: 'folder-documents',
+  downloads: 'folder-downloads',
+  projects: 'folder-projects',
+  images: 'folder-images',
+  visitorGallery: VISITOR_GALLERY_ID,
+} as const;
+
 const defaultFiles: FileItem[] = [
-  // ... (keep existing default files)
+  {
+    id: 'folder-documents',
+    name: 'Documents',
+    type: 'folder',
+    parentId: null,
+    path: '/Documents',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
+  {
+    id: 'folder-downloads',
+    name: 'Downloads',
+    type: 'folder',
+    parentId: null,
+    path: '/Downloads',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
   {
     id: 'folder-projects',
     name: 'Projects',
     type: 'folder',
     parentId: null,
     path: '/Projects',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
+  {
+    id: 'folder-images',
+    name: 'Images',
+    type: 'folder',
+    parentId: null,
+    path: '/Images',
+    isProtected: true,
     createdAt: Date.now(),
     modifiedAt: Date.now(),
   },
@@ -130,8 +172,8 @@ const defaultFiles: FileItem[] = [
     id: 'file-resume',
     name: 'Resume.txt',
     type: 'document',
-    parentId: null,
-    path: '/Resume.txt',
+    parentId: 'folder-documents',
+    path: '/Documents/Resume.txt',
     size: 2048,
     content: 'Professional Resume\n\nSoftware Developer based in Johannesburg\nSpecialized in React, TypeScript, and Modern Web Technologies',
     createdAt: Date.now(),
@@ -141,92 +183,42 @@ const defaultFiles: FileItem[] = [
     id: 'file-about',
     name: 'About Me.txt',
     type: 'document',
-    parentId: null,
-    path: '/About Me.txt',
+    parentId: 'folder-documents',
+    path: '/Documents/About Me.txt',
     size: 512,
     content: 'Software Developer from Johannesburg, South Africa\n\nPassionate about creating innovative web applications and interactive experiences.',
     createdAt: Date.now(),
     modifiedAt: Date.now(),
   },
+  {
+    id: VISITOR_GALLERY_ID,
+    name: 'Visitor Gallery',
+    type: 'folder',
+    parentId: null,
+    path: '/Visitor Gallery',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
 ];
 
-interface FileStoreState extends FileSystemState {
-  // Loading state
-  isLoading: boolean;
-  error: string | null;
-
-  // Clipboard
-  clipboard: {
-    fileIds: string[];
-    operation: 'cut' | 'copy' | null;
-  };
-
-  // Multi-select
-  selectedFileIds: string[];
-  lastSelectedFileId: string | null;
-
-  // Core Actions
-  fetchFileSystem: () => Promise<void>;
-
-  // Existing operations
-  addFile: (file: FileItem) => void;
-  removeFile: (fileId: string) => void;
-  updateFile: (fileId: string, updates: Partial<FileItem>) => void;
-  updateFileContent: (fileId: string, content: string) => void;
-  navigateToFolder: (folderId: string | null) => void;
-  navigateTo: (path: string[]) => void;
-  navigateUp: () => void;
-  getCurrentFolderFiles: () => FileItem[];
-  getFileById: (fileId: string) => FileItem | undefined;
-  getPathString: () => string;
-  getAllFiles: () => FileItem[];
-
-  // File operations
-  moveFiles: (fileIds: string[], newParentId: string | null) => void;
-  copyFilesTo: (fileIds: string[], newParentId: string | null) => void;
-  renameFile: (fileId: string, newName: string) => void;
-  duplicateFiles: (fileIds: string[]) => void;
-
-  // Selection operations
-  setSelectedFiles: (fileIds: string[]) => void;
-  addToSelection: (fileId: string) => void;
-  removeFromSelection: (fileId: string) => void;
-  selectRange: (fromFileId: string, toFileId: string) => void;
-  clearSelection: () => void;
-  selectAll: (folderId: string | null) => void;
-
-  // Clipboard operations
-  cutFiles: (fileIds: string[]) => void;
-  copyFiles: (fileIds: string[]) => void;
-  pasteFiles: (targetFolderId: string | null) => void;
-  clearClipboard: () => void;
-}
-
 export const useFileStore = create<FileStoreState>((set, get) => {
-  // Helper to debounce database updates
-  let saveTimeout: NodeJS.Timeout;
+  let saveTimeout: ReturnType<typeof setTimeout>;
 
-  const saveToSupabase = async (files: FileItem[]) => {
-    if (saveTimeout) clearTimeout(saveTimeout);
-
+  const saveToFirestore = (files: FileItem[]): void => {
+    clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
       try {
-        const { error } = await supabase
-          .from('site_content')
-          .upsert({ id: 'filesystem', data: files, updated_at: new Date().toISOString() });
-
-        if (error) {
-          console.error('Error saving filesystem to Supabase:', error);
-          set({ error: 'Failed to save changes: ' + error.message });
-        } else {
-          // Clear error if save successful
-          if (get().error) set({ error: null });
-        }
+        await setDoc(doc(db, 'os-site_content', 'filesystem'), {
+          data: files,
+          updated_at: new Date().toISOString(),
+        });
+        if (get().error) set({ error: null });
       } catch (e: any) {
         console.error('Failed to save filesystem:', e);
         set({ error: 'Failed to save filesystem: ' + e.message });
       }
-    }, 1000); // 1s debounce
+    }, 1000);
   };
 
   return {
@@ -241,40 +233,42 @@ export const useFileStore = create<FileStoreState>((set, get) => {
     fetchFileSystem: async () => {
       try {
         set({ isLoading: true, error: null });
-        const { data, error } = await supabase
-          .from('site_content')
-          .select('data')
-          .eq('id', 'filesystem')
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
-        if (data && data.data) {
-          const loadedFiles = data.data as FileItem[];
-          set({ files: loadedFiles, isLoading: false });
+        const docSnap = await getDoc(doc(db, 'os-site_content', 'filesystem'));
+        if (docSnap.exists() && docSnap.data().data) {
+          const loadedFiles = docSnap.data().data as FileItem[];
+          // Merge in any new system folders that don't exist yet
+          const systemFolders = defaultFiles.filter((f) => f.isProtected);
+          const merged = [...loadedFiles];
+          let needsSave = false;
+          for (const folder of systemFolders) {
+            if (!merged.find((f) => f.id === folder.id)) {
+              merged.push(folder);
+              needsSave = true;
+            }
+          }
+          if (needsSave) saveToFirestore(merged);
+          set({ files: merged, isLoading: false });
         } else {
-          // No filesystem found, initialize with defaults
-          saveToSupabase(defaultFiles);
+          saveToFirestore(defaultFiles);
           set({ isLoading: false });
         }
       } catch (err: any) {
         console.error('Error fetching filesystem:', err);
-        set({
-          error: 'Failed to load files: ' + err.message,
-          isLoading: false
-        });
+        set({ error: 'Failed to load files: ' + err.message, isLoading: false });
       }
     },
 
     addFile: (file) => set((state) => {
       const newFiles = [...state.files, file];
-      saveToSupabase(newFiles);
+      saveToFirestore(newFiles);
       return { files: newFiles };
     }),
 
     removeFile: (fileId) => set((state) => {
+      // Protect system folders
+      const target = state.files.find(f => f.id === fileId);
+      if (target?.isProtected) return state;
+
       // Find files to remove (including children)
       const childFiles = state.files.filter(f => f.parentId === fileId);
       const filesToRemove = [state.files.find(f => f.id === fileId), ...childFiles].filter(Boolean) as FileItem[];
@@ -284,14 +278,14 @@ export const useFileStore = create<FileStoreState>((set, get) => {
 
       // Cleanup storage for removed files
       filesToRemove.forEach(async (file) => {
-        if ((file.type === 'image' || file.type === 'video') && file.dataUrl && file.dataUrl.includes('portfolio-files')) {
+        if (
+          (file.type === 'image' || file.type === 'video') &&
+          file.dataUrl?.includes('firebasestorage.googleapis.com')
+        ) {
           try {
-            // Extract filename from URL
-            // URL Format: .../portfolio-files/filename
-            const parts = file.dataUrl.split('portfolio-files/');
-            if (parts.length > 1) {
-              const fileName = parts[1];
-              await supabase.storage.from('portfolio-files').remove([fileName]);
+            const filePath = getFilePathFromUrl(file.dataUrl);
+            if (filePath) {
+              await deleteObject(ref(storage, filePath));
             }
           } catch (err) {
             console.error('Error deleting file from storage:', err);
@@ -299,7 +293,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
         }
       });
 
-      saveToSupabase(finalFiles);
+      saveToFirestore(finalFiles);
       return { files: finalFiles };
     }),
 
@@ -307,7 +301,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
       const newFiles = state.files.map(f =>
         f.id === fileId ? { ...f, ...updates, modifiedAt: Date.now() } : f
       );
-      saveToSupabase(newFiles);
+      saveToFirestore(newFiles);
       return { files: newFiles };
     }),
 
@@ -317,7 +311,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
           ? { ...f, content, size: content.length, modifiedAt: Date.now() }
           : f
       );
-      saveToSupabase(newFiles);
+      saveToFirestore(newFiles);
       return { files: newFiles };
     }),
 
@@ -419,7 +413,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
         }
       }
 
-      saveToSupabase(updatedFiles);
+      saveToFirestore(updatedFiles);
       return { files: updatedFiles };
     }),
 
@@ -459,7 +453,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
 
       fileIds.forEach(fileId => copyFileRecursive(fileId, newParentId));
 
-      saveToSupabase(updatedFiles);
+      saveToFirestore(updatedFiles);
       return { files: updatedFiles };
     }),
 
@@ -501,7 +495,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
         updateDescendantPaths(fileId);
       }
 
-      saveToSupabase(updatedFiles);
+      saveToFirestore(updatedFiles);
       return { files: updatedFiles };
     }),
 
@@ -547,7 +541,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
       lastSelectedFileId: null
     }),
 
-    selectAll: (folderId) => set(() => {
+    selectAll: (_folderId) => set(() => {
       const filesInFolder = get().getCurrentFolderFiles();
       return {
         selectedFileIds: filesInFolder.map(f => f.id),

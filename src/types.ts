@@ -2,7 +2,7 @@ export interface App {
   id: string;
   name: string;
   icon: string;
-  customIcon?: string; // Base64 data URL for custom uploaded icon
+  customIcon?: string;
   type: 'component' | 'iframe' | 'static';
   component?: string;
   url?: string;
@@ -11,6 +11,22 @@ export interface App {
   desktopPosition?: { x: number; y: number };
   defaultSize?: { width: number; height: number };
   description?: string;
+  // Project app metadata
+  projectStatus?: 'live' | 'featured' | 'wip' | 'archived';
+  tags?: string[];
+  role?: string;
+  year?: string;
+  projectLinks?: {
+    live?: string;
+    github?: string;
+    demo?: string;
+  };
+  // Window surface contract — controls body background and chrome style
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe';
+  // Window behaviour hints
+  preferredWindowMode?: 'floating' | 'maximized' | 'fixed';
+  mobileBehavior?: 'maximize' | 'fullscreen' | 'hide';
+  minSize?: { width: number; height: number };
 }
 
 export interface WindowState {
@@ -30,6 +46,8 @@ export interface WindowState {
   isMinimized: boolean;
   isMaximized: boolean;
   zIndex: number;
+  /** Controls window body background and chrome treatment */
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe';
 }
 
 export interface FileItem {
@@ -44,7 +62,11 @@ export interface FileItem {
   mimeType?: string;
   createdAt: number;
   modifiedAt: number;
+  isProtected?: boolean;    // Cannot be deleted or renamed by visitors
+  isVisitorOwned?: boolean; // Created by a visitor session
 }
+
+export const VISITOR_GALLERY_ID = 'folder-visitor-gallery';
 
 export interface FileSystemState {
   files: FileItem[];

@@ -35,9 +35,9 @@
 - 🖥️ **Full Desktop Environment** - Windows, taskbar, start menu, and desktop icons
 - 📁 **Virtual File System** - Complete file management with Supabase storage integration
 - 🎨 **8 Theme Presets** - Including Star Citizen inspired theme (default)
-- 🔐 **Authentication System** - Secure admin access via Supabase Auth
+- 🔐 **Authentication System** - Secure admin access via Firebase Auth
 - 📱 **12 Built-in Applications** - From file explorer to portfolio showcase
-- ⚡ **Real-time Database** - All data persisted to Supabase with automatic sync
+- ⚡ **Real-time Database** - All data persisted to Firebase Firestore with automatic sync
 - 🎯 **Progressive Web App** - Installable with offline support
 - ♿ **Accessibility** - Keyboard shortcuts and ARIA labels
 
@@ -60,7 +60,7 @@
 - **Multi-Select** - Ctrl+Click and Shift+Click support
 - **Cut/Copy/Paste** - Standard clipboard operations
 - **Drag & Drop** - Move files between folders
-- **File Upload** - Images and videos uploaded to Supabase Storage
+- **File Upload** - Images and videos uploaded to Firebase Storage
 - **Grid/List Views** - Toggle between view modes
 - **Sort & Search** - Sort by name, date, size, type with live search
 - **File Preview** - Built-in preview for documents and images
@@ -142,7 +142,7 @@ Press `?` to view all shortcuts. Key combinations:
 ### State & Data
 
 - **Zustand 5.0.9** - Lightweight state management (6 stores)
-- **Supabase 2.57.4** - PostgreSQL database, authentication, file storage
+- **Firebase ^11.10.0** - Firestore database, Authentication, Cloud Storage
 - Real-time data synchronization with debounced saves
 
 ### Development
@@ -159,7 +159,7 @@ Press `?` to view all shortcuts. Key combinations:
 
 - **Node.js** 18+ (for ES2020 support)
 - **npm** or **yarn** package manager
-- **Supabase Account** (for backend features)
+- **Firebase Project** (for backend features — Firestore, Auth, Storage)
 
 ### Installation
 
@@ -179,21 +179,26 @@ yarn install
 Create a `.env` file in the root directory:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_ADMIN_PASSWORD=your_admin_password
 ```
 
-### Database Setup
+Get these values from the [Firebase Console](https://console.firebase.google.com) → Project Settings → Your apps → Web app → SDK config.
 
-Run the SQL setup scripts in your Supabase SQL Editor:
+### Firebase Setup
 
-1. **Database Schema** - Run `supabase-setup.sql`
-2. **Storage Buckets** - Run `storage-setup.sql`
+In the Firebase Console:
 
-These scripts create:
-- `site_content` table for storing app/profile data
-- `portfolio-files` storage bucket for uploaded files
-- Row Level Security (RLS) policies
+1. **Firestore Database** - Create a database in production mode
+2. **Authentication** - Enable Email/Password provider, create `admin@genos.dev` user
+3. **Storage** - Create a default storage bucket
+
+All data lives in the `os-site_content` Firestore collection with documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`.
 
 ### Development Server
 
@@ -223,7 +228,7 @@ npm run preview
 
 Default credentials for admin access:
 - **Email:** `admin@genos.dev`
-- **Password:** Set during Supabase Auth setup
+- **Password:** Set during Firebase Auth setup (use the console to create the user)
 
 After login, press `Ctrl + Shift + A` to access admin panel.
 
@@ -259,7 +264,8 @@ portfolio-os/
 │   │   ├── helpers.ts
 │   │   └── index.ts
 │   ├── lib/                # Utilities
-│   │   ├── supabase.ts
+│   │   ├── firebase.ts
+│   │   ├── uploadUtils.ts
 │   │   ├── utils.ts
 │   │   ├── design-tokens.ts
 │   │   └── imageUtils.ts
@@ -286,17 +292,17 @@ portfolio-os/
 - Actions: window management, app CRUD, background switching
 
 #### 2. **authStore** - Authentication
-- Supabase Auth integration
+- Firebase Auth integration (`onAuthStateChanged` persistent listener)
 - Session management with real-time listener
-- Login/logout actions
+- Login/logout actions (`signInWithEmailAndPassword` / `signOut`)
 - User state
 
 #### 3. **themeStore** - Visual Theming
-- 8 theme presets
+- 9 theme presets (including Product Mono)
 - Custom color picker (4 channels)
 - Border radius, spacing, icon style controls
 - CSS variable injection for runtime theming
-- Supabase persistence
+- Firebase Firestore persistence
 
 #### 4. **fileStore** - Virtual File System
 - File tree with parent-child relationships
@@ -304,7 +310,7 @@ portfolio-os/
 - Multi-select with range selection
 - Navigation stack
 - File operations (CRUD, move, rename, duplicate)
-- Supabase Storage integration for media
+- Firebase Storage integration for media
 
 #### 5. **userStore** - User Profile
 - Personal information
@@ -314,7 +320,7 @@ portfolio-os/
 - Projects with images and links
 - Milestones timeline
 - Preferences and metadata
-- Supabase persistence with debouncing
+- Firebase Firestore persistence with debouncing
 
 #### 6. **notificationStore** - Toast Notifications
 - Queue management
@@ -323,15 +329,15 @@ portfolio-os/
 
 ### Data Persistence
 
-**Supabase Integration:**
-- **Database:** `site_content` table stores all configuration
-- **Storage:** `portfolio-files` bucket for uploaded files
-- **Auth:** Email/password authentication
-- **Real-time:** Automatic sync with debounced saves (1000ms)
+**Firebase Integration:**
+- **Firestore:** `os-site_content` collection stores all configuration (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`)
+- **Storage:** Firebase Cloud Storage for uploaded files (path: `portfolio-files/`)
+- **Auth:** Email/password authentication via Firebase Auth
+- **Sync:** Automatic debounced saves (500–1000ms)
 
 **Data Flow:**
 ```
-User Action → Store Update → Debounced Save → Supabase → Real-time Sync
+User Action → Store Update → Debounced Save → Firestore/Storage
 ```
 
 ---
@@ -347,7 +353,7 @@ PortfolioOS includes 12 built-in applications:
 - Drag-and-drop support
 - Search and sort functionality
 - File preview for documents and images
-- Supabase Storage integration for media
+- Firebase Storage integration for media
 
 ### 2. **Portfolio Browser** 🌐
 - Tabbed browsing interface
@@ -441,11 +447,12 @@ Via Admin Panel (`Ctrl + Shift + A`):
 
 Access via Settings app or Start Menu → Customization
 
-**8 Built-in Presets:**
+**9 Built-in Presets:**
 
 | Theme | Primary | Secondary | Best For |
 |-------|---------|-----------|----------|
 | **Star Citizen** | Cyan (#00d9ff) | Deep Blue | Sci-fi, gaming portfolios |
+| **Product Mono** | Ink (#111111) | Gray | Clean, professional default |
 | **Ocean Blue** | Sky | Cyan | Professional, calming |
 | **Forest Green** | Green | Emerald | Eco, natural themes |
 | **Purple Haze** | Purple | Fuchsia | Creative, artistic |
@@ -618,9 +625,12 @@ npm run typecheck    # TypeScript type checking
 ## 📚 Documentation
 
 - **[THEME_SYSTEM.md](./THEME_SYSTEM.md)** - Complete theme system guide
-- **[ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md)** - Admin panel functionality audit
-- **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - Detailed architecture (READMEAI.md)
-- **[docs/CHANGELOG.md](./docs/CHANGELOG.md)** - Version history (READMEAI_2.md)
+- **[UPLOAD_SETUP.md](./UPLOAD_SETUP.md)** - Upload functionality setup guide
+- **[FILE_UPLOAD_GUIDE.md](./FILE_UPLOAD_GUIDE.md)** - File upload and authentication setup guide
+- **[docs/README.md](./docs/README.md)** - Documentation directory index
+- **[docs/ADMINPANEL_AUDIT.md](./docs/ADMINPANEL_AUDIT.md)** - Admin panel functionality audit
+- **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - Detailed architecture
+- **[docs/CHANGELOG.md](./docs/CHANGELOG.md)** - Version history
 
 ### Key Concepts
 
@@ -633,7 +643,7 @@ npm run typecheck    # TypeScript type checking
 **File System:**
 - Virtual file tree stored in `fileStore`
 - Parent-child relationships via `parentId`
-- Media files uploaded to Supabase Storage
+- Media files uploaded to Firebase Storage
 - File paths constructed from parent chain
 
 **Theming:**
@@ -693,7 +703,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com) - CSS framework
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
 - [Zustand](https://github.com/pmndrs/zustand) - State management
-- [Supabase](https://supabase.com) - Backend platform
+- [Firebase](https://firebase.google.com) - Backend platform (Auth, Firestore, Storage)
 - [Lucide](https://lucide.dev) - Icon library
 
 ### Design Inspiration

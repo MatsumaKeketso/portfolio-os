@@ -82,12 +82,9 @@ export function Taskbar() {
       left: 'border-r',
       right: 'border-l',
     };
-
-    return `fixed ${positionClasses[taskbarPosition]} ${sizeClass} ${borderClasses[taskbarPosition]} bg-gray-900/70 backdrop-blur-md border-white/10 flex items-center justify-between px-2 z-[10000]`;
+    return `fixed ${positionClasses[taskbarPosition]} ${sizeClass} ${borderClasses[taskbarPosition]} bg-[#141414] border-white/[0.08] flex items-center justify-between px-2 z-[10000]`;
   };
-
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
-
   return (
     <div className={getTaskbarClasses()}>
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
@@ -99,12 +96,9 @@ export function Taskbar() {
         >
           <Icons.Grid3x3 className="w-5 h-5" />
         </Button>
-
         <div className={isVertical ? 'h-px w-6 bg-gray-700 my-1' : 'w-px h-6 bg-gray-700 mx-1'} />
-
         {pinnedApps.map((app) => {
           const isOpen = windows.some(w => w.appId === app.id);
-
           return (
             <Button
               key={app.id}
@@ -147,13 +141,13 @@ export function Taskbar() {
       </div>
 
       <div className={`flex items-center gap-3 ${isVertical ? 'flex-col' : 'flex-row'}`}>
-        <div className={`flex items-center gap-2 text-white text-xs ${isVertical ? 'flex-col' : 'flex-row'}`}>
-          <Icons.Wifi className="w-4 h-4" />
-          <Icons.Volume2 className="w-4 h-4" />
+        <div className={`flex items-center gap-2 text-white/40 text-xs ${isVertical ? 'flex-col' : 'flex-row'}`}>
+          <Icons.Wifi className="w-3.5 h-3.5" />
+          <Icons.Volume2 className="w-3.5 h-3.5" />
         </div>
-        <div className={`text-white text-xs ${isVertical ? 'text-center' : 'text-right'}`}>
-          <div className="font-medium">{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-          <div className="text-[10px] opacity-70">{time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+        <div className={`text-xs ${isVertical ? 'text-center' : 'text-right'}`}>
+          <div className="font-medium text-white/80">{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+          <div className="text-[10px] text-white/40">{time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
         </div>
       </div>
     </div>

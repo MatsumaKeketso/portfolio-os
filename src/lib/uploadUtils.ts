@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { storage } from './firebase';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export interface UploadProgress {
   fileName: string;
@@ -9,20 +10,16 @@ export interface UploadProgress {
 }
 
 export interface UploadOptions {
-  bucket?: string;
+  bucket?: string; // kept for API compat, ignored — bucket comes from Firebase config
   maxSizeMB?: number;
   allowedTypes?: string[];
   generateUniqueName?: boolean;
   onProgress?: (progress: UploadProgress) => void;
 }
 
-const DEFAULT_BUCKET = 'portfolio-files';
 const DEFAULT_MAX_SIZE_MB = 10;
 const DEFAULT_ALLOWED_TYPES = ['image/*', 'video/*'];
 
-/**
- * Validates a file before upload
- */
 export const validateFile = (
   file: File,
   options: UploadOptions = {}
@@ -30,7 +27,6 @@ export const validateFile = (
   const maxSize = (options.maxSizeMB || DEFAULT_MAX_SIZE_MB) * 1024 * 1024;
   const allowedTypes = options.allowedTypes || DEFAULT_ALLOWED_TYPES;
 
-  // Check file size
   if (file.size > maxSize) {
     return {
       valid: false,
@@ -38,12 +34,10 @@ export const validateFile = (
     };
   }
 
-  // Check file type
   const fileType = file.type;
   const isAllowed = allowedTypes.some((allowedType) => {
     if (allowedType.endsWith('/*')) {
-      const prefix = allowedType.slice(0, -2);
-      return fileType.startsWith(prefix);
+      return fileType.startsWith(allowedType.slice(0, -2));
     }
     return fileType === allowedType;
   });
@@ -58,17 +52,12 @@ export const validateFile = (
   return { valid: true };
 };
 
-/**
- * Uploads a file to Supabase storage with progress tracking
- */
 export const uploadFile = async (
   file: File,
   options: UploadOptions = {}
 ): Promise<{ url: string; error?: string }> => {
-  const bucket = options.bucket || DEFAULT_BUCKET;
-  const generateUniqueName = options.generateUniqueName !== false; // default true
+  const generateUnique = options.generateUniqueName !== false;
 
-  // Validate file
   const validation = validateFile(file, options);
   if (!validation.valid) {
     options.onProgress?.({
@@ -80,100 +69,59 @@ export const uploadFile = async (
     return { url: '', error: validation.error };
   }
 
-  // Generate file name
-  const fileName = generateUniqueName
+  const fileName = generateUnique
     ? `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`
     : file.name;
 
+  options.onProgress?.({ fileName: file.name, progress: 0, status: 'uploading' });
+
   try {
-    // Notify start
-    options.onProgress?.({
-      fileName: file.name,
-      progress: 0,
-      status: 'uploading',
+    const storageRef = ref(storage, fileName);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    const url = await new Promise<string>((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          options.onProgress?.({ fileName: file.name, progress, status: 'uploading' });
+        },
+        (error) => reject(error),
+        async () => {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadUrl);
+        }
+      );
     });
 
-    // Upload to Supabase
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-    if (error) {
-      options.onProgress?.({
-        fileName: file.name,
-        progress: 0,
-        status: 'error',
-        error: error.message,
-      });
-      return { url: '', error: error.message };
-    }
-
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(fileName);
-
-    const url = publicUrlData.publicUrl;
-
-    // Notify success
-    options.onProgress?.({
-      fileName: file.name,
-      progress: 100,
-      status: 'success',
-      url,
-    });
-
-    return { url, error: undefined };
+    options.onProgress?.({ fileName: file.name, progress: 100, status: 'success', url });
+    return { url };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Upload failed';
-    options.onProgress?.({
-      fileName: file.name,
-      progress: 0,
-      status: 'error',
-      error: errorMessage,
-    });
+    options.onProgress?.({ fileName: file.name, progress: 0, status: 'error', error: errorMessage });
     return { url: '', error: errorMessage };
   }
 };
 
-/**
- * Uploads multiple files to Supabase storage with progress tracking
- */
 export const uploadFiles = async (
   files: File[],
   options: UploadOptions = {}
 ): Promise<Array<{ url: string; fileName: string; error?: string }>> => {
-  const results = await Promise.all(
+  return Promise.all(
     files.map(async (file) => {
       const result = await uploadFile(file, options);
-      return {
-        url: result.url,
-        fileName: file.name,
-        error: result.error,
-      };
+      return { url: result.url, fileName: file.name, error: result.error };
     })
   );
-
-  return results;
 };
 
-/**
- * Deletes a file from Supabase storage
- */
 export const deleteFile = async (
   filePath: string,
-  bucket: string = DEFAULT_BUCKET
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const { error } = await supabase.storage.from(bucket).remove([filePath]);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
+    await deleteObject(ref(storage, filePath));
     return { success: true };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Delete failed';
@@ -182,13 +130,14 @@ export const deleteFile = async (
 };
 
 /**
- * Extracts the file path from a Supabase public URL
+ * Extracts the storage path from a Firebase Storage download URL.
+ * Firebase URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encoded-path}?alt=media&token=...
  */
-export const getFilePathFromUrl = (url: string, bucket: string = DEFAULT_BUCKET): string | null => {
+export const getFilePathFromUrl = (url: string): string | null => {
   try {
     const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split(`/storage/v1/object/public/${bucket}/`);
-    return pathParts.length > 1 ? pathParts[1] : null;
+    const parts = urlObj.pathname.split('/o/');
+    return parts.length > 1 ? decodeURIComponent(parts[1]) : null;
   } catch {
     return null;
   }

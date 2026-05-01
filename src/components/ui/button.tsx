@@ -97,6 +97,24 @@ const buttonVariants = cva(
         'menu-item':
           'w-full justify-start hover:bg-primary-500/10 hover:border-l-2 hover:border-primary-500 text-gray-200 rounded-none',
 
+        // === PRODUCT MONO / OS INK VARIANTS ===
+
+        // Black-filled primary — use on light content surfaces
+        ink:
+          'bg-os-ink-950 text-os-text-inverse hover:bg-os-ink-800 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+
+        // Outline — use on light content surfaces (secondary action)
+        'ink-outline':
+          'bg-transparent border border-os-ink-950 text-os-ink-950 hover:bg-os-ink-950 hover:text-os-text-inverse hover:translate-y-[-1px] font-medium',
+
+        // Ghost — use on dark chrome surfaces
+        'ink-ghost':
+          'bg-transparent text-white/60 hover:bg-white/[0.08] hover:text-white font-medium',
+
+        // Ghost — use on light content surfaces
+        'content-ghost':
+          'bg-transparent text-os-text-muted hover:bg-black/[0.05] hover:text-os-text-strong font-medium',
+
         // === LEGACY ALIASES (backward compatibility) ===
         primary: 'bg-gray-900/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] data-[active=true]:bg-primary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
         secondary: 'bg-gray-900/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] data-[active=true]:bg-secondary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',

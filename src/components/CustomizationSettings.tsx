@@ -5,7 +5,6 @@ import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
 
@@ -25,7 +24,6 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     addBackground,
     removeBackground,
     resetBackgroundToDefault,
-    isAdminMode,
   } = useDesktopStore();
   const { profile, updatePreferences } = useUserStore();
   const {

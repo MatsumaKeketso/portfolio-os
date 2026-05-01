@@ -13,7 +13,7 @@ type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 export function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
   const { profile, error, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
   const { isAuthenticated } = useAuthStore();
   const {

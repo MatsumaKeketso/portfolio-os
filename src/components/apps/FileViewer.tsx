@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { FileItem } from '../../types';
-import { getFileTypeInfo, getLanguageFromExtension, formatFileSize } from '../../lib/fileUtils';
+import { getFileTypeInfo, formatFileSize } from '../../lib/fileUtils';
 
 interface FileViewerProps {
   file: FileItem;
@@ -12,10 +12,7 @@ export function FileViewer({ file }: FileViewerProps) {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(100);
-
   const fileTypeInfo = getFileTypeInfo(file.name, file.mimeType);
-  const language = getLanguageFromExtension(file.name);
 
   useEffect(() => {
     loadFileContent();

@@ -1,6 +1,6 @@
 # PortfolioOS - Interactive Web Desktop
 
-> **AI-Generated Documentation** - Last Updated: 2025-12-30
+> **Documentation** - Last Updated: 2026-05-01 (updated for v2.1 Firebase migration)
 
 ## 📋 Project Overview
 
@@ -30,12 +30,19 @@
 - **Lucide React 0.344.0** - Icon library (29+ icon options)
 
 #### State Management
-- **Zustand 5.0.9** - Lightweight state management
-  - `desktopStore` - Window and app management
+- **Zustand 5.0.9** - Lightweight state management (6 stores)
+  - `desktopStore` - Window, app, background management
+  - `authStore` - Firebase Auth session
+  - `themeStore` - Theme presets and CSS variable injection
+  - `userStore` - User profile, resume, skills, projects
   - `fileStore` - Virtual file system
+  - `notificationStore` - Toast notification queue
 
 #### Backend Integration
-- **Supabase 2.57.4** - Backend-as-a-Service (configured but not actively used in current implementation)
+- **Firebase ^11.10.0** - Firestore (database), Authentication, Cloud Storage
+  - `src/lib/firebase.ts` — exports `auth`, `db`, `storage`
+  - Firestore collection: `os-site_content` (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`)
+  - Storage path: `portfolio-files/`
 
 #### Development Tools
 - **ESLint 9.9.1** - Code linting
@@ -82,13 +89,28 @@ portfolio-os/
 │   │   ├── Window.tsx         # Window wrapper component
 │   │   └── WindowManager.tsx  # Window rendering manager
 │   ├── store/
-│   │   ├── desktopStore.ts    # Desktop & window state
-│   │   └── fileStore.ts       # File system state
+│   │   ├── desktopStore.ts    # Desktop, window, background state
+│   │   ├── authStore.ts       # Firebase Auth session
+│   │   ├── themeStore.ts      # Theme presets + CSS variable injection
+│   │   ├── userStore.ts       # User profile, CV, projects
+│   │   ├── fileStore.ts       # Virtual file system
+│   │   └── notificationStore.ts # Toast queue
+│   ├── lib/
+│   │   ├── firebase.ts        # Firebase app init (auth, db, storage)
+│   │   ├── uploadUtils.ts     # Firebase Storage upload helpers
+│   │   ├── utils.ts
+│   │   ├── design-tokens.ts
+│   │   └── imageUtils.ts
+│   ├── theme/                 # Centralized design system
+│   │   ├── theme.ts
+│   │   ├── ThemeProvider.tsx
+│   │   ├── helpers.ts
+│   │   └── index.ts
 │   ├── App.tsx                # Root component
 │   ├── main.tsx               # Entry point
 │   ├── types.ts               # TypeScript definitions
 │   └── index.css              # Tailwind imports
-├── public/                    # Static assets
+├── public/                    # Static assets + PWA manifest
 ├── index.html                 # HTML template
 ├── package.json
 ├── vite.config.ts
@@ -131,11 +153,11 @@ portfolio-os/
   - Navigate folder hierarchy
   - File preview (documents and images)
 - **Metadata Tracking**: Size, creation date, modification date, MIME type
-- **Supabase Storage Integration**:
-  - Images and videos uploaded to `portfolio-files` bucket
-  - Public URLs stored in database
+- **Firebase Storage Integration**:
+  - Images and videos uploaded to `portfolio-files/` path
+  - Download URLs stored in Firestore filesystem document
   - Automatic cleanup of storage upon file deletion
-- **LocalStorage Persistence**: Cached in browser, synced with Supabase
+- **Firestore Persistence**: File tree synced to `os-site_content/filesystem`
 
 ### 4. Admin Panel
 - **Access**: `Ctrl + Shift + A` or URL parameter `?admin=1`
@@ -277,7 +299,7 @@ portfolio-os/
 - `exportConfig()` - Serialize apps to JSON
 - `importConfig()` - Load apps from JSON
 
-**Persistence**: Apps saved to `localStorage` under key `portfolioOS_apps`
+**Persistence**: Apps saved to Firestore `os-site_content/apps`
 
 ### File Store (`fileStore.ts`)
 
@@ -307,7 +329,7 @@ portfolio-os/
 - Resume.txt (document)
 - About Me.txt (document)
 
-**Persistence**: Files saved to `localStorage` under key `portfolioOS_files`
+**Persistence**: File tree saved to Firestore `os-site_content/filesystem`; media files stored in Firebase Storage
 
 ---
 
@@ -625,7 +647,7 @@ The `WindowManager` component dynamically loads app components based on the `com
 - Tailwind Labs - CSS framework
 - Framer - Motion animation library
 - Lucide - Icon library
-- Supabase - Backend platform
+- Firebase - Backend platform (Auth, Firestore, Storage)
 
 ### Inspiration
 - Windows OS desktop environment
