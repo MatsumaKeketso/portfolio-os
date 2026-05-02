@@ -290,7 +290,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-tertiary-500/20 to-secondary-500/20" />
 
               {/* Dark Overlay */}
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+              <div className="absolute inset-0 bg-black/70" />
 
               {/* Content Area - Positioned Next to Icon */}
               <div
@@ -304,7 +304,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                 <div className="space-y-6 p-8">
                   {/* App Icon with Glow */}
                   <div className="relative inline-block">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/40 to-tertiary-500/40 blur-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/40 to-tertiary-500/40" />
                     {renderIcon(hoveredApp, "relative w-20 h-20 text-white drop-shadow-2xl")}
                   </div>
 
@@ -323,8 +323,8 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                   </p>
 
                   {/* Description - Supports Long Text */}
-                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                    <p className="text-base text-gray-300 leading-relaxed">
+                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                    <p className="text-base text-white/60 leading-relaxed">
                       {hoveredApp.description || 'No description available'}
                     </p>
                   </div>
@@ -347,7 +347,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
 
                   {/* URL if available */}
                   {hoveredApp.url && (
-                    <div className="flex items-center gap-2 text-gray-400 text-sm pt-2">
+                    <div className="flex items-center gap-2 text-white/40 text-sm pt-2">
                       <Icons.Link className="w-4 h-4 text-secondary-400" />
                       <span className="truncate max-w-lg">{hoveredApp.url}</span>
                     </div>

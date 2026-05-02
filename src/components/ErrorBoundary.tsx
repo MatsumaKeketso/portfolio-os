@@ -53,16 +53,13 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-6">
+        <div className="w-full h-full flex items-center justify-center bg-os-ink-950 p-6">
           <div className="max-w-md w-full">
-            {/* Top gradient accent line */}
-            <div className="w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 rounded-t" />
-
-            <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-6">
+            <div className="bg-os-ink-950 rounded border border-white/[0.08] shadow-os-window p-6">
               {/* Icon */}
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center">
-                  <Icons.AlertTriangle className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-red-500/[0.15] border border-red-500/30 rounded-full flex items-center justify-center">
+                  <Icons.AlertTriangle className="w-8 h-8 text-red-400" />
                 </div>
               </div>
 
@@ -72,12 +69,11 @@ export class ErrorBoundary extends Component<Props, State> {
               </h2>
 
               {/* Description */}
-              <p className="text-gray-300 text-sm text-center mb-4">
+              <p className="text-white/60 text-sm text-center mb-4">
                 An unexpected error occurred. Don't worry, your data is safe.
               </p>
 
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4" />
+              <div className="h-px bg-white/[0.07] mb-4" />
 
               {/* Error details */}
               {this.state.error && (
@@ -97,14 +93,14 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="flex gap-3">
                 <button
                   onClick={this.handleReset}
-                  className="flex-1 bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-os-ink-800 hover:bg-os-ink-700 text-white px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   <Icons.RefreshCw className="w-4 h-4" />
                   Try Again
                 </button>
                 <button
                   onClick={this.handleReload}
-                  className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all flex items-center gap-2"
+                  className="px-4 py-3 bg-white/[0.06] hover:bg-white/[0.10] text-white rounded-lg transition-all flex items-center gap-2"
                 >
                   <Icons.RotateCcw className="w-4 h-4" />
                   Reload
@@ -112,8 +108,8 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Help text */}
-              <div className="mt-4 pt-4 border-t border-gray-700/50">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="mt-4 pt-4 border-t border-white/[0.08]">
+                <div className="flex items-center gap-2 text-xs text-white/30">
                   <Icons.Info className="w-4 h-4" />
                   <p>If this persists, try clearing your browser cache</p>
                 </div>

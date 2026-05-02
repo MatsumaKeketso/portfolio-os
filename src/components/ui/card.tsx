@@ -34,41 +34,41 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        // Desktop icon with thin top data strip (HUD panel, angled corners)
+        // Desktop icon style card
         hover:
-          'bg-gradient-to-b from-gray-900 via-black to-black overflow-hidden shadow-hud-base border-t border-primary-500/30 border-x border-b border-gray-800/50 hover:border-t-primary-500/50 hover:shadow-lg hover:shadow-primary-500/30 hover:translate-y-[-2px]',
+          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:bg-os-ink-800 hover:translate-y-[-2px] overflow-hidden',
 
-        // Standard HUD panel with crisp edges (angled corners)
+        // Standard panel
         standard:
-          'bg-gray-900/50 backdrop-blur-md border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 shadow-hud-base hover:shadow-lg hover:shadow-primary-500/30 hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:bg-os-ink-800 hover:translate-y-[-1px]',
 
-        // Elevated layered panel (angled corners, more depth)
+        // Elevated panel
         elevated:
-          'bg-gradient-to-b from-gray-900/90 to-black/90 border-t border-primary-500/30 border-x border-b border-gray-800 shadow-hud-elevated hover:shadow-lg hover:shadow-primary-500/20 hover:translate-y-[-2px]',
+          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:translate-y-[-2px]',
 
-        // Flat minimal HUD surface (no angled corners)
+        // Flat minimal surface
         flat:
-          'bg-black/80 border border-gray-800/60 hover:border-primary-500/30 shadow-sm',
+          'bg-os-ink-950 border border-white/[0.08] hover:border-white/[0.16]',
 
-        // Accent panel with subtle primary tint (angled corners)
+        // Accent panel
         accent:
-          'bg-gradient-to-br from-primary-900/20 via-black/90 to-tertiary-900/20 border border-primary-500/40 shadow-hud-base hover:shadow-lg hover:shadow-primary-500/40 hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-white/[0.10] hover:border-white/[0.20] hover:translate-y-[-1px]',
 
-        // Window main container (sharp, layered, no angled corners)
+        // Window main container
         window:
-          'bg-black/95 backdrop-blur-xl border-t border-primary-500/25 border-x border-b border-gray-800/70 shadow-hud-elevated',
+          'bg-os-ink-950 border border-white/[0.08] shadow-os-window',
 
-        // Modal elevated dialog (highest layer, angled corners)
+        // Modal elevated dialog
         modal:
-          'bg-black/97 backdrop-blur-2xl border border-primary-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)] shadow-hud-hairline',
+          'bg-os-ink-950 border border-white/[0.08] shadow-os-window',
 
-        // Icon sharp container (no angled corners)
+        // Icon container
         icon:
-          'bg-black/90 backdrop-blur-lg border border-primary-500/20 shadow-hud-base',
+          'bg-os-ink-900 border border-white/[0.08]',
 
-        // Menu context panel (no angled corners)
+        // Menu context panel
         menu:
-          'bg-black/95 border border-primary-500/30 shadow-hud-elevated backdrop-blur-md',
+          'bg-os-ink-950 border border-white/[0.08] shadow-os-floating',
       },
 
       padding: {
@@ -197,7 +197,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn('text-sm text-gray-500 dark:text-gray-400', className)}
+    className={cn('text-sm text-white/40', className)}
     {...props}
   />
 ))
@@ -270,7 +270,7 @@ const CardDivider = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'h-[1px] bg-gradient-to-r from-transparent via-primary-500/25 to-transparent my-4',
+      'h-px bg-white/[0.07] my-4',
       className
     )}
     {...props}
@@ -304,7 +304,7 @@ const CardIcon = React.forwardRef<
   return (
     <div ref={ref} className={cn('relative flex items-center justify-center mb-4', className)} {...props}>
       {/* Glow effect */}
-      <div className={cn('absolute inset-0 blur-2xl', glowColors[glowColor])} />
+      <div className={cn('absolute inset-0', glowColors[glowColor])} />
 
       {/* Icon */}
       <div className={cn('relative z-10 text-white drop-shadow-lg flex items-center justify-center', sizes[size])}>

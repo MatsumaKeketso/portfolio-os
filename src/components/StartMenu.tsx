@@ -8,6 +8,18 @@ import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
+import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
 
 // ---------------------------------------------------------------------------
 // App grouping
@@ -92,47 +104,47 @@ export function StartMenu() {
     setAppMenu({ app, x: e.clientX, y: e.clientY });
   };
 
-  const getAppMenuItems = (app: App): ContextMenuItem[] => [
+  const getAppMenuDefs = (app: App): ContextMenuItemDef[] => [
     {
+      id: 'open',
       label: 'Open',
       icon: Icons.ExternalLink,
-      onClick: () => handleOpenApp(app),
+      group: 'primary',
+      action: () => handleOpenApp(app),
     },
-    { label: '', divider: true, onClick: () => {} },
     {
+      id: 'pin-taskbar',
       label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
       icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
-      onClick: () => updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }),
+      group: 'organize',
+      action: () => updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }),
     },
     {
+      id: 'pin-desktop',
       label: app.pinnedToDesktop ? 'Unpin from Desktop' : 'Pin to Desktop',
       icon: app.pinnedToDesktop ? Icons.MonitorOff : Icons.Monitor,
-      onClick: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
+      group: 'organize',
+      action: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
     },
     ...(app.description
-      ? [
-          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
-          {
-            label: 'App Info',
-            icon: Icons.Info,
-            disabled: true,
-            onClick: () => {},
-            shortcut: app.description?.slice(0, 28) + (app.description && app.description.length > 28 ? '…' : ''),
-          } as ContextMenuItem,
-        ]
+      ? [{
+          id: 'app-info',
+          label: 'App Info',
+          icon: Icons.Info,
+          group: 'system' as MenuGroup,
+          disabled: true,
+          shortcut: app.description.slice(0, 28) + (app.description.length > 28 ? '…' : ''),
+          action: () => {},
+        }]
       : []),
     ...(isAuthenticated && isAdminMode
-      ? [
-          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
-          {
-            label: 'Edit in Admin',
-            icon: Icons.Settings,
-            onClick: () => {
-              // Admin panel opens via the global keyboard shortcut Ctrl+Shift+A
-              setStartMenuOpen(false);
-            },
-          } as ContextMenuItem,
-        ]
+      ? [{
+          id: 'edit-admin',
+          label: 'Edit in Admin',
+          icon: Icons.Settings,
+          group: 'system' as MenuGroup,
+          action: () => { setStartMenuOpen(false); },
+        }]
       : []),
   ];
 
@@ -343,7 +355,7 @@ export function StartMenu() {
               <ContextMenu
                 x={appMenu.x}
                 y={appMenu.y}
-                items={getAppMenuItems(appMenu.app)}
+                items={toContextMenuItems(getAppMenuDefs(appMenu.app))}
                 onClose={() => setAppMenu(null)}
               />
             )}

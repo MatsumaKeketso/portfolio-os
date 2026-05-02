@@ -130,8 +130,8 @@ portfolio-os/
 │   ├── OS_BEHAVIOR_MODEL.md   # Web OS behavior model
 │   ├── PRODUCT_DIRECTION.md   # Product architecture
 │   └── ADMINPANEL_AUDIT.md    # Admin panel audit
-├── supabase-setup.sql         # Database setup
-└── storage-setup.sql          # Storage setup
+├── firebase.json              # Firebase deploy config
+└── .firebaserc                # Firebase project aliases
 ```
 
 ## 📝 Documentation Standards

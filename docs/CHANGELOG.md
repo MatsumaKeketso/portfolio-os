@@ -750,7 +750,7 @@ interface DesktopBackground {
 | **Design System** | ⚠️ Basic | ✅ Gradients, animations |
 | **Apps** | 9 apps | 14+ apps |
 | **Customization** | ❌ None | ✅ Extensive |
-| **Data Storage** | ❌ LocalStorage (Base64) | ✅ Supabase DB + Storage |
+| **Data Storage** | ❌ LocalStorage (Base64) | ✅ Firebase Firestore + Storage |
 
 ---
 
@@ -769,7 +769,7 @@ interface DesktopBackground {
 
 ### Planned
 - [ ] Multi-language support
-- [ ] Cloud sync (Supabase integration)
+- [x] Cloud sync (Firebase Firestore + Storage — completed v2.1.0)
 - [ ] Real-time collaboration
 - [ ] Plugin system for custom apps
 - [ ] Mobile responsive design
@@ -785,7 +785,7 @@ interface DesktopBackground {
 ### Current Limitations
 
 1. **Storage Constraints**:
-   - LocalStorage 5-10MB limit (Mitigated for media via Supabase Storage)
+   - LocalStorage 5-10MB limit (Mitigated for media via Firebase Storage)
    - Profile images limited by storage
 
 2. **Authentication**:
@@ -831,7 +831,7 @@ interface DesktopBackground {
 - Old About app data → New UserProfile format
 - Apps configuration preserved
 - Files preserved
-- **Manual**: Run `storage-setup.sql` in Supabase to enable media support.
+- **Manual**: Configure Firebase project and add `VITE_FIREBASE_*` environment variables.
 
 **Manual Steps**:
 1. **Review Privacy Settings**: Email/phone visibility now controlled

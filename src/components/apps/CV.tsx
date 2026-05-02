@@ -32,16 +32,16 @@ export function CV() {
   const { personal, social, resume, skills, projects, preferences } = profile;
 
   return (
-    <div className="flex flex-col h-full bg-white text-[#171717]">
+    <div className="flex flex-col h-full bg-os-canvas text-os-text-strong">
       {/* Header */}
-      <div className="border-b border-[#e8e8e5] px-6 py-4 flex items-center justify-between bg-[#fafafa]">
+      <div className="border-b border-os-line-light px-6 py-4 flex items-center justify-between bg-os-canvas-raised">
         <div>
-          <h1 className="text-base font-semibold text-[#171717]">{personal.name || 'Your Name'}</h1>
-          <p className="text-xs text-[#666]">{personal.title || 'Title'} · {personal.location || 'Location'}</p>
+          <h1 className="text-base font-semibold text-os-text-strong">{personal.name || 'Your Name'}</h1>
+          <p className="text-xs text-os-text-muted">{personal.title || 'Title'} · {personal.location || 'Location'}</p>
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[#deded8] rounded-md text-[#171717] hover:bg-[#f5f5f3] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-os-line-light rounded-md text-os-text-strong hover:bg-os-canvas-warm transition-colors"
         >
           <Icons.Download className="w-3.5 h-3.5" />
           Export
@@ -49,7 +49,7 @@ export function CV() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#e8e8e5] bg-white px-4 overflow-x-auto">
+      <div className="flex border-b border-os-line-light bg-white px-4 overflow-x-auto">
         {TABS.map(({ id, label, icon }) => {
           const Icon = Icons[icon] as React.ComponentType<{ className?: string }>;
           return (
@@ -58,8 +58,8 @@ export function CV() {
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === id
-                  ? 'border-[#111111] text-[#111111]'
-                  : 'border-transparent text-[#666] hover:text-[#171717]'
+                  ? 'border-os-ink-950 text-os-ink-950'
+                  : 'border-transparent text-os-text-muted hover:text-os-text-strong'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -87,17 +87,17 @@ function ProfileTab({ personal, summary }: { personal: any; summary: string }) {
     <div className="p-6 max-w-2xl">
       <div className="flex items-start gap-5 mb-6">
         {personal.photo ? (
-          <img src={personal.photo} alt={personal.name} className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-[#e8e8e5]" />
+          <img src={personal.photo} alt={personal.name} className="w-16 h-16 rounded-full object-cover flex-shrink-0 border border-os-line-light" />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-[#f5f5f3] border border-[#e8e8e5] flex items-center justify-center flex-shrink-0">
-            <Icons.User className="w-7 h-7 text-[#999]" />
+          <div className="w-16 h-16 rounded-full bg-os-canvas-warm border border-os-line-light flex items-center justify-center flex-shrink-0">
+            <Icons.User className="w-7 h-7 text-os-text-faint" />
           </div>
         )}
         <div>
-          <h2 className="text-lg font-semibold text-[#171717]">{personal.name}</h2>
-          <p className="text-sm text-[#666]">{personal.title}</p>
-          {personal.subtitle && <p className="text-xs text-[#999] mt-0.5">{personal.subtitle}</p>}
-          <div className="flex items-center gap-1 mt-2 text-xs text-[#666]">
+          <h2 className="text-lg font-semibold text-os-text-strong">{personal.name}</h2>
+          <p className="text-sm text-os-text-muted">{personal.title}</p>
+          {personal.subtitle && <p className="text-xs text-os-text-faint mt-0.5">{personal.subtitle}</p>}
+          <div className="flex items-center gap-1 mt-2 text-xs text-os-text-muted">
             <Icons.MapPin className="w-3 h-3" />
             {personal.location}
           </div>
@@ -128,13 +128,13 @@ function ExperienceTab({ resume }: { resume: any }) {
         <Section title="Experience">
           <div className="space-y-4">
             {resume.experience.map((exp: any) => (
-              <div key={exp.id} className="border border-[#e8e8e5] rounded-lg p-4">
+              <div key={exp.id} className="border border-os-line-light rounded-lg p-4">
                 <div className="flex items-start justify-between mb-1">
                   <div>
-                    <p className="text-sm font-semibold text-[#171717]">{exp.position}</p>
-                    <p className="text-xs text-[#666]">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                    <p className="text-sm font-semibold text-os-text-strong">{exp.position}</p>
+                    <p className="text-xs text-os-text-muted">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
                   </div>
-                  <span className="text-xs text-[#999] whitespace-nowrap ml-4">{exp.startDate} – {exp.endDate}</span>
+                  <span className="text-xs text-os-text-faint whitespace-nowrap ml-4">{exp.startDate} – {exp.endDate}</span>
                 </div>
                 {exp.description?.length > 0 && (
                   <ul className="mt-2 space-y-1">
@@ -149,7 +149,7 @@ function ExperienceTab({ resume }: { resume: any }) {
                 {exp.technologies?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
                     {exp.technologies.map((tech: string) => (
-                      <span key={tech} className="px-2 py-0.5 bg-[#f5f5f3] border border-[#e8e8e5] rounded text-[10px] text-[#555]">{tech}</span>
+                      <span key={tech} className="px-2 py-0.5 bg-os-canvas-warm border border-os-line-light rounded text-[10px] text-[#555]">{tech}</span>
                     ))}
                   </div>
                 )}
@@ -163,15 +163,15 @@ function ExperienceTab({ resume }: { resume: any }) {
         <Section title="Education">
           <div className="space-y-3">
             {resume.education.map((edu: any) => (
-              <div key={edu.id} className="border border-[#e8e8e5] rounded-lg p-4">
+              <div key={edu.id} className="border border-os-line-light rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-[#171717]">{edu.degree} in {edu.field}</p>
-                    <p className="text-xs text-[#666]">{edu.institution}</p>
+                    <p className="text-sm font-semibold text-os-text-strong">{edu.degree} in {edu.field}</p>
+                    <p className="text-xs text-os-text-muted">{edu.institution}</p>
                   </div>
-                  <span className="text-xs text-[#999] whitespace-nowrap ml-4">{edu.startDate} – {edu.endDate}</span>
+                  <span className="text-xs text-os-text-faint whitespace-nowrap ml-4">{edu.startDate} – {edu.endDate}</span>
                 </div>
-                {edu.gpa && <p className="text-xs text-[#666] mt-1">GPA: {edu.gpa}</p>}
+                {edu.gpa && <p className="text-xs text-os-text-muted mt-1">GPA: {edu.gpa}</p>}
               </div>
             ))}
           </div>
@@ -182,13 +182,13 @@ function ExperienceTab({ resume }: { resume: any }) {
         <Section title="Certifications">
           <div className="space-y-2">
             {resume.certifications.map((cert: any) => (
-              <div key={cert.id} className="flex items-center justify-between border border-[#e8e8e5] rounded-lg px-4 py-3">
+              <div key={cert.id} className="flex items-center justify-between border border-os-line-light rounded-lg px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-[#171717]">{cert.name}</p>
-                  <p className="text-xs text-[#666]">{cert.issuer}</p>
+                  <p className="text-sm font-medium text-os-text-strong">{cert.name}</p>
+                  <p className="text-xs text-os-text-muted">{cert.issuer}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-[#999]">{cert.date}</p>
+                  <p className="text-xs text-os-text-faint">{cert.date}</p>
                   {cert.url && (
                     <a href={cert.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-emerald-600 hover:underline">View</a>
                   )}
@@ -216,11 +216,11 @@ function SkillsTab({ categories }: { categories: any[] }) {
           <div className="space-y-2">
             {cat.skills.map((skill: any) => (
               <div key={skill.name} className="flex items-center gap-3">
-                <span className="text-xs text-[#171717] w-36 truncate flex-shrink-0">{skill.name}</span>
+                <span className="text-xs text-os-text-strong w-36 truncate flex-shrink-0">{skill.name}</span>
                 <div className="flex-1 h-1.5 bg-[#f0f0ee] rounded-full overflow-hidden">
-                  <div className={`h-full bg-[#111111] rounded-full ${proficiencyWidth[skill.proficiency]}`} />
+                  <div className={`h-full bg-os-ink-950 rounded-full ${proficiencyWidth[skill.proficiency]}`} />
                 </div>
-                <span className="text-[10px] text-[#999] w-20 text-right">{skill.proficiency}</span>
+                <span className="text-[10px] text-os-text-faint w-20 text-right">{skill.proficiency}</span>
                 {skill.yearsOfExperience && (
                   <span className="text-[10px] text-[#bbb] w-12 text-right">{skill.yearsOfExperience}yr</span>
                 )}
@@ -238,13 +238,13 @@ function ProjectsTab({ projects }: { projects: any[] }) {
 
   return (
     <div className="p-6 max-w-2xl space-y-3">
-      <p className="text-xs text-[#999] mb-4">Selected work. Launch individual project apps from the desktop or Start Menu for the full view.</p>
+      <p className="text-xs text-os-text-faint mb-4">Selected work. Launch individual project apps from the desktop or Start Menu for the full view.</p>
       {projects.map((project: any) => (
-        <div key={project.id} className="border border-[#e8e8e5] rounded-lg p-4">
+        <div key={project.id} className="border border-os-line-light rounded-lg p-4">
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               {project.featured && <Icons.Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-              <p className="text-sm font-semibold text-[#171717]">{project.name}</p>
+              <p className="text-sm font-semibold text-os-text-strong">{project.name}</p>
             </div>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColor[project.status] || 'bg-gray-100 text-gray-500'}`}>
               {project.status}
@@ -254,7 +254,7 @@ function ProjectsTab({ projects }: { projects: any[] }) {
           {project.technologies?.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {project.technologies.map((tech: string) => (
-                <span key={tech} className="px-2 py-0.5 bg-[#f5f5f3] border border-[#e8e8e5] rounded text-[10px] text-[#555]">{tech}</span>
+                <span key={tech} className="px-2 py-0.5 bg-os-canvas-warm border border-os-line-light rounded text-[10px] text-[#555]">{tech}</span>
               ))}
             </div>
           )}
@@ -321,19 +321,19 @@ function FilesTab({ name }: { name: string }) {
     <div className="p-6 max-w-md">
       <Section title="Downloads">
         <div className="space-y-2">
-          <div className="flex items-center justify-between border border-[#e8e8e5] rounded-lg px-4 py-3">
+          <div className="flex items-center justify-between border border-os-line-light rounded-lg px-4 py-3">
             <div className="flex items-center gap-2">
-              <Icons.FileText className="w-4 h-4 text-[#666]" />
+              <Icons.FileText className="w-4 h-4 text-os-text-muted" />
               <div>
-                <p className="text-sm font-medium text-[#171717]">{name || 'Resume'} — CV</p>
-                <p className="text-xs text-[#999]">Print or export from the Profile tab</p>
+                <p className="text-sm font-medium text-os-text-strong">{name || 'Resume'} — CV</p>
+                <p className="text-xs text-os-text-faint">Print or export from the Profile tab</p>
               </div>
             </div>
             <Icons.Download className="w-4 h-4 text-[#bbb]" />
           </div>
         </div>
       </Section>
-      <p className="text-xs text-[#999] mt-4">Open File Explorer to browse portfolio assets and project files.</p>
+      <p className="text-xs text-os-text-faint mt-4">Open File Explorer to browse portfolio assets and project files.</p>
     </div>
   );
 }
@@ -341,7 +341,7 @@ function FilesTab({ name }: { name: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#999] mb-3">{title}</h3>
+      <h3 className="text-[10px] font-semibold uppercase tracking-wider text-os-text-faint mb-3">{title}</h3>
       {children}
     </div>
   );
@@ -349,14 +349,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string; href?: string }) {
   const content = (
-    <div className="flex items-center gap-3 px-4 py-2.5 border border-[#e8e8e5] rounded-lg">
-      <span className="text-[#666]">{icon}</span>
-      <span className="text-xs text-[#999] w-16 flex-shrink-0">{label}</span>
-      <span className="text-xs text-[#171717] truncate">{value}</span>
+    <div className="flex items-center gap-3 px-4 py-2.5 border border-os-line-light rounded-lg">
+      <span className="text-os-text-muted">{icon}</span>
+      <span className="text-xs text-os-text-faint w-16 flex-shrink-0">{label}</span>
+      <span className="text-xs text-os-text-strong truncate">{value}</span>
     </div>
   );
 
-  if (href) return <a href={href} target="_blank" rel="noopener noreferrer" className="block hover:bg-[#fafafa] transition-colors rounded-lg">{content}</a>;
+  if (href) return <a href={href} target="_blank" rel="noopener noreferrer" className="block hover:bg-os-canvas-raised transition-colors rounded-lg">{content}</a>;
   return <div>{content}</div>;
 }
 
@@ -364,7 +364,7 @@ function Empty({ message }: { message: string }) {
   return (
     <div className="text-center py-12">
       <Icons.Inbox className="w-8 h-8 text-[#ddd] mx-auto mb-3" />
-      <p className="text-sm text-[#999]">{message}</p>
+      <p className="text-sm text-os-text-faint">{message}</p>
     </div>
   );
 }

@@ -33,6 +33,117 @@
     --os-text-muted: #666666;
     --os-text-faint: #9a9a9a;
     --os-text-inverse: #ffffff;
+
+    /* ── Semantic tokens (light mode defaults) ─────────────────────────────── */
+    /* All values reference primitives from tailwind.config.js — no bare hex. */
+
+    /* Surface backgrounds */
+    --color-bg-primary:   #fafafa;   /* primitive.gray.50   */
+    --color-bg-secondary: #f5f5f3;   /* primitive.gray.100  */
+    --color-bg-tertiary:  #ebebeb;   /* primitive.gray.200  */
+    --color-bg-elevated:  #ffffff;   /* pure white for cards */
+    --color-bg-overlay:   rgba(0, 0, 0, 0.48);
+
+    /* Brand backgrounds */
+    --color-bg-brand-solid:        #1d4ed8;  /* primitive.blue.1000 */
+    --color-bg-brand-solid-hover:  #1e40af;  /* primitive.blue.1300 */
+    --color-bg-brand-solid-focus:  #2563eb;  /* primitive.blue.800  */
+    --color-bg-brand-subtle:       #dbeafe;  /* primitive.blue.100  */
+    --color-bg-brand-subtle-hover: #bfdbfe;  /* primitive.blue.200  */
+
+    /* Accent backgrounds (Orion Lime) */
+    --color-bg-accent:        #bef264;  /* primitive.lime.300  */
+    --color-bg-accent-hover:  #a3e635;  /* primitive.lime.400  */
+
+    /* Feedback backgrounds */
+    --color-bg-success:        #15803d;  /* primitive.green.1000 */
+    --color-bg-success-subtle: #f0fdf4;  /* primitive.green.50   */
+    --color-bg-error:          #b91c1c;  /* primitive.red.1000   */
+    --color-bg-error-subtle:   #fef2f2;  /* primitive.red.50     */
+
+    /* Control / interactive backgrounds */
+    --color-bg-control:          #f5f5f3;  /* primitive.gray.100  */
+    --color-bg-control-hover:    #ebebeb;  /* primitive.gray.200  */
+    --color-bg-control-active:   #d6d6d6;  /* primitive.gray.300  */
+    --color-bg-control-disabled: #f5f5f3;  /* primitive.gray.100  */
+
+    /* Foreground / text */
+    --color-fg-primary:   #171717;  /* close to primitive.gray.1700 */
+    --color-fg-secondary: #666666;  /* primitive.gray.600-range     */
+    --color-fg-tertiary:  #9a9a9a;  /* primitive.gray.400-range     */
+    --color-fg-disabled:  #b8b8b8;  /* primitive.gray.400           */
+
+    /* "On" foreground — for text placed on solid colored surfaces */
+    --color-fg-on-primary:   #ffffff;  /* white on brand/dark solid   */
+    --color-fg-on-secondary: #111111;  /* primitive.gray.1700 on soft */
+
+    /* Brand foreground */
+    --color-fg-brand:       #1d4ed8;  /* primitive.blue.1000 */
+    --color-fg-brand-hover: #1e40af;  /* primitive.blue.800  */
+
+    /* Feedback foreground */
+    --color-fg-success: #16a34a;  /* primitive.green.600  */
+    --color-fg-warning: #ca8a04;  /* primitive.yellow.600 */
+    --color-fg-error:   #dc2626;  /* primitive.red.600    */
+    --color-fg-info:    #2563eb;  /* primitive.blue.600   */
+
+    /* Stroke / border */
+    --color-stroke-primary:   #e8e8e5;  /* aligns with os-line-light   */
+    --color-stroke-secondary: #ebebeb;  /* primitive.gray.200          */
+    --color-stroke-focus:     #1d4ed8;  /* primitive.blue.1000         */
+    --color-stroke-brand:     #2563eb;  /* primitive.blue.600          */
+
+    /* Feedback stroke */
+    --color-stroke-success: #16a34a;  /* primitive.green.600  */
+    --color-stroke-warning: #ca8a04;  /* primitive.yellow.600 */
+    --color-stroke-error:   #dc2626;  /* primitive.red.600    */
+    --color-stroke-info:    #2563eb;  /* primitive.blue.600   */
+  }
+
+  /* Dark mode overrides — apply .dark on <html> or a wrapping element */
+  .dark {
+    /* Surface backgrounds */
+    --color-bg-primary:   #111111;  /* primitive.gray.1700 */
+    --color-bg-secondary: #1a1a1a;  /* primitive.gray.1300 */
+    --color-bg-tertiary:  #2c2c2c;  /* primitive.gray.1000 */
+    --color-bg-elevated:  #1f1f1f;  /* primitive.gray.1000-range */
+    --color-bg-overlay:   rgba(0, 0, 0, 0.72);
+
+    /* Brand overrides */
+    --color-bg-brand-subtle:       #1f2937;  /* primitive.gray.1300 */
+    --color-bg-brand-subtle-hover: #374151;  /* primitive.gray.1000 */
+
+    /* Accent backgrounds (Orion Lime) */
+    --color-bg-accent:        #bef264;  /* primitive.lime.300  */
+    --color-bg-accent-hover:  #a3e635;  /* primitive.lime.400  */
+
+    /* Feedback backgrounds */
+    --color-bg-success:        #15803d;  /* primitive.green.1000 */
+    --color-bg-success-subtle: #14532d;  /* primitive.green.1700 */
+    --color-bg-error:          #b91c1c;  /* primitive.red.1000   */
+    --color-bg-error-subtle:   #7f1d1d;  /* primitive.red.1700   */
+
+    /* Control / interactive backgrounds */
+    --color-bg-control:          #2c2c2c;  /* primitive.gray.1000 */
+    --color-bg-control-hover:    #454545;  /* primitive.gray.800  */
+    --color-bg-control-active:   #737373;  /* primitive.gray.600  */
+    --color-bg-control-disabled: #1a1a1a;  /* primitive.gray.1300 */
+
+    /* Foreground / text */
+    --color-fg-primary:   #fafafa;  /* primitive.gray.50  */
+    --color-fg-secondary: #b8b8b8;  /* primitive.gray.400 */
+    --color-fg-tertiary:  #737373;  /* primitive.gray.600 */
+    --color-fg-disabled:  #454545;  /* primitive.gray.800 */
+
+    /* Feedback foreground */
+    --color-fg-success: #4ade80;  /* primitive.green.400  */
+    --color-fg-warning: #facc15;  /* primitive.yellow.400 */
+    --color-fg-error:   #fb7185;  /* primitive.red.400    */
+    --color-fg-info:    #60a5fa;  /* primitive.blue.400   */
+
+    /* Stroke / border */
+    --color-stroke-primary:   #454545;  /* primitive.gray.800  */
+    --color-stroke-secondary: #2c2c2c;  /* primitive.gray.1000 */
   }
 
   /* Custom Scrollbar - Futuristic Minimal Space UI */

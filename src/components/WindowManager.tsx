@@ -30,18 +30,18 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
   return (
     <div className="w-full h-full bg-white relative">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950 z-10">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Loading {title}...</p>
+            <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+            <p className="text-sm text-white/50">Loading {title}...</p>
           </div>
         </div>
       )}
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950 z-10">
           <div className="text-center p-6">
-            <p className="text-sm text-red-600 mb-2">Failed to load content</p>
-            <p className="text-xs text-gray-500">{url}</p>
+            <p className="text-sm text-red-300 mb-2">Failed to load content</p>
+            <p className="text-xs text-white/40">{url}</p>
             <button
               onClick={() => {
                 setHasError(false);
@@ -114,10 +114,10 @@ export function WindowManager() {
             return <Contact />;
           default:
             return (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gradient-to-br from-gray-900 to-gray-800">
+              <div className="w-full h-full flex items-center justify-center bg-os-ink-950">
                 <div className="text-center">
                   <p className="text-lg font-semibold mb-2 text-white">Component not found</p>
-                  <p className="text-sm text-gray-400">{window.component}</p>
+                  <p className="text-sm text-white/40">{window.component}</p>
                 </div>
               </div>
             );
@@ -128,7 +128,7 @@ export function WindowManager() {
         <ErrorBoundary>
           <Suspense
             fallback={
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+              <div className="w-full h-full flex items-center justify-center bg-os-ink-950">
                 <div className="text-center">
                   <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
                   <p className="text-sm text-white">Loading {window.title}...</p>
@@ -144,15 +144,15 @@ export function WindowManager() {
 
     if (window.type === 'static' && window.content) {
       return (
-        <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 p-6 overflow-y-auto">
+        <div className="w-full h-full bg-os-ink-950 p-6 overflow-y-auto">
           <div className="prose prose-sm max-w-none text-white">{window.content}</div>
         </div>
       );
     }
 
     return (
-      <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gradient-to-br from-gray-900 to-gray-800">
-        <p className="text-white">No content available</p>
+      <div className="w-full h-full flex items-center justify-center bg-os-ink-950">
+        <p className="text-white/40">No content available</p>
       </div>
     );
   };

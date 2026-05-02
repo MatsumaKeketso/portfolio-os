@@ -82,10 +82,8 @@ export type ContextPermission =
  */
 export function resolveMenuItems(
   items: ContextMenuItemDef[],
-  permissions: ContextPermission[] = ['visitor'],
+  _permissions: ContextPermission[] = ['visitor'],
 ): ContextMenuItemDef[] {
-  const isAdmin = permissions.includes('admin');
-
   return items.filter((item) => {
     if (item.hidden) return false;
     // Items tagged with group 'danger' are visible to admin or owner only

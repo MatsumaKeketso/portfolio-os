@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-> Last audited: 2026-05-01. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
+> Last audited: 2026-05-01, updated 2026-05-01. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
 
@@ -10,7 +10,7 @@ Overall status:
 
 | Section | Area | Status |
 |---|---|---|
-| 1 | Context Menu System | Partially actioned |
+| 1 | Context Menu System | Complete |
 | 2 | File Explorer Locations And Permissions | Mostly actioned |
 | 3 | Window Surfaces And Behavior | Partially actioned |
 | 4 | Start Menu And App Registry | Mostly actioned |
@@ -34,22 +34,31 @@ What is actioned:
   - `sortAndSeparate`
 - Desktop right-click menu exists in `src/components/Desktop.tsx`.
 - File Explorer right-click menu exists in `src/components/apps/FileExplorer.tsx`.
+- File Explorer menu item construction now uses `ContextMenuItemDef` and `sortAndSeparate` from `contextMenuRegistry.ts`.
 - Start Menu app right-click menu exists in `src/components/StartMenu.tsx`.
+- Desktop and Start Menu app menus now use `ContextMenuItemDef[]` + `sortAndSeparate` from the registry.
+- Window title bar right-click menu added to `src/components/Window.tsx` (Restore/Minimize/Maximize/Close).
 - Context menu styling has moved closer to Product Mono with compact dark menu rows and danger states.
 
 Still pending:
 
-- `contextMenuRegistry.ts` is not yet broadly wired into surfaces. Menus are still mostly assembled locally in components.
+- Desktop right-click menu now uses `ContextMenuItemDef[]` + `sortAndSeparate` from the registry (view/sort items in `organize` group; desktop controls in `system` group).
+- Start Menu app right-click menu now uses `ContextMenuItemDef[]` + `sortAndSeparate` (open in `primary`, pin/unpin in `organize`, app info + admin edit in `system`).
+- Window title bar right-click now shows a context menu: Restore (if maximized), Minimize, Maximize (if not maximized), Close with Alt+F4 shortcut.
+
+- Taskbar app buttons (`taskbar.appButton`) now have right-click: Open/Restore/Minimize, Pin/Unpin from Taskbar, Close window.
+- Taskbar background (`taskbar.empty`) now has right-click: Show Desktop, Task Manager, Taskbar Settings.
+- Pinned app button context menu correctly resolves window state (including minimized windows).
+- Unpinned running app buttons also expose the registry-based context menu.
+
+Still pending:
 - `resolveMenuItems` is currently light; it does not yet enforce meaningful permission filtering.
-- `sortAndSeparate` exists but is not visibly adopted by the main menu producers.
-- Window title bar context menu is still pending.
-- Taskbar app-button context menu is still pending.
 - Admin record context menu is still pending.
 - File-type-specific menu resolution is still mostly local to File Explorer.
 
 Next smallest action:
 
-Move File Explorer menu creation into `contextMenuRegistry.ts` first, because it already has the richest action set and permission context.
+Move to Section 3 — enforce `minSize` on window open, then wire `surfaceMode` fully through `Window.tsx` title bar onto `ChromeSurface`.
 
 ## Section 2: File Explorer Locations And Permissions
 
@@ -66,26 +75,24 @@ What is actioned:
 - `src/types.ts` defines `VISITOR_GALLERY_ID`.
 - `src/store/fileStore.ts` includes a protected `Visitor Gallery` root folder.
 - `src/components/apps/FileExplorer.tsx` imports and uses `getLocationContext`, `getPermissions`, and `fileIsWritable`.
-- File Explorer side navigation includes `Projects`, `Images`, and `Visitor Gallery`.
+- File Explorer side navigation includes `Desktop`, `Documents`, `Downloads`, `Projects`, `CV`, `Images`, `Visitor Gallery`, and `System`.
 - File Explorer already supports grid/list views, sorting, searching, uploading, drag/drop, selecting, renaming, duplicating, deleting, cutting, copying, and pasting.
 - Visitor Gallery prevents text-file creation by checking `permissions.canCreateFile`.
-- Visitor Gallery upload flow skips non-image files.
+- Visitor Gallery upload flow rejects SVG/non-approved image types and shows a warning notification.
 - Upload input uses `permissions.allowedUploadTypes`.
 - Visitor-created uploads can be marked with `isVisitorOwned`.
 - Protected files/folders are guarded in `fileStore.removeFile`.
 
 Still pending:
 
-- Side navigation does not yet appear to include the full OS set: Desktop, Documents, Downloads, Projects, CV, Images, Visitor Gallery, System.
 - Visitor Gallery still uses client-side upload filtering. Storage/security rules should also enforce visitor image-only constraints.
-- Visitor Gallery currently skips invalid files silently; it should notify the user.
 - General/root areas still allow visitors to create text files and upload videos. That may be acceptable for admin/system areas, but should be intentionally scoped.
 - `Desktop.tsx` still supports global desktop drop upload to root, including videos. This should be reviewed so it does not bypass Visitor Gallery rules.
 - There is no Trash location yet.
 
 Next smallest action:
 
-Add the full File Explorer side-nav locations and make invalid Visitor Gallery uploads show a clear notification.
+Review global desktop drop upload so it cannot bypass scoped File Explorer permissions, then add server/storage-side visitor upload enforcement.
 
 ## Section 3: Window Surfaces And Behavior
 
@@ -112,18 +119,26 @@ What is actioned:
   - double-click title-bar maximize
 - Snap zone visuals have been toned down from neon to subtle white overlays.
 
+Also actioned (theme pass + Section 3 + Section 7, 2026-05-01):
+
+- `FileExplorer.tsx` and `Settings.tsx`: all gradients, backdrop-blur, and glassmorphism removed; full `bg-os-ink-*`/`border-white/[0.08]` conversion.
+- `ContextMenu.tsx`: inline styles replaced with `FloatingSurface`-aligned Tailwind classes.
+- `openWindow` in `desktopStore.ts`: now enforces `app.minSize` (initial size clamped to min), `app.preferredWindowMode === 'maximized'` (opens maximized), and `app.mobileBehavior` (maximize/fullscreen opens maximized on mobile; hide skips window creation entirely).
+- `Window.tsx` resize handler: hardcoded `Math.max(300,…)` replaced with `window.minSize?.width ?? 300` and `window.minSize?.height ?? 200`.
+- Default apps in `desktopStore.ts`: `minSize` and `mobileBehavior` set on file-explorer, cv, browser, settings, about-os, task-manager; calculator given `preferredWindowMode: 'fixed'`.
+- `FileExplorer.tsx` grid and list image thumbnails now use `MediaSurface` with halftone hover treatment.
+- `CV.tsx` and `AboutOS.tsx`: structural hardcoded hex values replaced with OS design tokens (`bg-os-canvas`, `text-os-text-strong`, `bg-os-canvas-raised`, `border-os-line-light`, `text-os-text-muted`, `text-os-text-faint`, `bg-os-canvas-warm`, `bg-os-ink-950`). Remaining mid-tone hex values (`#444`, `#888`, `#f0f0ee`) have no exact token equivalent and stay as-is.
+
 Still pending:
 
-- `preferredWindowMode`, `mobileBehavior`, and `minSize` are not fully enforced.
 - `Window.tsx` still handles surfaces with local class maps rather than fully leaning on `ChromeSurface`/`ContentSurface`.
-- File Explorer and Settings are currently marked `utilityDark` in `desktopStore.ts`, even though the design direction says their body surfaces should likely be content/light or use clearer mixed chrome/content anatomy.
-- Mobile window behavior is not yet intentionally handled.
-- Title-bar context menu is pending.
+- `file-explorer` and `settings` are intentionally kept as `utilityDark`; surfaceMode decision can be revisited for a future light variant.
 - Taskbar-position-safe maximize behavior needs review for left/right/top taskbar positions.
+- Mobile window behavior is wired but not visually tested.
 
 Next smallest action:
 
-Enforce `minSize` and `mobileBehavior` in `openWindow`/`Window`, then move title-bar surface styling onto the shared surface primitives.
+Wire `Window.tsx` title bar onto `ChromeSurface`, then adopt `ContentSurface` wrapper in CV and AboutOS root divs.
 
 ## Section 4: Start Menu And App Registry
 
@@ -252,21 +267,25 @@ What is actioned:
   - `SystemRowDivider`
 - Start Menu and AboutOS already use `SystemRow`.
 
+Also actioned (2026-05-01):
+
+- `ContextMenu.tsx` now uses Tailwind classes aligned with the `FloatingSurface` floating variant. Inline `style` background/border/shadow removed.
+
 Still pending:
 
 - Shared `DateRangePicker.tsx` is not present.
 - Shared `NotificationPanel.tsx` is not present.
 - Shared `SettingsShell.tsx` is not present.
-- `Surface` adoption is still incomplete across Window, ContextMenu, FileExplorer, Settings, Admin, and dialogs.
-- `MediaSurface` should be adopted on project previews and Visitor Gallery thumbnails.
+- `Surface` adoption still incomplete in Window, Admin, and modal dialogs.
+- `MediaSurface` should be adopted on FileExplorer image thumbnails and Visitor Gallery.
 
 Next smallest action:
 
-Adopt `FloatingSurface` in `ContextMenu.tsx`, then adopt `MediaSurface` in File Explorer image thumbnails.
+Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurface` in CV and AboutOS outer shells.
 
 ## Cross-Cutting Risks
 
-- Some docs still mention Supabase in older places, while the code now uses Firebase for auth, Firestore, and storage.
+- Docs have been updated for Firebase; `LOOK_AND_FEEL_UPDATE_SPEC.md` still references `supabase-setup.sql` as a candidate file (historical).
 - Several old gradient/glow styles remain in modals/dialogs and File Explorer.
 - The project is mid-transition: shared primitives exist, but not every surface uses them yet.
 - Client-side restrictions are useful but should not be treated as the only security layer for visitor uploads.
@@ -280,4 +299,3 @@ Adopt `FloatingSurface` in `ContextMenu.tsx`, then adopt `MediaSurface` in File 
 5. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces.
 6. Start Section 6 with a basic Feedback app.
 7. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
-

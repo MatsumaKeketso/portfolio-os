@@ -121,25 +121,25 @@ export function Weather() {
     const iconClass = `${size} transition-all`;
     switch (icon) {
       case 'sun':
-        return <Icons.Sun className={`${iconClass} text-yellow-500 animate-pulse`} />;
+        return <Icons.Sun className={`${iconClass} text-accent`} />;
       case 'cloud':
-        return <Icons.Cloud className={`${iconClass} text-gray-400`} />;
+        return <Icons.Cloud className={`${iconClass} text-foreground-tertiary`} />;
       case 'cloud-rain':
         return <Icons.CloudRain className={`${iconClass} text-blue-400`} />;
       case 'cloud-sun':
-        return <Icons.CloudSun className={`${iconClass} text-yellow-400`} />;
+        return <Icons.CloudSun className={`${iconClass} text-accent`} />;
       case 'moon':
         return <Icons.Moon className={`${iconClass} text-blue-200`} />;
       default:
-        return <Icons.CloudSun className={`${iconClass} text-yellow-400`} />;
+        return <Icons.CloudSun className={`${iconClass} text-accent`} />;
     }
   };
 
   const getUVLevel = (uvIndex: number): { level: string; color: string } => {
-    if (uvIndex <= 2) return { level: 'Low', color: 'text-green-400' };
-    if (uvIndex <= 5) return { level: 'Moderate', color: 'text-yellow-400' };
+    if (uvIndex <= 2) return { level: 'Low', color: 'text-foreground-success' };
+    if (uvIndex <= 5) return { level: 'Moderate', color: 'text-accent' };
     if (uvIndex <= 7) return { level: 'High', color: 'text-orange-400' };
-    return { level: 'Very High', color: 'text-red-400' };
+    return { level: 'Very High', color: 'text-foreground-error' };
   };
 
   const removeCity = (cityId: string) => {
@@ -151,218 +151,280 @@ export function Weather() {
     }
   };
 
+  const CircularMetric = ({ label, value, max, icon: Icon, suffix = '' }: any) => {
+    const percentage = (value / max) * 100;
+    const radius = 36;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentage / 100) * circumference;
+
+    return (
+      <div className="bg-background-tertiary rounded-2xl p-4 flex flex-col items-center justify-center border border-stroke-primary/50 relative group hover:border-accent/30 transition-all">
+        <div className="relative w-24 h-24 mb-3">
+          <svg className="w-full h-full transform -rotate-90">
+            <circle
+              cx="48"
+              cy="48"
+              r={radius}
+              stroke="currentColor"
+              strokeWidth="6"
+              fill="transparent"
+              className="text-foreground-tertiary/10"
+            />
+            <motion.circle
+              cx="48"
+              cy="48"
+              r={radius}
+              stroke="var(--color-bg-accent)"
+              strokeWidth="6"
+              fill="transparent"
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-xl font-bold text-foreground-primary leading-none">{value}{suffix}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 opacity-60">
+          <Icon className="w-3.5 h-3.5" />
+          <span className="text-[10px] uppercase tracking-wider font-bold">{label}</span>
+        </div>
+      </div>
+    );
+  };
+
   const uvLevel = getUVLevel(currentWeather.uvIndex);
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 backdrop-blur-xl flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-background-primary text-foreground-primary flex flex-col overflow-hidden font-sans">
       {/* Header */}
-      <div className="border-b border-white/10 p-3 flex items-center gap-2 backdrop-blur-sm bg-white/5">
-        <div className="flex-1 flex items-center gap-2 overflow-x-auto">
-          {cities.map((city) => (
-            <motion.button
-              key={city.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onClick={() => setSelectedCityId(city.id)}
-              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
-                selectedCityId === city.id
-                  ? 'bg-white/20 text-white'
-                  : 'bg-white/10 text-white/70 hover:bg-white/15'
-              }`}
-            >
-              <Icons.MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-sm">{city.name.split(',')[0]}</span>
-              {cities.length > 1 && selectedCityId === city.id && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeCity(city.id);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 hover:bg-white/20 rounded p-0.5 transition-all"
-                >
-                  <Icons.X className="w-3 h-3" />
-                </button>
-              )}
-            </motion.button>
-          ))}
+      <div className="px-6 py-4 flex items-center justify-between border-b border-stroke-primary/50 bg-background-primary/50 backdrop-blur-md z-10">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+              <Icons.Cloud className="w-5 h-5 text-foreground-on-secondary" />
+            </div>
+            <span className="text-lg font-black uppercase tracking-tighter">Weather</span>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-foreground-tertiary/10 rounded-full p-1">
+            {cities.map((city) => (
+              <button
+                key={city.id}
+                onClick={() => setSelectedCityId(city.id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  selectedCityId === city.id
+                    ? 'bg-foreground-primary text-foreground-on-secondary'
+                    : 'text-foreground-secondary hover:text-foreground-primary hover:bg-foreground-tertiary/10'
+                }`}
+              >
+                {city.name.split(',')[0]}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="h-6 w-px bg-white/20" />
-
-        <button
-          onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
-          className="px-2 py-1.5 bg-white/10 hover:bg-white/20 rounded text-white text-xs font-semibold transition-all"
-          title="Toggle unit"
-        >
-          °{unit}
-        </button>
-
-        <button
-          onClick={() => setShowHourly(!showHourly)}
-          className={`px-2 py-1.5 rounded text-xs font-semibold transition-all ${
-            showHourly ? 'bg-white/20 text-white' : 'bg-white/10 text-white/70 hover:bg-white/15'
-          }`}
-          title="Toggle hourly"
-        >
-          <Icons.Clock className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground-tertiary/10 hover:bg-foreground-tertiary/20 text-xs font-bold transition-all"
+          >
+            °{unit}
+          </button>
+          <button
+            onClick={() => setShowHourly(!showHourly)}
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
+              showHourly ? 'bg-accent text-foreground-on-secondary' : 'bg-foreground-tertiary/10 text-foreground-secondary'
+            }`}
+          >
+            <Icons.Clock className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-4xl mx-auto">
-          {/* Current Weather */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6 mb-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Icons.MapPin className="w-5 h-5 text-white" />
-              <h2 className="text-xl font-semibold text-white">{currentWeather.location}</h2>
-            </div>
-
-            <div className="flex items-start justify-between mb-6">
-              <div className="text-white">
-                <div className="text-7xl font-bold mb-2">
-                  {convertTemp(currentWeather.temp)}°
-                </div>
-                <div className="text-2xl opacity-90 mb-1">{currentWeather.condition}</div>
-                <div className="text-sm opacity-75">
-                  Feels like {convertTemp(currentWeather.feelsLike)}°
-                </div>
-              </div>
-              <div className="flex items-center justify-center w-32 h-32">
-                {getWeatherIcon('cloud-sun', 'w-32 h-32')}
-              </div>
-            </div>
-
-            {/* Weather Details Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white">
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Droplets className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Humidity</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.humidity}%</div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Wind className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Wind</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.wind} km/h</div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Sun className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">UV Index</span>
-                </div>
-                <div className="text-2xl font-bold">
-                  {currentWeather.uvIndex}{' '}
-                  <span className={`text-sm ${uvLevel.color}`}>{uvLevel.level}</span>
-                </div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Eye className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Visibility</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.visibility} km</div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Gauge className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Pressure</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.pressure} mb</div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Sunrise className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Sunrise</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.sunrise}</div>
-              </div>
-
-              <div className="bg-white/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icons.Sunset className="w-4 h-4 opacity-75" />
-                  <span className="text-xs opacity-75">Sunset</span>
-                </div>
-                <div className="text-2xl font-bold">{currentWeather.sunset}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Hourly Forecast */}
-          <AnimatePresence>
-            {showHourly && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6 mb-6 overflow-hidden"
-              >
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Icons.Clock className="w-5 h-5" />
-                  Hourly Forecast
-                </h3>
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {selectedCity.hourly.map((hour, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center gap-2 bg-white/10 rounded-lg p-4 min-w-[80px]"
-                    >
-                      <span className="text-white text-sm font-medium">{hour.time}</span>
-                      {getWeatherIcon(hour.icon, 'w-10 h-10')}
-                      <span className="text-white text-lg font-bold">
-                        {convertTemp(hour.temp)}°
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* 5-Day Forecast */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Icons.Calendar className="w-5 h-5" />
-              5-Day Forecast
-            </h3>
-            <div className="space-y-2">
-              {selectedCity.forecast.map((day, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-center justify-between bg-white/10 rounded-lg p-4 text-white hover:bg-white/20 transition-all"
-                >
-                  <div className="w-16 font-semibold">{day.day}</div>
-                  <div className="flex-1 flex items-center gap-3">
-                    {getWeatherIcon(day.icon, 'w-8 h-8')}
-                    <span className="text-sm opacity-90">{day.condition}</span>
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="max-w-6xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Column: Current Weather & Main Metrics */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Hero Card */}
+            <div className="relative overflow-hidden bg-background-secondary rounded-[32px] p-10 border border-stroke-primary/50">
+              {/* Background Accent */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 blur-[100px] rounded-full -mr-20 -mt-20" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-accent">
+                    <Icons.MapPin className="w-4 h-4" />
+                    <span className="text-sm font-bold uppercase tracking-widest">{currentWeather.location}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    {day.precipitation > 0 && (
-                      <div className="flex items-center gap-1 text-sm opacity-75">
-                        <Icons.Droplets className="w-3.5 h-3.5" />
-                        {day.precipitation}%
-                      </div>
-                    )}
-                    <div className="flex gap-3 text-sm min-w-[80px] justify-end">
-                      <span className="font-bold">{convertTemp(day.high)}°</span>
-                      <span className="opacity-75">{convertTemp(day.low)}°</span>
+                  <h1 className="text-8xl font-black tracking-tighter leading-none">
+                    {convertTemp(currentWeather.temp)}°
+                  </h1>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold opacity-90">{currentWeather.condition}</span>
+                    <div className="px-3 py-1 bg-foreground-tertiary/10 rounded-full text-xs font-bold text-foreground-secondary">
+                      Feels like {convertTemp(currentWeather.feelsLike)}°
                     </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full scale-150" />
+                    {getWeatherIcon('cloud-sun', 'w-48 h-48 relative z-10')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Summary Row */}
+              <div className="mt-12 pt-10 border-t border-stroke-primary/50 flex flex-wrap gap-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-foreground-tertiary/10 flex items-center justify-center">
+                    <Icons.Sunrise className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-foreground-tertiary tracking-wider">Sunrise</p>
+                    <p className="font-bold">{currentWeather.sunrise}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-foreground-tertiary/10 flex items-center justify-center">
+                    <Icons.Sunset className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-foreground-tertiary tracking-wider">Sunset</p>
+                    <p className="font-bold">{currentWeather.sunset}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-foreground-tertiary/10 flex items-center justify-center">
+                    <Icons.Gauge className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-foreground-tertiary tracking-wider">Pressure</p>
+                    <p className="font-bold">{currentWeather.pressure} mb</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <CircularMetric label="Humidity" value={currentWeather.humidity} max={100} icon={Icons.Droplets} suffix="%" />
+              <CircularMetric label="UV Index" value={currentWeather.uvIndex} max={12} icon={Icons.Sun} />
+              <CircularMetric label="Wind" value={currentWeather.wind} max={100} icon={Icons.Wind} suffix="km" />
+              <CircularMetric label="Visibility" value={currentWeather.visibility} max={20} icon={Icons.Eye} suffix="km" />
+            </div>
+
+            {/* Hourly Forecast */}
+            <AnimatePresence>
+              {showHourly && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-background-secondary rounded-[32px] p-8 border border-stroke-primary/50"
+                >
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                      <Icons.Clock className="w-5 h-5 text-accent" />
+                      Hourly Timeline
+                    </h3>
+                  </div>
+                  <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                    {selectedCity.hourly.map((hour, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center gap-4 bg-foreground-tertiary/5 hover:bg-foreground-tertiary/10 border border-stroke-primary/50 rounded-2xl p-6 min-w-[110px] transition-all"
+                      >
+                        <span className="text-xs font-bold opacity-40">{hour.time}</span>
+                        {getWeatherIcon(hour.icon, 'w-10 h-10')}
+                        <span className="text-xl font-black">{convertTemp(hour.temp)}°</span>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
-              ))}
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Right Column: 5-Day Forecast & Status */}
+          <div className="lg:col-span-4 space-y-8">
+            
+            {/* Forecast Card */}
+            <div className="bg-background-secondary rounded-[32px] p-8 border border-stroke-primary/50 flex flex-col h-full">
+              <h3 className="text-xl font-bold flex items-center gap-2 mb-8">
+                <Icons.Calendar className="w-5 h-5 text-accent" />
+                Next 5 Days
+              </h3>
+              <div className="space-y-4 flex-1">
+                {selectedCity.forecast.map((day, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ x: 4 }}
+                    className="flex items-center justify-between bg-foreground-tertiary/5 hover:bg-foreground-tertiary/10 border border-stroke-primary/50 rounded-2xl p-5 transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 text-sm font-black opacity-40 uppercase">{day.day}</div>
+                      {getWeatherIcon(day.icon, 'w-6 h-6')}
+                    </div>
+                    <div className="flex items-center gap-6">
+                      {day.precipitation > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-blue-400">
+                          <Icons.Droplets className="w-3 h-3" />
+                          {day.precipitation}%
+                        </div>
+                      )}
+                      <div className="flex gap-4 text-sm">
+                        <span className="font-black">{convertTemp(day.high)}°</span>
+                        <span className="opacity-30">{convertTemp(day.low)}°</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              {/* Bottom Decoration/Status */}
+              <div className="mt-8 pt-8 border-t border-stroke-primary/50">
+                <div className="bg-accent/10 rounded-2xl p-4 border border-accent/20 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center shrink-0">
+                    <Icons.Zap className="w-6 h-6 text-foreground-on-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-accent">Orion Insight</p>
+                    <p className="text-[11px] font-bold text-foreground-secondary leading-tight">High solar potential today. Optimal for outdoor energy-intensive activities.</p>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </div>
+      
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 4px;
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: var(--color-bg-accent-hover);
+        }
+      `}</style>
     </div>
   );
 }

@@ -134,16 +134,16 @@ export function Notepad({ window }: NotepadProps = {}) {
   const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl border-b border-white/10">
+    <div className="w-full h-full flex flex-col bg-os-ink-950 border-b border-white/[0.08]">
       {/* Toolbar */}
-      <div className="border-b border-white/10 p-2 flex items-center gap-2 backdrop-blur-sm bg-white/5">
+      <div className="border-b border-white/[0.08] p-2 flex items-center gap-2 bg-white/[0.02]">
         {/* Save buttons */}
         <button
           onClick={handleSave}
           disabled={!hasUnsavedChanges && !!fileId}
           className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${hasUnsavedChanges || !fileId
-            ? 'bg-primary-600 text-white hover:bg-primary-700'
-            : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+            ? 'bg-os-ink-700 text-white hover:bg-os-ink-600'
+            : 'bg-white/[0.04] text-white/30 cursor-not-allowed'
             }`}
         >
           <Icons.Save className="w-3 h-3" />
@@ -157,13 +157,13 @@ export function Notepad({ window }: NotepadProps = {}) {
           Save As
         </button>
 
-        <div className="h-6 w-px bg-gray-600 mx-1" />
+        <div className="h-6 w-px bg-white/[0.08] mx-1" />
 
         {/* View mode toggle */}
-        <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
+        <div className="flex items-center gap-1 bg-os-ink-900 rounded p-1">
           <button
             onClick={() => setViewMode('edit')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'edit' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'edit' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
               }`}
           >
             <Icons.Edit3 className="w-3 h-3" />
@@ -171,7 +171,7 @@ export function Notepad({ window }: NotepadProps = {}) {
           </button>
           <button
             onClick={() => setViewMode('split')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'split' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'split' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
               }`}
           >
             <Icons.Columns className="w-3 h-3" />
@@ -179,7 +179,7 @@ export function Notepad({ window }: NotepadProps = {}) {
           </button>
           <button
             onClick={() => setViewMode('preview')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'preview' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'preview' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
               }`}
           >
             <Icons.Eye className="w-3 h-3" />
@@ -190,7 +190,7 @@ export function Notepad({ window }: NotepadProps = {}) {
         {/* Auto-save toggle */}
         <button
           onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
-          className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${autoSaveEnabled ? 'bg-green-600/20 text-green-400' : 'bg-gray-600/20 text-gray-400'
+          className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${autoSaveEnabled ? 'bg-green-500/[0.15] text-green-400' : 'bg-white/[0.04] text-white/40'
             }`}
           title={autoSaveEnabled ? 'Auto-save enabled' : 'Auto-save disabled'}
         >
@@ -201,7 +201,7 @@ export function Notepad({ window }: NotepadProps = {}) {
         <div className="flex-1" />
 
         {fileId && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-white/40">
             Editing: {window?.title || 'Untitled'}
           </span>
         )}
@@ -236,7 +236,7 @@ export function Notepad({ window }: NotepadProps = {}) {
       </div>
 
       {/* Status bar */}
-      <div className="border-t border-white/10 px-3 py-1 text-xs text-gray-400 flex items-center justify-between backdrop-blur-sm bg-white/5">
+      <div className="border-t border-white/[0.08] px-3 py-1 text-xs text-white/40 flex items-center justify-between bg-white/[0.02]">
         <div className="flex items-center gap-4">
           <span>Characters: {text.length}</span>
           <span>Words: {wordCount}</span>

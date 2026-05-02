@@ -82,6 +82,8 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 50, y: 50 },
     defaultSize: { width: 860, height: 600 },
+    minSize: { width: 580, height: 400 },
+    mobileBehavior: 'maximize',
     description: 'Browse and manage portfolio files',
   },
   {
@@ -95,6 +97,8 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 50, y: 150 },
     defaultSize: { width: 780, height: 640 },
+    minSize: { width: 520, height: 480 },
+    mobileBehavior: 'maximize',
     description: 'Profile, experience, skills, projects, and contact',
   },
   {
@@ -108,6 +112,8 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 150, y: 50 },
     defaultSize: { width: 900, height: 700 },
+    minSize: { width: 480, height: 360 },
+    mobileBehavior: 'maximize',
     description: 'Browse the web and project links',
   },
   {
@@ -121,6 +127,8 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 150, y: 150 },
     defaultSize: { width: 700, height: 600 },
+    minSize: { width: 480, height: 400 },
+    mobileBehavior: 'maximize',
     description: 'System preferences and profile editing',
   },
   {
@@ -134,6 +142,8 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 250, y: 50 },
     defaultSize: { width: 700, height: 580 },
+    minSize: { width: 480, height: 400 },
+    mobileBehavior: 'maximize',
     description: 'Keketso OS — concept, stack, and build info',
   },
   {
@@ -147,6 +157,7 @@ const defaultApps: App[] = [
     pinnedToDesktop: true,
     desktopPosition: { x: 250, y: 150 },
     defaultSize: { width: 700, height: 500 },
+    minSize: { width: 460, height: 320 },
     description: 'Running processes and system info',
   },
   {
@@ -159,6 +170,8 @@ const defaultApps: App[] = [
     pinnedToTaskbar: false,
     pinnedToDesktop: false,
     defaultSize: { width: 320, height: 480 },
+    minSize: { width: 280, height: 420 },
+    preferredWindowMode: 'fixed',
     description: 'System calculator',
   },
   {
@@ -484,6 +497,25 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       };
     }
 
+    const isMobile = typeof globalThis.window !== 'undefined' && globalThis.window.innerWidth < 768;
+
+    if (isMobile && app.mobileBehavior === 'hide') {
+      return state;
+    }
+
+    const defaultSize = app.defaultSize || { width: 800, height: 600 };
+    const minSize = app.minSize;
+    const resolvedSize = minSize
+      ? {
+          width: Math.max(defaultSize.width, minSize.width),
+          height: Math.max(defaultSize.height, minSize.height),
+        }
+      : defaultSize;
+
+    const openMaximized =
+      app.preferredWindowMode === 'maximized' ||
+      (isMobile && (app.mobileBehavior === 'maximize' || app.mobileBehavior === 'fullscreen'));
+
     const newWindow: WindowState = {
       id: `${app.id}-${Date.now()}`,
       appId: app.id,
@@ -497,11 +529,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       fileId: fileData?.fileId,
       file: fileData?.file,
       position: { x: 100 + state.windows.length * 30, y: 100 + state.windows.length * 30 },
-      size: app.defaultSize || { width: 800, height: 600 },
+      size: resolvedSize,
       isMinimized: false,
-      isMaximized: false,
+      isMaximized: openMaximized,
       zIndex: state.maxZIndex + 1,
       surfaceMode: app.surfaceMode ?? (app.type === 'iframe' ? 'iframe' : 'utilityDark'),
+      minSize: app.minSize,
     };
 
     return {

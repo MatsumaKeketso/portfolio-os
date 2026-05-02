@@ -69,7 +69,7 @@ export function About() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+      <div className="w-full h-full bg-os-ink-950 flex items-center justify-center">
         <Icons.Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
         <span className="ml-3 text-white font-medium">Loading profile...</span>
       </div>
@@ -191,9 +191,9 @@ export function About() {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
+    <div className="w-full h-full bg-os-ink-950 flex flex-col">
       {/* Header with Edit Controls */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
         <h1 className="text-2xl font-bold text-white">About Me</h1>
         {isAuthenticated && (
           <div className="flex gap-2">
@@ -237,7 +237,7 @@ export function About() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 px-6 py-3 border-b border-white/10 bg-white/5">
+      <div className="flex gap-2 px-6 py-3 border-b border-white/[0.08] bg-white/[0.04]">
         <Button
           variant={activeTab === 'overview' ? 'primary' : 'secondary'}
           size="sm"
@@ -338,7 +338,7 @@ export function About() {
               </div>
 
               {/* Name and Title */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
@@ -350,7 +350,7 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, name: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
                     <div>
@@ -362,7 +362,7 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, title: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
                     <div>
@@ -374,7 +374,7 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, subtitle: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
                   </div>
@@ -382,13 +382,13 @@ export function About() {
                   <div className="text-center">
                     <h2 className="text-3xl font-bold text-white mb-2">{profile.personal.name}</h2>
                     <p className="text-xl text-primary-400 mb-1">{profile.personal.title}</p>
-                    <p className="text-slate-300">{profile.personal.subtitle}</p>
+                    <p className="text-white/60">{profile.personal.subtitle}</p>
                   </div>
                 )}
               </div>
 
               {/* Bio */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.FileText className="w-5 h-5" />
                   Biography
@@ -407,7 +407,7 @@ export function About() {
                             personal: { ...editForm.personal, bio: newBio }
                           });
                         }}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white min-h-[100px]"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white min-h-[100px]"
                         rows={3}
                       />
                     ))}
@@ -415,14 +415,14 @@ export function About() {
                 ) : (
                   <div className="space-y-4">
                     {profile.personal.bio.map((bioItem, index) => (
-                      <p key={index} className="text-slate-200 leading-relaxed">{bioItem}</p>
+                      <p key={index} className="text-white/70 leading-relaxed">{bioItem}</p>
                     ))}
                   </div>
                 )}
               </div>
 
               {/* Social Links */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Link className="w-5 h-5" />
                   Social Links
@@ -430,7 +430,7 @@ export function About() {
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-slate-400 text-xs mb-1 block">GitHub</label>
+                      <label className="text-white/40 text-xs mb-1 block">GitHub</label>
                       <input
                         type="url"
                         placeholder="https://github.com/username"
@@ -439,11 +439,11 @@ export function About() {
                           ...editForm,
                           social: { ...editForm.social, github: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 text-xs mb-1 block">LinkedIn</label>
+                      <label className="text-white/40 text-xs mb-1 block">LinkedIn</label>
                       <input
                         type="url"
                         placeholder="https://linkedin.com/in/username"
@@ -452,11 +452,11 @@ export function About() {
                           ...editForm,
                           social: { ...editForm.social, linkedin: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 text-xs mb-1 block">Twitter</label>
+                      <label className="text-white/40 text-xs mb-1 block">Twitter</label>
                       <input
                         type="url"
                         placeholder="https://twitter.com/username"
@@ -465,11 +465,11 @@ export function About() {
                           ...editForm,
                           social: { ...editForm.social, twitter: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 text-xs mb-1 block">Website</label>
+                      <label className="text-white/40 text-xs mb-1 block">Website</label>
                       <input
                         type="url"
                         placeholder="https://yourwebsite.com"
@@ -478,14 +478,14 @@ export function About() {
                           ...editForm,
                           social: { ...editForm.social, website: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 text-xs mb-2 block">Custom Links</label>
+                      <label className="text-white/40 text-xs mb-2 block">Custom Links</label>
                       <div className="space-y-2">
                         {editForm.social.custom.map((link, index) => (
-                          <div key={link.id} className="flex gap-2 bg-white/5 rounded-lg p-3">
+                          <div key={link.id} className="flex gap-2 bg-white/[0.04] rounded-lg p-3">
                             <input
                               type="text"
                               placeholder="Link name"
@@ -498,7 +498,7 @@ export function About() {
                                   social: { ...editForm.social, custom: newCustom }
                                 });
                               }}
-                              className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             />
                             <input
                               type="url"
@@ -512,7 +512,7 @@ export function About() {
                                   social: { ...editForm.social, custom: newCustom }
                                 });
                               }}
-                              className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             />
                             <input
                               type="text"
@@ -526,7 +526,7 @@ export function About() {
                                   social: { ...editForm.social, custom: newCustom }
                                 });
                               }}
-                              className="w-32 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="w-32 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             />
                             <Button
                               variant="danger"
@@ -577,7 +577,7 @@ export function About() {
                         href={profile.social.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all"
+                        className="flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg p-4 transition-all"
                       >
                         <Icons.Github className="w-6 h-6 text-white" />
                         <span className="text-white font-medium">GitHub</span>
@@ -588,7 +588,7 @@ export function About() {
                         href={profile.social.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all"
+                        className="flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg p-4 transition-all"
                       >
                         <Icons.Linkedin className="w-6 h-6 text-white" />
                         <span className="text-white font-medium">LinkedIn</span>
@@ -599,7 +599,7 @@ export function About() {
                         href={profile.social.twitter}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all"
+                        className="flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg p-4 transition-all"
                       >
                         <Icons.Twitter className="w-6 h-6 text-white" />
                         <span className="text-white font-medium">Twitter</span>
@@ -610,7 +610,7 @@ export function About() {
                         href={profile.social.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all"
+                        className="flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg p-4 transition-all"
                       >
                         <Icons.Globe className="w-6 h-6 text-white" />
                         <span className="text-white font-medium">Website</span>
@@ -626,7 +626,7 @@ export function About() {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all"
+                          className="flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg p-4 transition-all"
                         >
                           <IconComponent className="w-6 h-6 text-white" />
                           <span className="text-white font-medium">{link.name}</span>
@@ -643,30 +643,30 @@ export function About() {
           {activeTab === 'experience' && (
             <div className="space-y-6">
               {/* Resume Summary */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Resume Summary</h3>
                 {isEditing ? (
                   <textarea
                     value={editForm.summary}
                     onChange={(e) => setEditForm({ ...editForm, summary: e.target.value })}
                     placeholder="Professional summary for your resume..."
-                    className="w-full bg-white/10 border border-white/20 rounded px-4 py-3 text-white min-h-[120px]"
+                    className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-3 text-white min-h-[120px]"
                     rows={5}
                   />
                 ) : (
-                  <p className="text-slate-200 leading-relaxed">{profile.resume.summary}</p>
+                  <p className="text-white/70 leading-relaxed">{profile.resume.summary}</p>
                 )}
               </div>
 
               {/* Work Experience */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Work Experience</h3>
                 {editForm.experience.length === 0 ? (
-                  <p className="text-slate-400 text-center py-8">No experience added yet. Click Edit to add your work history.</p>
+                  <p className="text-white/40 text-center py-8">No experience added yet. Click Edit to add your work history.</p>
                 ) : (
                   <div className="space-y-4">
                     {editForm.experience.map((exp, index) => (
-                      <div key={exp.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div key={exp.id} className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.08]">
                         {isEditing ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
@@ -679,7 +679,7 @@ export function About() {
                                   newExp[index] = { ...newExp[index], position: e.target.value };
                                   setEditForm({ ...editForm, experience: newExp });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                               <input
                                 type="text"
@@ -690,7 +690,7 @@ export function About() {
                                   newExp[index] = { ...newExp[index], company: e.target.value };
                                   setEditForm({ ...editForm, experience: newExp });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                             </div>
                             <input
@@ -702,11 +702,11 @@ export function About() {
                                 newExp[index] = { ...newExp[index], location: e.target.value };
                                 setEditForm({ ...editForm, experience: newExp });
                               }}
-                              className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                              className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                             />
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">Start Date</label>
+                                <label className="text-white/40 text-xs mb-1 block">Start Date</label>
                                 <input
                                   type="date"
                                   value={exp.startDate}
@@ -715,11 +715,11 @@ export function About() {
                                     newExp[index] = { ...newExp[index], startDate: e.target.value };
                                     setEditForm({ ...editForm, experience: newExp });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">End Date (or "Present")</label>
+                                <label className="text-white/40 text-xs mb-1 block">End Date (or "Present")</label>
                                 <input
                                   type="text"
                                   placeholder="Present or date"
@@ -729,12 +729,12 @@ export function About() {
                                     newExp[index] = { ...newExp[index], endDate: e.target.value };
                                     setEditForm({ ...editForm, experience: newExp });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Description (one per line)</label>
+                              <label className="text-white/40 text-xs mb-1 block">Description (one per line)</label>
                               {exp.description.map((desc, descIndex) => (
                                 <div key={descIndex} className="flex gap-2 mb-2">
                                   <input
@@ -748,7 +748,7 @@ export function About() {
                                       newExp[index] = { ...newExp[index], description: newDesc };
                                       setEditForm({ ...editForm, experience: newExp });
                                     }}
-                                    className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                                    className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                                   />
                                   <Button
                                     variant="danger"
@@ -777,7 +777,7 @@ export function About() {
                               </Button>
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Technologies (comma-separated)</label>
+                              <label className="text-white/40 text-xs mb-1 block">Technologies (comma-separated)</label>
                               <input
                                 type="text"
                                 placeholder="React, TypeScript, Node.js"
@@ -790,7 +790,7 @@ export function About() {
                                   };
                                   setEditForm({ ...editForm, experience: newExp });
                                 }}
-                                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                             </div>
                             <Button
@@ -813,14 +813,14 @@ export function About() {
                               <div>
                                 <h4 className="text-lg font-semibold text-white">{exp.position}</h4>
                                 <p className="text-primary-400 font-medium">{exp.company}</p>
-                                {exp.location && <p className="text-slate-400 text-sm">{exp.location}</p>}
+                                {exp.location && <p className="text-white/40 text-sm">{exp.location}</p>}
                               </div>
-                              <span className="text-slate-400 text-sm">{exp.startDate} - {exp.endDate}</span>
+                              <span className="text-white/40 text-sm">{exp.startDate} - {exp.endDate}</span>
                             </div>
                             {exp.description.length > 0 && (
                               <ul className="list-disc list-inside space-y-1 mb-3">
                                 {exp.description.map((desc, i) => (
-                                  <li key={i} className="text-slate-300 text-sm">{desc}</li>
+                                  <li key={i} className="text-white/60 text-sm">{desc}</li>
                                 ))}
                               </ul>
                             )}
@@ -867,14 +867,14 @@ export function About() {
               </div>
 
               {/* Education */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Education</h3>
                 {editForm.education.length === 0 ? (
-                  <p className="text-slate-400 text-center py-8">No education added yet. Click Edit to add your education history.</p>
+                  <p className="text-white/40 text-center py-8">No education added yet. Click Edit to add your education history.</p>
                 ) : (
                   <div className="space-y-4">
                     {editForm.education.map((edu, index) => (
-                      <div key={edu.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div key={edu.id} className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.08]">
                         {isEditing ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
@@ -887,7 +887,7 @@ export function About() {
                                   newEdu[index] = { ...newEdu[index], institution: e.target.value };
                                   setEditForm({ ...editForm, education: newEdu });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                               <input
                                 type="text"
@@ -898,7 +898,7 @@ export function About() {
                                   newEdu[index] = { ...newEdu[index], degree: e.target.value };
                                   setEditForm({ ...editForm, education: newEdu });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                             </div>
                             <input
@@ -910,11 +910,11 @@ export function About() {
                                 newEdu[index] = { ...newEdu[index], field: e.target.value };
                                 setEditForm({ ...editForm, education: newEdu });
                               }}
-                              className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                              className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                             />
                             <div className="grid grid-cols-3 gap-3">
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">Start Date</label>
+                                <label className="text-white/40 text-xs mb-1 block">Start Date</label>
                                 <input
                                   type="date"
                                   value={edu.startDate}
@@ -923,11 +923,11 @@ export function About() {
                                     newEdu[index] = { ...newEdu[index], startDate: e.target.value };
                                     setEditForm({ ...editForm, education: newEdu });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">End Date</label>
+                                <label className="text-white/40 text-xs mb-1 block">End Date</label>
                                 <input
                                   type="date"
                                   value={edu.endDate}
@@ -936,11 +936,11 @@ export function About() {
                                     newEdu[index] = { ...newEdu[index], endDate: e.target.value };
                                     setEditForm({ ...editForm, education: newEdu });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">GPA (optional)</label>
+                                <label className="text-white/40 text-xs mb-1 block">GPA (optional)</label>
                                 <input
                                   type="text"
                                   placeholder="3.8/4.0"
@@ -950,12 +950,12 @@ export function About() {
                                     newEdu[index] = { ...newEdu[index], gpa: e.target.value };
                                     setEditForm({ ...editForm, education: newEdu });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Achievements (one per line)</label>
+                              <label className="text-white/40 text-xs mb-1 block">Achievements (one per line)</label>
                               {edu.achievements.map((achievement, achIndex) => (
                                 <div key={achIndex} className="flex gap-2 mb-2">
                                   <input
@@ -969,7 +969,7 @@ export function About() {
                                       newEdu[index] = { ...newEdu[index], achievements: newAchievements };
                                       setEditForm({ ...editForm, education: newEdu });
                                     }}
-                                    className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                                    className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                                   />
                                   <Button
                                     variant="danger"
@@ -1019,14 +1019,14 @@ export function About() {
                                 <p className="text-primary-400 font-medium">{edu.institution}</p>
                               </div>
                               <div className="text-right">
-                                <span className="text-slate-400 text-sm">{edu.startDate} - {edu.endDate}</span>
-                                {edu.gpa && <p className="text-slate-300 text-xs mt-1">GPA: {edu.gpa}</p>}
+                                <span className="text-white/40 text-sm">{edu.startDate} - {edu.endDate}</span>
+                                {edu.gpa && <p className="text-white/60 text-xs mt-1">GPA: {edu.gpa}</p>}
                               </div>
                             </div>
                             {edu.achievements.length > 0 && (
                               <ul className="list-disc list-inside space-y-1">
                                 {edu.achievements.map((achievement, i) => (
-                                  <li key={i} className="text-slate-300 text-sm">{achievement}</li>
+                                  <li key={i} className="text-white/60 text-sm">{achievement}</li>
                                 ))}
                               </ul>
                             )}
@@ -1063,14 +1063,14 @@ export function About() {
               </div>
 
               {/* Certifications */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Certifications</h3>
                 {editForm.certifications.length === 0 ? (
-                  <p className="text-slate-400 text-center py-8">No certifications added yet. Click Edit to add your professional certifications.</p>
+                  <p className="text-white/40 text-center py-8">No certifications added yet. Click Edit to add your professional certifications.</p>
                 ) : (
                   <div className="space-y-4">
                     {editForm.certifications.map((cert, index) => (
-                      <div key={cert.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div key={cert.id} className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.08]">
                         {isEditing ? (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
@@ -1083,7 +1083,7 @@ export function About() {
                                   newCerts[index] = { ...newCerts[index], name: e.target.value };
                                   setEditForm({ ...editForm, certifications: newCerts });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                               <input
                                 type="text"
@@ -1094,12 +1094,12 @@ export function About() {
                                   newCerts[index] = { ...newCerts[index], issuer: e.target.value };
                                   setEditForm({ ...editForm, certifications: newCerts });
                                 }}
-                                className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               />
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">Issue Date</label>
+                                <label className="text-white/40 text-xs mb-1 block">Issue Date</label>
                                 <input
                                   type="date"
                                   value={cert.date}
@@ -1108,11 +1108,11 @@ export function About() {
                                     newCerts[index] = { ...newCerts[index], date: e.target.value };
                                     setEditForm({ ...editForm, certifications: newCerts });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">Credential ID (optional)</label>
+                                <label className="text-white/40 text-xs mb-1 block">Credential ID (optional)</label>
                                 <input
                                   type="text"
                                   placeholder="ABC-123456"
@@ -1122,11 +1122,11 @@ export function About() {
                                     newCerts[index] = { ...newCerts[index], credentialId: e.target.value };
                                     setEditForm({ ...editForm, certifications: newCerts });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                               <div>
-                                <label className="text-slate-400 text-xs mb-1 block">Credential URL (optional)</label>
+                                <label className="text-white/40 text-xs mb-1 block">Credential URL (optional)</label>
                                 <input
                                   type="url"
                                   placeholder="https://..."
@@ -1136,7 +1136,7 @@ export function About() {
                                     newCerts[index] = { ...newCerts[index], url: e.target.value };
                                     setEditForm({ ...editForm, certifications: newCerts });
                                   }}
-                                  className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                  className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                                 />
                               </div>
                             </div>
@@ -1161,11 +1161,11 @@ export function About() {
                                 <h4 className="text-lg font-semibold text-white">{cert.name}</h4>
                                 <p className="text-primary-400 font-medium">{cert.issuer}</p>
                                 {cert.credentialId && (
-                                  <p className="text-slate-400 text-xs mt-1">Credential ID: {cert.credentialId}</p>
+                                  <p className="text-white/40 text-xs mt-1">Credential ID: {cert.credentialId}</p>
                                 )}
                               </div>
                               <div className="text-right">
-                                <span className="text-slate-400 text-sm">{cert.date}</span>
+                                <span className="text-white/40 text-sm">{cert.date}</span>
                                 {cert.url && (
                                   <div className="mt-2">
                                     <a
@@ -1215,11 +1215,11 @@ export function About() {
           {/* Projects Tab */}
           {activeTab === 'projects' && (
             <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Portfolio Projects</h3>
                 <div className="space-y-4">
                   {editForm.projects.map((project, index) => (
-                    <div key={project.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div key={project.id} className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.08]">
                       {isEditing ? (
                         <div className="space-y-3">
                           <input
@@ -1231,7 +1231,7 @@ export function About() {
                               newProjects[index] = { ...newProjects[index], name: e.target.value };
                               setEditForm({ ...editForm, projects: newProjects });
                             }}
-                            className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                            className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                           />
                           <textarea
                             placeholder="Short Description"
@@ -1241,11 +1241,11 @@ export function About() {
                               newProjects[index] = { ...newProjects[index], description: e.target.value };
                               setEditForm({ ...editForm, projects: newProjects });
                             }}
-                            className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                            className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                             rows={2}
                           />
                           <div>
-                            <label className="text-slate-400 text-xs mb-1 block">Technologies (comma-separated)</label>
+                            <label className="text-white/40 text-xs mb-1 block">Technologies (comma-separated)</label>
                             <input
                               type="text"
                               placeholder="React, TypeScript, Node.js"
@@ -1258,12 +1258,12 @@ export function About() {
                                 };
                                 setEditForm({ ...editForm, projects: newProjects });
                               }}
-                              className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                              className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                             />
                           </div>
                           <div className="grid grid-cols-3 gap-3">
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Status</label>
+                              <label className="text-white/40 text-xs mb-1 block">Status</label>
                               <select
                                 value={project.status}
                                 onChange={(e) => {
@@ -1271,15 +1271,15 @@ export function About() {
                                   newProjects[index] = { ...newProjects[index], status: e.target.value as any };
                                   setEditForm({ ...editForm, projects: newProjects });
                                 }}
-                                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white"
+                                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               >
-                                <option value="In Progress" className="bg-slate-800">In Progress</option>
-                                <option value="Completed" className="bg-slate-800">Completed</option>
-                                <option value="Archived" className="bg-slate-800">Archived</option>
+                                <option value="In Progress" className="bg-os-ink-900">In Progress</option>
+                                <option value="Completed" className="bg-os-ink-900">Completed</option>
+                                <option value="Archived" className="bg-os-ink-900">Archived</option>
                               </select>
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Featured</label>
+                              <label className="text-white/40 text-xs mb-1 block">Featured</label>
                               <label className="flex items-center gap-2 mt-2">
                                 <input
                                   type="checkbox"
@@ -1297,7 +1297,7 @@ export function About() {
                           </div>
                           <div className="grid grid-cols-3 gap-3">
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Live URL</label>
+                              <label className="text-white/40 text-xs mb-1 block">Live URL</label>
                               <input
                                 type="url"
                                 placeholder="https://example.com"
@@ -1310,11 +1310,11 @@ export function About() {
                                   };
                                   setEditForm({ ...editForm, projects: newProjects });
                                 }}
-                                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                               />
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">GitHub URL</label>
+                              <label className="text-white/40 text-xs mb-1 block">GitHub URL</label>
                               <input
                                 type="url"
                                 placeholder="https://github.com/..."
@@ -1327,11 +1327,11 @@ export function About() {
                                   };
                                   setEditForm({ ...editForm, projects: newProjects });
                                 }}
-                                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                               />
                             </div>
                             <div>
-                              <label className="text-slate-400 text-xs mb-1 block">Demo URL</label>
+                              <label className="text-white/40 text-xs mb-1 block">Demo URL</label>
                               <input
                                 type="url"
                                 placeholder="https://demo.com"
@@ -1344,7 +1344,7 @@ export function About() {
                                   };
                                   setEditForm({ ...editForm, projects: newProjects });
                                 }}
-                                className="w-full bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                               />
                             </div>
                           </div>
@@ -1371,12 +1371,12 @@ export function About() {
                             </h4>
                             <span className={`text-xs px-2 py-1 rounded ${project.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
                               project.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-gray-500/20 text-gray-400'
+                                'bg-white/[0.08] text-white/40'
                               }`}>
                               {project.status}
                             </span>
                           </div>
-                          <p className="text-slate-300 text-sm mb-3">{project.description}</p>
+                          <p className="text-white/60 text-sm mb-3">{project.description}</p>
                           {project.technologies.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {project.technologies.map((tech, i) => (
@@ -1443,7 +1443,7 @@ export function About() {
           {activeTab === 'skills' && (
             <div className="space-y-6">
               {editForm.skills.categories.map((category: UserProfile['skills']['categories'][0], catIndex: number) => (
-                <div key={category.id} className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                <div key={category.id} className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                   {isEditing ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-4">
@@ -1456,7 +1456,7 @@ export function About() {
                             newSkills.categories[catIndex].name = e.target.value;
                             setEditForm({ ...editForm, skills: newSkills });
                           }}
-                          className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white font-semibold"
+                          className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white font-semibold"
                         />
                         <Button
                           variant="danger"
@@ -1472,7 +1472,7 @@ export function About() {
                       </div>
                       <div className="space-y-2">
                         {category.skills.map((skill: UserProfile['skills']['categories'][0]['skills'][0], skillIndex: number) => (
-                          <div key={skillIndex} className="flex items-center gap-2 bg-white/5 rounded-lg p-3">
+                          <div key={skillIndex} className="flex items-center gap-2 bg-white/[0.04] rounded-lg p-3">
                             <input
                               type="text"
                               placeholder="Skill name"
@@ -1482,7 +1482,7 @@ export function About() {
                                 newSkills.categories[catIndex].skills[skillIndex].name = e.target.value;
                                 setEditForm({ ...editForm, skills: newSkills });
                               }}
-                              className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             />
                             <select
                               value={skill.proficiency}
@@ -1491,12 +1491,12 @@ export function About() {
                                 newSkills.categories[catIndex].skills[skillIndex].proficiency = e.target.value;
                                 setEditForm({ ...editForm, skills: newSkills });
                               }}
-                              className="bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             >
-                              <option value="Beginner" className="bg-slate-800">Beginner</option>
-                              <option value="Intermediate" className="bg-slate-800">Intermediate</option>
-                              <option value="Advanced" className="bg-slate-800">Advanced</option>
-                              <option value="Expert" className="bg-slate-800">Expert</option>
+                              <option value="Beginner" className="bg-os-ink-900">Beginner</option>
+                              <option value="Intermediate" className="bg-os-ink-900">Intermediate</option>
+                              <option value="Advanced" className="bg-os-ink-900">Advanced</option>
+                              <option value="Expert" className="bg-os-ink-900">Expert</option>
                             </select>
                             <input
                               type="number"
@@ -1507,7 +1507,7 @@ export function About() {
                                 newSkills.categories[catIndex].skills[skillIndex].yearsOfExperience = e.target.value ? parseInt(e.target.value) : undefined;
                                 setEditForm({ ...editForm, skills: newSkills });
                               }}
-                              className="w-20 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm"
+                              className="w-20 bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                               min="0"
                               max="50"
                             />
@@ -1547,11 +1547,11 @@ export function About() {
                       <h3 className="text-xl font-semibold text-white mb-4">{category.name}</h3>
                       <div className="space-y-2">
                         {category.skills.map((skill: UserProfile['skills']['categories'][0]['skills'][0], skillIndex: number) => (
-                          <div key={skillIndex} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                          <div key={skillIndex} className="flex items-center justify-between bg-white/[0.04] rounded-lg p-3">
                             <div className="flex items-center gap-3">
                               <span className="text-white font-medium">{skill.name}</span>
                               {skill.yearsOfExperience && (
-                                <span className="text-slate-400 text-xs">
+                                <span className="text-white/40 text-xs">
                                   {skill.yearsOfExperience} {skill.yearsOfExperience === 1 ? 'year' : 'years'}
                                 </span>
                               )}
@@ -1559,7 +1559,7 @@ export function About() {
                             <span className={`px-3 py-1 rounded text-sm ${skill.proficiency === 'Expert' ? 'bg-tertiary-500/20 text-tertiary-300' :
                               skill.proficiency === 'Advanced' ? 'bg-primary-500/20 text-primary-300' :
                                 skill.proficiency === 'Intermediate' ? 'bg-green-500/20 text-green-300' :
-                                  'bg-gray-500/20 text-gray-300'
+                                  'bg-white/[0.08] text-white/60'
                               }`}>
                               {skill.proficiency}
                             </span>
@@ -1594,7 +1594,7 @@ export function About() {
           {/* Contact Tab */}
           {activeTab === 'contact' && (
             <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Contact Information</h3>
                 {isEditing ? (
                   <div className="space-y-4">
@@ -1607,7 +1607,7 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, email: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
                     <div>
@@ -1619,7 +1619,7 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, phone: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
                     <div>
@@ -1631,10 +1631,10 @@ export function About() {
                           ...editForm,
                           personal: { ...editForm.personal, location: e.target.value }
                         })}
-                        className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                        className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-4 py-2 text-white"
                       />
                     </div>
-                    <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-4 pt-4 border-t border-white/[0.08]">
                       <label className="flex items-center gap-2 text-white cursor-pointer">
                         <input
                           type="checkbox"

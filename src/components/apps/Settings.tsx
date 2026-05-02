@@ -218,18 +218,18 @@ export function Settings() {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
+    <div className="w-full h-full bg-transparent flex flex-col">
       {/* Header */}
       <div className="px-6 py-4 border-b border-white/10">
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <Icons.Settings className="w-6 h-6" />
           Settings
         </h1>
-        <p className="text-slate-400 text-sm mt-1">Manage your portfolio settings and preferences</p>
+        <p className="text-white/40 text-sm mt-1">Manage your portfolio settings and preferences</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 px-6 py-3 border-b border-white/10 bg-white/5 overflow-x-auto">
+      <div className="flex gap-2 px-6 py-3 border-b border-white/10 overflow-x-auto">
         <Button
           variant={activeTab === 'profile' ? 'primary' : 'ghost'}
           size="sm"
@@ -288,9 +288,9 @@ export function Settings() {
             <>
               {isAuthenticated ? (
                 <>
-                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-white/40 text-sm mb-4">
                       Update your basic information quickly here, or open the About Me app for full profile editing.
                     </p>
                     <div className="space-y-4">
@@ -300,7 +300,7 @@ export function Settings() {
                           type="text"
                           value={quickEdit.name}
                           onChange={(e) => setQuickEdit({ ...quickEdit, name: e.target.value })}
-                          className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                          className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white"
                         />
                       </div>
                       <div>
@@ -309,7 +309,7 @@ export function Settings() {
                           type="text"
                           value={quickEdit.title}
                           onChange={(e) => setQuickEdit({ ...quickEdit, title: e.target.value })}
-                          className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                          className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white"
                         />
                       </div>
                       <div className="flex gap-3">
@@ -325,12 +325,12 @@ export function Settings() {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-primary-900/30 to-tertiary-900/30 backdrop-blur-lg rounded p-6 border border-primary-500/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <div className="flex items-start gap-4">
                       <Icons.Info className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Profile Information</h4>
-                        <p className="text-slate-300 text-sm leading-relaxed">
+                        <p className="text-white/60 text-sm leading-relaxed">
                           Your profile data is stored locally in your browser and automatically saved.
                           Use the Data tab to export a backup or import profile data from another device.
                         </p>
@@ -339,10 +339,10 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
-                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08] text-center">
+                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-white/40 text-sm">
                     Please sign in as admin to edit profile information.
                   </p>
                 </div>
@@ -354,7 +354,7 @@ export function Settings() {
           {activeTab === 'appearance' && (
             <>
               {/* Background Management */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white flex items-center gap-2">
                     <Icons.Image className="w-5 h-5" />
@@ -373,7 +373,7 @@ export function Settings() {
                   />
                 </div>
 
-                <p className="text-slate-400 text-sm mb-4">
+                <p className="text-white/40 text-sm mb-4">
                   Choose a background or upload your own custom image (max 5MB)
                 </p>
 
@@ -432,7 +432,7 @@ export function Settings() {
               </div>
 
               {/* Display Settings */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Type className="w-5 h-5" />
                   Display Settings
@@ -443,13 +443,13 @@ export function Settings() {
                     <select
                       value={preferences.fontSize}
                       onChange={(e) => setPreferences({ ...preferences, fontSize: e.target.value as 'sm' | 'md' | 'lg' })}
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                      className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white"
                     >
-                      <option value="sm" className="bg-slate-800">Small</option>
-                      <option value="md" className="bg-slate-800">Medium</option>
-                      <option value="lg" className="bg-slate-800">Large</option>
+                      <option value="sm" className="bg-os-ink-900">Small</option>
+                      <option value="md" className="bg-os-ink-900">Medium</option>
+                      <option value="lg" className="bg-os-ink-900">Large</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Change the base font size for better readability</p>
+                    <p className="text-white/40 text-xs mt-1">Change the base font size for better readability</p>
                   </div>
 
                   <div>
@@ -461,11 +461,11 @@ export function Settings() {
                         onChange={(e) => setPreferences({ ...preferences, accentColor: e.target.value })}
                         className="w-16 h-10 rounded border border-white/20 cursor-pointer"
                       />
-                      <span className="text-slate-300 text-sm">
+                      <span className="text-white/60 text-sm">
                         {preferences.accentColor || '#667eea'}
                       </span>
                     </div>
-                    <p className="text-slate-400 text-xs mt-1">Customize the theme accent color</p>
+                    <p className="text-white/40 text-xs mt-1">Customize the theme accent color</p>
                   </div>
 
                   <Button variant="primary" size="sm" onClick={handlePreferencesSave}>
@@ -475,12 +475,12 @@ export function Settings() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-tertiary-900/30 to-tertiary-700/30 backdrop-blur-lg rounded p-6 border border-tertiary-500/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <div className="flex items-start gap-4">
                   <Icons.Sparkles className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">Personalization</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed">
+                    <p className="text-white/60 text-sm leading-relaxed">
                       Customize your GenOS experience with backgrounds, colors, and display preferences.
                       All changes are saved automatically and applied immediately.
                     </p>
@@ -494,7 +494,7 @@ export function Settings() {
           {activeTab === 'system' && (
             <>
               {/* Taskbar Settings */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Layout className="w-5 h-5" />
                   Taskbar Settings
@@ -503,7 +503,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Position</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
                       value={systemPreferences.taskbarPosition}
                       onChange={(e) => {
                         setTaskbarPosition(e.target.value as any);
@@ -515,18 +515,18 @@ export function Settings() {
                         });
                       }}
                     >
-                      <option value="top" className="bg-slate-800">Top</option>
-                      <option value="bottom" className="bg-slate-800">Bottom</option>
-                      <option value="left" className="bg-slate-800">Left</option>
-                      <option value="right" className="bg-slate-800">Right</option>
+                      <option value="top" className="bg-os-ink-900">Top</option>
+                      <option value="bottom" className="bg-os-ink-900">Bottom</option>
+                      <option value="left" className="bg-os-ink-900">Left</option>
+                      <option value="right" className="bg-os-ink-900">Right</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Change where the taskbar appears</p>
+                    <p className="text-white/40 text-xs mt-1">Change where the taskbar appears</p>
                   </div>
 
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Size</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
                       value={systemPreferences.taskbarSize}
                       onChange={(e) => {
                         setTaskbarSize(e.target.value as any);
@@ -538,14 +538,14 @@ export function Settings() {
                         });
                       }}
                     >
-                      <option value="small" className="bg-slate-800">Small</option>
-                      <option value="medium" className="bg-slate-800">Medium</option>
-                      <option value="large" className="bg-slate-800">Large</option>
+                      <option value="small" className="bg-os-ink-900">Small</option>
+                      <option value="medium" className="bg-os-ink-900">Medium</option>
+                      <option value="large" className="bg-os-ink-900">Large</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Adjust taskbar height/width</p>
+                    <p className="text-white/40 text-xs mt-1">Adjust taskbar height/width</p>
                   </div>
 
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                  <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-pointer hover:bg-os-ink-800 transition-all">
                     <input
                       type="checkbox"
                       checked={systemPreferences.autoHideTaskbar}
@@ -565,7 +565,7 @@ export function Settings() {
                         <Icons.Maximize2 className="w-4 h-4 text-blue-400" />
                         <span className="text-white font-medium">Auto-hide Taskbar</span>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">
+                      <p className="text-white/40 text-xs mt-1">
                         Automatically hide taskbar when not in use
                       </p>
                     </div>
@@ -574,7 +574,7 @@ export function Settings() {
               </div>
 
               {/* Desktop Settings */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Monitor className="w-5 h-5" />
                   Desktop Settings
@@ -583,7 +583,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Icon Size</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white cursor-pointer"
+                      className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
                       value={systemPreferences.iconSize}
                       onChange={(e) => {
                         setIconSize(e.target.value as any);
@@ -595,28 +595,28 @@ export function Settings() {
                         });
                       }}
                     >
-                      <option value="small" className="bg-slate-800">Small (64px)</option>
-                      <option value="medium" className="bg-slate-800">Medium (80px)</option>
-                      <option value="large" className="bg-slate-800">Large (96px)</option>
+                      <option value="small" className="bg-os-ink-900">Small (64px)</option>
+                      <option value="medium" className="bg-os-ink-900">Medium (80px)</option>
+                      <option value="large" className="bg-os-ink-900">Large (96px)</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Adjust desktop icon size</p>
+                    <p className="text-white/40 text-xs mt-1">Adjust desktop icon size</p>
                   </div>
 
                   <div>
                     <label className="text-white text-sm mb-2 block">Icon Arrangement</label>
                     <select
-                      className="w-full bg-white/10 border border-white/20 rounded px-4 py-2 text-white"
+                      className="w-full bg-os-ink-700 border border-white/[0.08] rounded px-4 py-2 text-white"
                       defaultValue="manual"
                       disabled
                     >
-                      <option value="manual" className="bg-slate-800">Manual</option>
-                      <option value="auto-grid" className="bg-slate-800">Auto Grid</option>
-                      <option value="auto-align" className="bg-slate-800">Auto Align</option>
+                      <option value="manual" className="bg-os-ink-900">Manual</option>
+                      <option value="auto-grid" className="bg-os-ink-900">Auto Grid</option>
+                      <option value="auto-align" className="bg-os-ink-900">Auto Align</option>
                     </select>
-                    <p className="text-slate-400 text-xs mt-1">Coming soon: Control how icons are arranged</p>
+                    <p className="text-white/40 text-xs mt-1">Coming soon: Control how icons are arranged</p>
                   </div>
 
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-not-allowed opacity-50">
+                  <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-not-allowed opacity-50">
                     <input
                       type="checkbox"
                       defaultChecked={false}
@@ -628,7 +628,7 @@ export function Settings() {
                         <Icons.Grid3x3 className="w-4 h-4 text-purple-400" />
                         <span className="text-white font-medium">Snap to Grid</span>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">
+                      <p className="text-white/40 text-xs mt-1">
                         Coming soon: Automatically snap icons to grid when dragging
                       </p>
                     </div>
@@ -637,13 +637,13 @@ export function Settings() {
               </div>
 
               {/* Performance Settings */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Zap className="w-5 h-5" />
                   Performance & Effects
                 </h3>
                 <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                  <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-pointer hover:bg-os-ink-800 transition-all">
                     <input
                       type="checkbox"
                       checked={systemPreferences.windowAnimations}
@@ -663,13 +663,13 @@ export function Settings() {
                         <Icons.Wind className="w-4 h-4 text-cyan-400" />
                         <span className="text-white font-medium">Window Animations</span>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">
+                      <p className="text-white/40 text-xs mt-1">
                         Enable smooth window open/close animations
                       </p>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-not-allowed opacity-50">
+                  <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-not-allowed opacity-50">
                     <input
                       type="checkbox"
                       defaultChecked={true}
@@ -681,13 +681,13 @@ export function Settings() {
                         <Icons.Sparkles className="w-4 h-4 text-yellow-400" />
                         <span className="text-white font-medium">Visual Effects</span>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">
+                      <p className="text-white/40 text-xs mt-1">
                         Coming soon: Enable blur effects and shadows
                       </p>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-not-allowed opacity-50">
+                  <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-not-allowed opacity-50">
                     <input
                       type="checkbox"
                       defaultChecked={false}
@@ -699,7 +699,7 @@ export function Settings() {
                         <Icons.Gauge className="w-4 h-4 text-green-400" />
                         <span className="text-white font-medium">Performance Mode</span>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1">
+                      <p className="text-white/40 text-xs mt-1">
                         Coming soon: Disable animations for better performance
                       </p>
                     </div>
@@ -708,42 +708,42 @@ export function Settings() {
               </div>
 
               {/* Startup Apps */}
-              <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Power className="w-5 h-5" />
                   Startup Applications
                 </h3>
-                <p className="text-slate-400 text-sm mb-4">
+                <p className="text-white/40 text-sm mb-4">
                   Configure which applications open automatically when GenOS starts
                 </p>
                 <div className="space-y-2 opacity-50">
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-os-ink-900 rounded-lg">
                     <div className="flex items-center gap-3">
                       <Icons.Folder className="w-4 h-4 text-blue-400" />
                       <span className="text-white text-sm">File Explorer</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-os-ink-900 rounded-lg">
                     <div className="flex items-center gap-3">
                       <Icons.User className="w-4 h-4 text-purple-400" />
                       <span className="text-white text-sm">About Me</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">Coming soon: Manage startup applications</p>
+                  <p className="text-white/40 text-xs mt-2">Coming soon: Manage startup applications</p>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-lg rounded p-6 border border-blue-500/20">
+              <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                 <div className="flex items-start gap-4">
                   <Icons.Settings className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">System Customization Available</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed mb-2">
+                    <p className="text-white/60 text-sm leading-relaxed mb-2">
                       <strong className="text-primary-400">Now Active:</strong> Taskbar positioning & size, desktop icon sizing, window animations, and auto-hide taskbar.
                     </p>
-                    <p className="text-slate-300 text-sm leading-relaxed">
+                    <p className="text-white/60 text-sm leading-relaxed">
                       <strong className="text-secondary-400">Coming Soon:</strong> Icon arrangement modes, visual effects controls, performance mode, and startup applications manager.
                     </p>
                   </div>
@@ -757,13 +757,13 @@ export function Settings() {
             <>
               {isAuthenticated ? (
                 <>
-                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-white/40 text-sm mb-4">
                       Control what contact information is publicly visible on your portfolio.
                     </p>
                     <div className="space-y-4">
-                      <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                      <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-pointer hover:bg-os-ink-800 transition-all">
                         <input
                           type="checkbox"
                           checked={preferences.showEmail}
@@ -775,13 +775,13 @@ export function Settings() {
                             <Icons.Mail className="w-4 h-4 text-blue-400" />
                             <span className="text-white font-medium">Show Email Address</span>
                           </div>
-                          <p className="text-slate-400 text-xs mt-1">
+                          <p className="text-white/40 text-xs mt-1">
                             Display your email on the Contact tab and public profiles
                           </p>
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all">
+                      <label className="flex items-center gap-3 p-4 bg-os-ink-900 rounded-lg cursor-pointer hover:bg-os-ink-800 transition-all">
                         <input
                           type="checkbox"
                           checked={preferences.showPhone}
@@ -793,7 +793,7 @@ export function Settings() {
                             <Icons.Phone className="w-4 h-4 text-green-400" />
                             <span className="text-white font-medium">Show Phone Number</span>
                           </div>
-                          <p className="text-slate-400 text-xs mt-1">
+                          <p className="text-white/40 text-xs mt-1">
                             Display your phone number on the Contact tab and public profiles
                           </p>
                         </div>
@@ -806,12 +806,12 @@ export function Settings() {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-lg rounded p-6 border border-green-500/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <div className="flex items-start gap-4">
                       <Icons.ShieldCheck className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Privacy & Security</h4>
-                        <p className="text-slate-300 text-sm leading-relaxed">
+                        <p className="text-white/60 text-sm leading-relaxed">
                           All your data is stored locally in your browser. No information is sent to external servers.
                           You have complete control over your privacy settings.
                         </p>
@@ -820,10 +820,10 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
-                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08] text-center">
+                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-white/40 text-sm">
                     Please sign in as admin to manage privacy settings.
                   </p>
                 </div>
@@ -836,12 +836,12 @@ export function Settings() {
             <>
               {isAuthenticated ? (
                 <>
-                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.Download className="w-5 h-5" />
                       Export Profile
                     </h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-white/40 text-sm mb-4">
                       Download your complete profile data as JSON. Use this to backup your portfolio or transfer it to another device.
                     </p>
                     <Button variant="primary" size="md" onClick={handleExport}>
@@ -850,12 +850,12 @@ export function Settings() {
                     </Button>
                   </div>
 
-                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.Upload className="w-5 h-5" />
                       Import Profile
                     </h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-white/40 text-sm mb-4">
                       Upload a previously exported profile JSON file to restore your portfolio data.
                     </p>
                     <label className="inline-block">
@@ -870,17 +870,17 @@ export function Settings() {
                         className="hidden"
                       />
                     </label>
-                    <p className="text-slate-500 text-xs mt-2">
+                    <p className="text-white/30 text-xs mt-2">
                       Importing will replace your current profile data
                     </p>
                   </div>
 
-                  <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.RotateCcw className="w-5 h-5" />
                       Reset Profile
                     </h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-white/40 text-sm mb-4">
                       Reset your profile to default values. This will erase all your custom data.
                     </p>
                     <Button variant="danger" size="md" onClick={handleReset}>
@@ -892,12 +892,12 @@ export function Settings() {
                     </p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-orange-900/30 to-red-900/30 backdrop-blur-lg rounded p-6 border border-orange-500/20">
+                  <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08]">
                     <div className="flex items-start gap-4">
                       <Icons.AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Data Management</h4>
-                        <p className="text-slate-300 text-sm leading-relaxed">
+                        <p className="text-white/60 text-sm leading-relaxed">
                           Regularly export your profile to keep a backup. Imported data must match the expected format.
                           Always verify your backup after exporting.
                         </p>
@@ -906,10 +906,10 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20 text-center">
-                  <Icons.Lock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <div className="bg-os-ink-800 rounded p-6 border border-white/[0.08] text-center">
+                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-white/40 text-sm">
                     Please sign in as admin to manage data settings.
                   </p>
                 </div>

@@ -18,25 +18,25 @@ import { cn } from '../../lib/utils'
 
 const inputVariants = cva(
   // Base styles (applied to all variants) - Cyberpunk focus treatment
-  'flex w-full text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]',
+  'flex w-full text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]',
   {
     variants: {
       variant: {
-        // Glass-morphism input with inset focus ring (StartMenu, AdminPanel)
+        // Dark chrome input (StartMenu, AdminPanel, dark surfaces)
         glass:
-          'bg-black/70 border border-gray-700/70 text-white backdrop-blur-sm focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black/85',
+          'bg-os-ink-700 border border-white/[0.08] text-white focus:border-white/[0.20]',
 
-        // Solid input with subtle inset ring (standard forms)
+        // Solid dark input (standard forms on dark surfaces)
         solid:
-          'bg-gray-900 border border-gray-700 text-white focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black',
+          'bg-os-ink-800 border border-white/[0.08] text-white focus:border-white/[0.20]',
 
-        // Light theme input (rarely used in Cyberpunk)
+        // Light surface input (CV, Settings content areas)
         light:
-          'bg-white border border-gray-200 text-gray-900 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+          'bg-white border border-os-line-light text-os-text-strong placeholder:text-os-text-faint focus:border-os-ink-950 focus:ring-1 focus:ring-os-ink-950',
 
-        // Search variant with left icon space + inset focus
+        // Search variant with left icon space
         search:
-          'bg-black/70 border border-gray-700/70 text-white pl-10 backdrop-blur-sm focus:border-primary-500/60 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] focus:bg-black/85',
+          'bg-os-ink-700 border border-white/[0.08] text-white pl-10 focus:border-white/[0.20]',
       },
 
       size: {

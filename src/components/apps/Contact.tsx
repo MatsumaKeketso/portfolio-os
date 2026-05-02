@@ -37,16 +37,16 @@ export function Contact() {
   ];
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 flex flex-col">
+    <div className="w-full h-full bg-os-ink-950 flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/10">
+      <div className="px-6 py-4 border-b border-white/[0.08]">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <Icons.Mail className="w-6 h-6" />
               Contact Information
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Get in touch</p>
+            <p className="text-white/40 text-sm mt-1">Get in touch</p>
           </div>
 
           {isAuthenticated && (
@@ -62,7 +62,7 @@ export function Contact() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Profile Card */}
-          <div className="bg-gradient-to-br from-primary-900/30 to-tertiary-900/30 backdrop-blur-lg rounded p-8 border border-primary-500/20">
+          <div className="bg-os-ink-900 rounded p-8 border border-white/[0.08]">
             <div className="flex items-start gap-6">
               {/* Photo */}
               {profile.personal.photo ? (
@@ -84,7 +84,7 @@ export function Contact() {
                 <h2 className="text-3xl font-bold text-white mb-1">{profile.personal.name}</h2>
                 <p className="text-xl text-primary-300 mb-3">{profile.personal.title}</p>
                 {profile.personal.location && (
-                  <div className="flex items-center gap-2 text-slate-300">
+                  <div className="flex items-center gap-2 text-white/60">
                     <Icons.MapPin className="w-4 h-4" />
                     <span>{profile.personal.location}</span>
                   </div>
@@ -94,7 +94,7 @@ export function Contact() {
           </div>
 
           {/* Contact Methods */}
-          <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+          <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <Icons.MessageSquare className="w-5 h-5" />
               Direct Contact
@@ -111,21 +111,21 @@ export function Contact() {
                     <Icons.Mail className="w-6 h-6 text-primary-400" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-slate-400 text-sm">Email</div>
+                    <div className="text-white/40 text-sm">Email</div>
                     <div className="text-white font-medium">{profile.personal.email}</div>
                   </div>
-                  <Icons.ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-primary-400 transition-colors" />
+                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-primary-400 transition-colors" />
                 </a>
               ) : (
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10 opacity-50">
-                  <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
-                    <Icons.Mail className="w-6 h-6 text-gray-400" />
+                  <div className="w-12 h-12 bg-white/[0.08] rounded-lg flex items-center justify-center">
+                    <Icons.Mail className="w-6 h-6 text-white/40" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-slate-400 text-sm">Email</div>
-                    <div className="text-slate-500">Hidden for privacy</div>
+                    <div className="text-white/40 text-sm">Email</div>
+                    <div className="text-white/30">Hidden for privacy</div>
                   </div>
-                  <Icons.EyeOff className="w-5 h-5 text-slate-500" />
+                  <Icons.EyeOff className="w-5 h-5 text-white/30" />
                 </div>
               )}
 
@@ -139,21 +139,21 @@ export function Contact() {
                     <Icons.Phone className="w-6 h-6 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-slate-400 text-sm">Phone</div>
+                    <div className="text-white/40 text-sm">Phone</div>
                     <div className="text-white font-medium">{profile.personal.phone}</div>
                   </div>
-                  <Icons.ExternalLink className="w-5 h-5 text-slate-400 group-hover:text-green-400 transition-colors" />
+                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-green-400 transition-colors" />
                 </a>
               ) : (
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10 opacity-50">
-                  <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
-                    <Icons.Phone className="w-6 h-6 text-gray-400" />
+                  <div className="w-12 h-12 bg-white/[0.08] rounded-lg flex items-center justify-center">
+                    <Icons.Phone className="w-6 h-6 text-white/40" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-slate-400 text-sm">Phone</div>
-                    <div className="text-slate-500">Hidden for privacy</div>
+                    <div className="text-white/40 text-sm">Phone</div>
+                    <div className="text-white/30">Hidden for privacy</div>
                   </div>
-                  <Icons.EyeOff className="w-5 h-5 text-slate-500" />
+                  <Icons.EyeOff className="w-5 h-5 text-white/30" />
                 </div>
               )}
             </div>
@@ -170,7 +170,7 @@ export function Contact() {
 
           {/* Social Links */}
           {socialLinks.length > 0 && (
-            <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+            <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Icons.Share2 className="w-5 h-5" />
                 Social & Web
@@ -192,9 +192,9 @@ export function Contact() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-white font-medium truncate">{link.platform}</div>
-                        <div className="text-slate-400 text-xs truncate">{link.url}</div>
+                        <div className="text-white/40 text-xs truncate">{link.url}</div>
                       </div>
-                      <Icons.ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-tertiary-400 transition-colors flex-shrink-0" />
+                      <Icons.ExternalLink className="w-4 h-4 text-white/40 group-hover:text-tertiary-400 transition-colors flex-shrink-0" />
                     </a>
                   );
                 })}
@@ -204,14 +204,14 @@ export function Contact() {
 
           {/* Bio */}
           {profile.personal.bio.length > 0 && (
-            <div className="bg-white/10 backdrop-blur-lg rounded p-6 border border-white/20">
+            <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Icons.User className="w-5 h-5" />
                 About
               </h3>
               <div className="space-y-3">
                 {profile.personal.bio.map((paragraph, index) => (
-                  <p key={index} className="text-slate-300 leading-relaxed">
+                  <p key={index} className="text-white/60 leading-relaxed">
                     {paragraph}
                   </p>
                 ))}
@@ -220,12 +220,12 @@ export function Contact() {
           )}
 
           {/* Call to Action */}
-          <div className="bg-gradient-to-br from-tertiary-900/30 to-tertiary-700/30 backdrop-blur-lg rounded p-6 border border-tertiary-500/20">
+          <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
             <div className="flex items-start gap-4">
               <Icons.MessageCircle className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
               <div>
                 <h4 className="text-white font-semibold mb-2">Let's Connect!</h4>
-                <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                <p className="text-white/60 text-sm leading-relaxed mb-4">
                   I'm always interested in hearing about new opportunities, collaborations, or just having a chat about technology and innovation.
                 </p>
                 <div className="flex gap-2">

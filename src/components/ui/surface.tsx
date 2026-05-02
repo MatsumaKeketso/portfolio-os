@@ -61,40 +61,40 @@ const surfaceVariants = cva(
         media:
           'relative overflow-hidden',
 
-        // ── Legacy glassmorphism variants (kept for backward compat) ────────
+        // ── Legacy variants (updated to OS tokens) ──────────────────────────
 
         window:
-          'bg-black/92 shadow-hud-elevated border-t border-primary-500/25 border-x border-b border-gray-800/50 overflow-hidden backdrop-blur-md',
+          'bg-os-ink-950 shadow-os-window border border-white/[0.08] overflow-hidden',
 
         dialog:
-          'bg-black/95 shadow-[0_25px_50px_rgba(0,0,0,0.8)] shadow-primary-500/20 border border-primary-500/30 overflow-hidden backdrop-blur-md',
+          'bg-os-ink-950 shadow-os-window border border-white/[0.08] overflow-hidden',
 
         panel:
-          'bg-gray-900/50 shadow-hud-base border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 backdrop-blur-md',
+          'bg-os-ink-900 shadow-os-card border border-white/[0.08] hover:border-white/[0.14] hover:bg-os-ink-800',
 
         card:
-          'bg-gray-900/50 shadow-hud-base border border-primary-500/30 hover:bg-primary-500/10 hover:border-primary-500/60 hover:translate-y-[-1px] hover:shadow-lg hover:shadow-primary-500/30 backdrop-blur-md',
+          'bg-os-ink-900 shadow-os-card border border-white/[0.08] hover:bg-os-ink-800 hover:border-white/[0.14] hover:translate-y-[-1px]',
 
         toolbar:
-          'bg-black/80 shadow-md border-b border-primary-500/25 backdrop-blur-md',
+          'bg-os-ink-950 shadow-sm border-b border-white/[0.08]',
 
         sidebar:
-          'bg-black/85 shadow-hud-base border-r border-primary-500/20 backdrop-blur-md',
+          'bg-os-ink-950 shadow-os-card border-r border-white/[0.08]',
 
         popover:
-          'bg-black/95 shadow-hud-elevated shadow-primary-500/20 border border-primary-500/30 backdrop-blur-md',
+          'bg-os-ink-900 shadow-os-floating border border-white/[0.10]',
 
         input:
-          'bg-gray-900/60 border border-gray-700/50 focus-within:border-primary-500/60 focus-within:shadow-[0_0_0_1px_rgba(6,182,212,0.3)_inset] backdrop-blur-md',
+          'bg-os-ink-700 border border-white/[0.08] focus-within:border-white/[0.20]',
 
         app:
-          'bg-gradient-to-br from-black/85 via-gray-900/80 to-black/85 shadow-inner backdrop-blur-md',
+          'bg-os-ink-950',
 
         inline:
-          'bg-black/40 border border-gray-800/40',
+          'bg-white/[0.04] border border-white/[0.06]',
 
         glass:
-          'bg-black/30 shadow-lg border border-primary-500/15 backdrop-blur-md',
+          'bg-os-ink-900 shadow-os-card border border-white/[0.08]',
       },
 
       elevation: {
@@ -107,19 +107,19 @@ const surfaceVariants = cva(
 
       blur: {
         none: '',
-        sm: 'backdrop-blur-sm',
-        md: 'backdrop-blur-md',
-        lg: 'backdrop-blur-lg',
-        xl: 'backdrop-blur-xl',
-        '2xl': 'backdrop-blur-2xl',
-        '3xl': 'backdrop-blur-3xl',
+        sm: '',
+        md: '',
+        lg: '',
+        xl: '',
+        '2xl': '',
+        '3xl': '',
       },
 
       border: {
-        default: 'border-b border-primary-500/10',
+        default: 'border-b border-white/[0.08]',
         none: '',
-        all: 'border border-primary-500/15',
-        glow: 'border-b border-primary-500/50 shadow-[0_1px_10px_rgba(6,182,212,0.3)]',
+        all: 'border border-white/[0.08]',
+        glow: 'border-b border-primary-500/50',
       },
 
       padding: {

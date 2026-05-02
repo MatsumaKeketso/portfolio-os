@@ -48,6 +48,8 @@ export interface WindowState {
   zIndex: number;
   /** Controls window body background and chrome treatment */
   surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe';
+  /** Minimum resize dimensions — enforced during drag-resize */
+  minSize?: { width: number; height: number };
 }
 
 export interface FileItem {

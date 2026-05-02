@@ -39,9 +39,9 @@ export function AboutOS() {
   };
 
   return (
-    <div className="flex h-full bg-white text-[#171717]">
+    <div className="flex h-full bg-os-canvas text-os-text-strong">
       {/* Side nav */}
-      <nav className="w-44 flex-shrink-0 border-r border-[#e8e8e5] bg-[#fafafa] py-2 overflow-y-auto">
+      <nav className="w-44 flex-shrink-0 border-r border-os-line-light bg-os-canvas-raised py-2 overflow-y-auto">
         <SystemRowGroup context="content">About</SystemRowGroup>
         {SECTIONS.map((section) => (
           <SystemRow
@@ -71,14 +71,14 @@ export function AboutOS() {
               <InfoRow label="Runtime" value="React + Vite, deployed via Firebase Hosting" />
             </div>
 
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#999] mt-5 mb-3">Stack</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-os-text-faint mt-5 mb-3">Stack</p>
             <div className="space-y-1">
               {STACK.map(({ name, role, icon }) => {
                 const Icon = (Icons as any)[icon] as React.ComponentType<{ className?: string }>;
                 return (
                   <div key={name} className="flex items-center gap-3 py-2 border-b border-[#f0f0ee] last:border-0">
                     <Icon className="w-3.5 h-3.5 text-[#888] flex-shrink-0" />
-                    <span className="text-xs font-medium text-[#171717] w-36">{name}</span>
+                    <span className="text-xs font-medium text-os-text-strong w-36">{name}</span>
                     <span className="text-xs text-[#888]">{role}</span>
                   </div>
                 );
@@ -124,14 +124,14 @@ export function AboutOS() {
                 href="https://github.com/MatsumaKeketso"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[#deded8] rounded-md text-xs text-[#171717] hover:bg-[#f5f5f3] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-os-line-light rounded-md text-xs text-os-text-strong hover:bg-os-canvas-warm transition-colors"
               >
                 <Icons.Github className="w-3.5 h-3.5" />
                 GitHub
               </a>
               <a
                 href="mailto:keketso@genos.dev"
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[#deded8] rounded-md text-xs text-[#171717] hover:bg-[#f5f5f3] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-os-line-light rounded-md text-xs text-os-text-strong hover:bg-os-canvas-warm transition-colors"
               >
                 <Icons.Mail className="w-3.5 h-3.5" />
                 keketso@genos.dev
@@ -144,14 +144,14 @@ export function AboutOS() {
             <SectionHeader icon={<Icons.Cpu className="w-4 h-4" />} title="Generative Studio" />
             <div className="space-y-3 text-sm text-[#444] leading-relaxed">
               <p>
-                Keketso OS was designed and built by <strong className="text-[#171717]">Generative Studio</strong> — a system-design practice focused on complex interactive products, motion systems, and developer tooling.
+                Keketso OS was designed and built by <strong className="text-os-text-strong">Generative Studio</strong> — a system-design practice focused on complex interactive products, motion systems, and developer tooling.
               </p>
               <p>
                 Generative Studio builds operating system concepts, generative interfaces, and pattern systems where the structure of the product is itself the message.
               </p>
             </div>
             <div className="mt-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#111111] rounded-md">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-os-ink-950 rounded-md">
                 <Icons.Sparkles className="w-3.5 h-3.5 text-white" />
                 <span className="text-xs text-white font-medium">Generative Studio</span>
               </div>
@@ -175,7 +175,7 @@ export function AboutOS() {
                 { name: 'Star Citizen', note: 'Sci-fi HUD aesthetic' },
               ].map(({ name, note }) => (
                 <div key={name} className="flex items-center gap-3 py-2 border-b border-[#f0f0ee] last:border-0">
-                  <span className="text-xs font-medium text-[#171717] w-36">{name}</span>
+                  <span className="text-xs font-medium text-os-text-strong w-36">{name}</span>
                   <span className="text-xs text-[#888]">{note}</span>
                 </div>
               ))}
@@ -206,9 +206,9 @@ export function AboutOS() {
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[#e8e8e5]">
-      <span className="text-[#666]">{icon}</span>
-      <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
+    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-os-line-light">
+      <span className="text-os-text-muted">{icon}</span>
+      <h2 className="text-sm font-semibold text-os-text-strong">{title}</h2>
     </div>
   );
 }
@@ -216,8 +216,8 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 py-1.5 border-b border-[#f5f5f3] last:border-0">
-      <span className="text-xs text-[#999] w-28 flex-shrink-0">{label}</span>
-      <span className="text-xs text-[#171717]">{value}</span>
+      <span className="text-xs text-os-text-faint w-28 flex-shrink-0">{label}</span>
+      <span className="text-xs text-os-text-strong">{value}</span>
     </div>
   );
 }

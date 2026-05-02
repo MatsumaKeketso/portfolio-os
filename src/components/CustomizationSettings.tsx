@@ -104,7 +104,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[15000] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 z-[15000] flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div
@@ -115,10 +115,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-3xl max-h-[90vh] flex flex-col mx-auto"
           >
-            {/* Top gradient accent line */}
-            <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-            <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex-1 bg-os-ink-950 rounded border border-white/[0.08] shadow-os-window overflow-hidden flex flex-col">
               {/* Header */}
               <div className="shrink-0 px-6 py-4 flex items-center justify-between">
                 <div>
@@ -126,7 +123,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                     <Icons.Palette className="w-6 h-6 text-primary-400" />
                     Customization Settings
                   </h2>
-                  <p className="text-primary-100 text-sm mt-1">
+                  <p className="text-white/50 text-sm mt-1">
                     Personalize your PortfolioOS experience
                   </p>
                 </div>
@@ -139,11 +136,10 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                 </Button>
               </div>
 
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+              <div className="h-px bg-white/[0.07]" />
 
               {/* Tabs */}
-              <div className="shrink-0 px-6 py-3 bg-white/5 flex gap-2">
+              <div className="shrink-0 px-6 py-3 bg-white/[0.02] flex gap-2">
                 <Button
                   onClick={() => setActiveTab('desktop')}
                   variant={activeTab === 'desktop' ? 'solid-brand-primary' : 'soft-system-primary'}
@@ -170,8 +166,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                 </Button>
               </div>
 
-              {/* Gradient divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+              <div className="h-px bg-white/[0.07]" />
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6">
@@ -198,7 +193,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
 
                           {/* Upload Button */}
                           <div className="mb-4">
-                            <label className={`bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                            <label className={`bg-os-ink-800 hover:bg-os-ink-700 border border-white/[0.08] text-white px-6 py-3 rounded flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                               {isUploading ? (
                                 <>
                                   <Icons.Loader className="w-5 h-5 animate-spin" />
@@ -219,7 +214,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                                 disabled={isUploading}
                               />
                             </label>
-                            <p className="text-gray-400 text-sm text-center mt-2">
+                            <p className="text-white/40 text-sm text-center mt-2">
                               Upload JPG, PNG, or WebP images (max 5MB per file, multiple files supported)
                             </p>
                           </div>
@@ -234,9 +229,9 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                               return (
                                 <div
                                   key={bg.id}
-                                  className={`relative rounded overflow-hidden border-4 transition-all cursor-pointer group ${isSelected
-                                    ? 'border-primary-500 shadow-lg shadow-primary-500/50'
-                                    : 'border-gray-700 hover:border-gray-500'
+                                  className={`relative rounded overflow-hidden border-2 transition-all cursor-pointer group ${isSelected
+                                    ? 'border-primary-500'
+                                    : 'border-white/[0.08] hover:border-white/[0.20]'
                                     }`}
                                   onClick={() => setSelectedBackground(bg.id)}
                                 >
@@ -252,7 +247,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                                   />
 
                                   {/* Info Bar */}
-                                  <div className="bg-gray-900/80 backdrop-blur-sm p-2 border-t border-white/10 flex items-center justify-between">
+                                  <div className="bg-os-ink-900 p-2 border-t border-white/[0.08] flex items-center justify-between">
                                     <div className="flex items-center gap-2 flex-1 min-w-0">
                                       <h3 className="text-white font-semibold text-xs truncate">
                                         {bg.name}
@@ -289,7 +284,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                     </div>
 
                     {/* Reset Button */}
-                    <div className="pt-4 border-t border-gray-700">
+                    <div className="pt-4 border-t border-white/[0.08]">
                       <Button
                         onClick={resetBackgroundToDefault}
                         variant="soft-system-primary"
@@ -347,17 +342,17 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                       </h3>
                       <div className="grid grid-cols-2 gap-4">
                         {(['primary', 'secondary', 'tertiary', 'accent'] as const).map((colorKey) => (
-                          <div key={colorKey} className="bg-white/5 border border-gray-700 rounded-lg p-4">
+                          <div key={colorKey} className="bg-white/[0.04] border border-white/[0.08] rounded-lg p-4">
                             <div className="flex items-center gap-3">
                               <input
                                 type="color"
                                 value={theme.colors[colorKey]}
                                 onChange={(e) => updateColors({ [colorKey]: e.target.value })}
-                                className="w-12 h-12 rounded cursor-pointer border-2 border-gray-600"
+                                className="w-12 h-12 rounded cursor-pointer border-2 border-white/[0.12]"
                               />
                               <div className="flex-1">
                                 <p className="text-white font-semibold capitalize mb-1">{colorKey}</p>
-                                <p className="text-gray-400 text-xs font-mono">{theme.colors[colorKey]}</p>
+                                <p className="text-white/40 text-xs font-mono">{theme.colors[colorKey]}</p>
                               </div>
                             </div>
                           </div>
@@ -440,7 +435,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                     </div>
 
                     {/* Reset Button */}
-                    <div className="pt-4 border-t border-gray-700">
+                    <div className="pt-4 border-t border-white/[0.08]">
                       <Button
                         onClick={resetToDefault}
                         variant="soft-system-primary"
@@ -461,7 +456,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                         <Icons.User className="w-5 h-5 text-primary-400" />
                         Quick Profile Info
                       </h3>
-                      <div className="bg-white/5 rounded p-4 border border-white/10">
+                      <div className="bg-white/[0.04] rounded p-4 border border-white/[0.08]">
                         <div className="flex items-center gap-4 mb-4">
                           {profile.personal.photo ? (
                             <img
@@ -470,7 +465,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                               className="w-16 h-16 rounded-full object-cover border-2 border-primary-400"
                             />
                           ) : (
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-tertiary-600 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-os-ink-800 border border-white/[0.12] flex items-center justify-center">
                               <Icons.User className="w-8 h-8 text-white" />
                             </div>
                           )}
@@ -479,14 +474,14 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                             <p className="text-primary-300">{profile.personal.title}</p>
                           </div>
                         </div>
-                        <div className="text-gray-300 text-sm space-y-2">
+                        <div className="text-white/60 text-sm space-y-2">
                           <p><Icons.MapPin className="w-4 h-4 inline mr-2 text-primary-400" />{profile.personal.location}</p>
                           {profile.preferences.showEmail && profile.personal.email && (
                             <p><Icons.Mail className="w-4 h-4 inline mr-2 text-primary-400" />{profile.personal.email}</p>
                           )}
                         </div>
                       </div>
-                      <p className="text-gray-400 text-sm mt-3">
+                      <p className="text-white/40 text-sm mt-3">
                         To edit your full profile, open the <strong className="text-primary-400">About</strong> app or <strong className="text-primary-400">Settings</strong> app from the desktop.
                       </p>
                     </div>
@@ -497,7 +492,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                         Privacy Settings
                       </h3>
                       <div className="space-y-3">
-                        <label className="flex items-center gap-3 p-3 bg-white/5 rounded cursor-pointer hover:bg-white/10 transition-all">
+                        <label className="flex items-center gap-3 p-3 bg-white/[0.04] rounded cursor-pointer hover:bg-white/[0.08] transition-all">
                           <input
                             type="checkbox"
                             checked={profile.preferences.showEmail}
@@ -506,10 +501,10 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                           />
                           <div className="flex-1">
                             <p className="text-white font-medium">Show Email Address</p>
-                            <p className="text-gray-400 text-sm">Display email in Contact app</p>
+                            <p className="text-white/40 text-sm">Display email in Contact app</p>
                           </div>
                         </label>
-                        <label className="flex items-center gap-3 p-3 bg-white/5 rounded cursor-pointer hover:bg-white/10 transition-all">
+                        <label className="flex items-center gap-3 p-3 bg-white/[0.04] rounded cursor-pointer hover:bg-white/[0.08] transition-all">
                           <input
                             type="checkbox"
                             checked={profile.preferences.showPhone}
@@ -518,7 +513,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                           />
                           <div className="flex-1">
                             <p className="text-white font-medium">Show Phone Number</p>
-                            <p className="text-gray-400 text-sm">Display phone in Contact app</p>
+                            <p className="text-white/40 text-sm">Display phone in Contact app</p>
                           </div>
                         </label>
                       </div>
