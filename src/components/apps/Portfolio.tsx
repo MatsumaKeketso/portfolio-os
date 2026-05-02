@@ -379,6 +379,7 @@ export function Portfolio() {
                 <Icons.X className="w-6 h-6" />
               </button>
             </div>
+            </div>
 
             <div className="h-px bg-white/[0.07]" />
 
