@@ -6,18 +6,21 @@ import { useUserStore } from '../store/userStore';
 import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Surface, SurfaceHeader } from './ui/surface';
+import { ContentSurface, SurfaceHeader } from './ui/surface';
 import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
+import { ContextMenu } from './ContextMenu';
+import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
 
 export function AdminPanel() {
   const {
-    apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
+    apps, isAdminMode, addApp, removeApp, updateApp, openWindow, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
   } = useDesktopStore();
   const { profile, addMilestone, updateMilestone, removeMilestone } = useUserStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [appContextMenu, setAppContextMenu] = useState<{ x: number; y: number; app: App } | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [quickURL, setQuickURL] = useState('');
   const [bulkURLs, setBulkURLs] = useState('');
@@ -166,7 +169,7 @@ export function AdminPanel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'portfolioOS-config.json';
+    a.download = 'GenOS-config.json';
     a.click();
   };
 
@@ -321,23 +324,10 @@ export function AdminPanel() {
   if (!isAdminMode) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 flex items-center justify-center p-4 bg-black/60 z-[10000]"
-      >
-        <motion.div
-          initial={{ scale: 0.95, y: 20, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0.95, y: 20, opacity: 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-6xl max-h-[90vh] flex flex-col"
-        >
-          <div className="flex-1 bg-os-ink-950 rounded border border-white/[0.08] overflow-hidden flex flex-col shadow-os-window">
-            {/* Header */}
-            <div className="shrink-0 px-6 py-4 border-b border-white/[0.08]">
+    <>
+    <ContentSurface className="flex-1 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="shrink-0 px-6 py-4 border-b border-white/[0.08]">
               <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -384,7 +374,7 @@ export function AdminPanel() {
             <div className="flex gap-2 mt-4">
               <Button
                 onClick={() => setActiveTab('apps')}
-                variant={activeTab === 'apps' ? 'solid-brand-primary' : 'soft-system-primary'}
+                variant={activeTab === 'apps' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
               >
                 <Icons.Grid3x3 className="w-4 h-4 inline mr-2" />
@@ -392,7 +382,7 @@ export function AdminPanel() {
               </Button>
               <Button
                 onClick={() => setActiveTab('backgrounds')}
-                variant={activeTab === 'backgrounds' ? 'solid-brand-primary' : 'soft-system-primary'}
+                variant={activeTab === 'backgrounds' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
               >
                 <Icons.Image className="w-4 h-4 inline mr-2" />
@@ -400,7 +390,7 @@ export function AdminPanel() {
               </Button>
               <Button
                 onClick={() => setActiveTab('milestones')}
-                variant={activeTab === 'milestones' ? 'solid-brand-primary' : 'soft-system-primary'}
+                variant={activeTab === 'milestones' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
               >
                 <Icons.Calendar className="w-4 h-4 inline mr-2" />
@@ -442,7 +432,7 @@ export function AdminPanel() {
                   setShowAddForm(false);
                   setShowQuickAdd(false);
                 }}
-                variant="tertiary"
+                variant="soft-system-primary"
                 size="lg"
               >
                 <Icons.Package className="w-5 h-5" />
@@ -454,7 +444,7 @@ export function AdminPanel() {
                   setShowQuickAdd(false);
                   setShowBulkImport(false);
                 }}
-                variant="primary"
+                variant="soft-system-primary"
                 size="lg"
               >
                 <Icons.Plus className="w-5 h-5" />
@@ -490,7 +480,7 @@ export function AdminPanel() {
                   <div className="flex gap-2">
                     <Button
                       onClick={handleQuickAdd}
-                      variant="success"
+                      variant="solid-system-primary"
                       size="md"
                       className="flex-1"
                     >
@@ -813,7 +803,11 @@ export function AdminPanel() {
                 {apps.map((app) => {
                   const Icon = getIcon(app.icon);
                   return (
-                    <div key={app.id} className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.04] transition-colors">
+                    <div
+                      key={app.id}
+                      className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.04] transition-colors"
+                      onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}
+                    >
                       <div className="col-span-3 flex items-center gap-2">
                         {app.customIcon ? (
                           <img
@@ -1232,7 +1226,7 @@ export function AdminPanel() {
                                       links: prev.links.filter((_, i) => i !== idx)
                                     }));
                                   }}
-                                  variant="danger"
+                                  variant="ghost-danger"
                                   size="icon"
                                   className="w-9 h-9"
                                 >
@@ -1260,7 +1254,7 @@ export function AdminPanel() {
                       <div className="flex gap-3 pt-2">
                         <Button
                           type="submit"
-                          variant="solid-brand-primary"
+                          variant="solid-system-primary"
                           size="md"
                           className="flex-1"
                         >
@@ -1272,7 +1266,7 @@ export function AdminPanel() {
                             setShowMilestoneForm(false);
                             setEditingMilestone(null);
                           }}
-                          variant="secondary"
+                          variant="soft-system-secondary"
                           size="md"
                         >
                           Cancel
@@ -1364,7 +1358,7 @@ export function AdminPanel() {
                                     removeMilestone(milestone.id);
                                   }
                                 }}
-                                variant="danger"
+                                variant="ghost-danger"
                                 size="icon"
                                 className="w-8 h-8"
                               >
@@ -1379,8 +1373,6 @@ export function AdminPanel() {
               </>
             )}
             </div>
-          </div>
-        </motion.div>
 
         {previewURL && (
           <motion.div
@@ -1414,7 +1406,7 @@ export function AdminPanel() {
                       onClick={() => setPreviewURL(null)}
                       variant="ghost"
                       size="icon"
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/[0.16]"
                     >
                       <Icons.X className="w-5 h-5" />
                     </Button>
@@ -1432,7 +1424,68 @@ export function AdminPanel() {
             </motion.div>
           </motion.div>
         )}
-      </motion.div>
+      </ContentSurface>
+
+    <AnimatePresence>
+      {appContextMenu && (() => {
+        const { x, y, app } = appContextMenu;
+        const defs: ContextMenuItemDef[] = [
+          {
+            id: 'open',
+            label: 'Open',
+            icon: Icons.ExternalLink,
+            group: 'primary',
+            action: () => { openWindow(app); setAppContextMenu(null); },
+          },
+          {
+            id: 'edit',
+            label: 'Edit',
+            icon: Icons.Edit2,
+            group: 'organize',
+            action: () => { handleEdit(app); setAppContextMenu(null); },
+          },
+          {
+            id: 'pin-desktop',
+            label: app.pinnedToDesktop ? 'Unpin from Desktop' : 'Pin to Desktop',
+            icon: app.pinnedToDesktop ? Icons.PinOff : Icons.Pin,
+            group: 'organize',
+            action: () => { updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }); setAppContextMenu(null); },
+          },
+          {
+            id: 'pin-taskbar',
+            label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
+            icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
+            group: 'organize',
+            action: () => { updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }); setAppContextMenu(null); },
+          },
+          {
+            id: 'delete',
+            label: 'Delete',
+            icon: Icons.Trash2,
+            group: 'danger',
+            danger: true,
+            action: () => { removeApp(app.id); setAppContextMenu(null); },
+          },
+        ];
+        const items = sortAndSeparate(defs).map((d) => ({
+          label: d.label,
+          icon: d.icon,
+          onClick: d.action,
+          disabled: d.disabled,
+          danger: d.danger,
+          divider: d.divider,
+          shortcut: d.shortcut,
+        }));
+        return (
+          <ContextMenu
+            x={x}
+            y={y}
+            items={items}
+            onClose={() => setAppContextMenu(null)}
+          />
+        );
+      })()}
     </AnimatePresence>
+    </>
   );
 }

@@ -80,10 +80,10 @@ export function Notepad({ window }: NotepadProps = {}) {
     html = html.replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-white">$1</strong>');
 
     // Italic
-    html = html.replace(/\*(.*?)\*/gim, '<em class="italic text-gray-300">$1</em>');
+    html = html.replace(/\*(.*?)\*/gim, '<em class="italic text-white/60">$1</em>');
 
     // Code inline
-    html = html.replace(/`(.*?)`/gim, '<code class="bg-gray-800 text-primary-400 px-1 rounded font-mono text-sm">$1</code>');
+    html = html.replace(/`(.*?)`/gim, '<code class="bg-white/[0.06] text-primary-400 px-1 rounded font-mono text-sm">$1</code>');
 
     // Links
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-primary-400 hover:text-primary-300 underline" target="_blank">$1</a>');
@@ -134,7 +134,7 @@ export function Notepad({ window }: NotepadProps = {}) {
   const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
 
   return (
-    <div className="w-full h-full flex flex-col bg-os-ink-950 border-b border-white/[0.08]">
+    <div className="w-full h-full flex flex-col bg-black/50 border-b border-white/[0.08]">
       {/* Toolbar */}
       <div className="border-b border-white/[0.08] p-2 flex items-center gap-2 bg-white/[0.02]">
         {/* Save buttons */}
@@ -142,7 +142,7 @@ export function Notepad({ window }: NotepadProps = {}) {
           onClick={handleSave}
           disabled={!hasUnsavedChanges && !!fileId}
           className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-all ${hasUnsavedChanges || !fileId
-            ? 'bg-os-ink-700 text-white hover:bg-os-ink-600'
+            ? 'bg-white/[0.08] text-white hover:bg-white/[0.12]'
             : 'bg-white/[0.04] text-white/30 cursor-not-allowed'
             }`}
         >
@@ -151,7 +151,7 @@ export function Notepad({ window }: NotepadProps = {}) {
         </button>
         <button
           onClick={handleSaveAs}
-          className="px-3 py-1 text-sm hover:bg-white/10 rounded flex items-center gap-1 text-white transition-colors"
+          className="px-3 py-1 text-sm hover:bg-white/[0.08] rounded flex items-center gap-1 text-white transition-colors"
         >
           <Icons.FilePlus className="w-3 h-3" />
           Save As
@@ -160,7 +160,7 @@ export function Notepad({ window }: NotepadProps = {}) {
         <div className="h-6 w-px bg-white/[0.08] mx-1" />
 
         {/* View mode toggle */}
-        <div className="flex items-center gap-1 bg-os-ink-900 rounded p-1">
+        <div className="flex items-center gap-1 bg-black/30 rounded p-1">
           <button
             onClick={() => setViewMode('edit')}
             className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'edit' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
@@ -211,7 +211,7 @@ export function Notepad({ window }: NotepadProps = {}) {
       <div className="flex-1 flex overflow-hidden">
         {/* Editor pane */}
         {(viewMode === 'edit' || viewMode === 'split') && (
-          <div className={viewMode === 'split' ? 'w-1/2 border-r border-white/10' : 'flex-1'}>
+          <div className={viewMode === 'split' ? 'w-1/2 border-r border-white/[0.08]' : 'flex-1'}>
             <textarea
               value={text}
               onChange={(e) => handleTextChange(e.target.value)}
@@ -227,7 +227,7 @@ export function Notepad({ window }: NotepadProps = {}) {
           <div className={viewMode === 'split' ? 'w-1/2' : 'flex-1'}>
             <div className="w-full h-full p-4 overflow-y-auto">
               <div
-                className="prose prose-invert max-w-none text-gray-300 leading-relaxed"
+                className="prose prose-invert max-w-none text-white/60 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: parseMarkdown(text) }}
               />
             </div>

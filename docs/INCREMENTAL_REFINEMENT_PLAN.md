@@ -1,6 +1,6 @@
 # Incremental Refinement Plan
 
-> Goal: refine the existing codebase into Keketso OS section by section. Do not restart the design system every time there is new feedback. Use what exists, improve one layer at a time, and keep the OS usable throughout.
+> Goal: refine the existing codebase into GenOS section by section. Do not restart the design system every time there is new feedback. Use what exists, improve one layer at a time, and keep the OS usable throughout.
 
 ## Current Codebase Read
 
@@ -15,7 +15,7 @@ The codebase already contains several pieces of the new direction:
 - `FileExplorer.tsx` already supports grid/list view, sort, search, upload, drag/drop, selection, rename, duplicate, delete, cut/copy/paste, and context menus.
 - `surface.tsx` already defines `ChromeSurface`, `ContentSurface`, `FloatingSurface`, `InsetSurface`, and `MediaSurface`.
 - `SystemRow.tsx` already defines a reusable row pattern.
-- `StartMenu.tsx` already uses the black compact OS chrome and includes `Keketso OS` plus `Built by Generative Studio`.
+- `StartMenu.tsx` already uses the black compact OS chrome and includes `GenOS` plus `Built by Generative Studio`.
 - `Window.tsx` already supports drag, resize, minimize, maximize, snap zones, focus/z-index, and double-click title-bar maximize.
 
 This means the next phase should be refinement and alignment, not a broad rewrite.

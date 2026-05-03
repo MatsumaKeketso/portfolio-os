@@ -99,11 +99,11 @@ export function Portfolio() {
   const ProjectCard = ({ project }: { project: Project }) => (
     <div
       onClick={() => handleProjectClick(project)}
-      className="bg-os-ink-900 rounded p-5 border border-white/[0.08] hover:border-primary-500/50 transition-all cursor-pointer group"
+      className="bg-black/30 rounded p-5 border border-white/[0.08] hover:border-primary-500/50 transition-all cursor-pointer group"
     >
       {/* Project Image */}
       {project.images.length > 0 && (
-        <div className="w-full h-40 bg-os-ink-800 rounded-lg mb-4 overflow-hidden">
+        <div className="w-full h-40 bg-white/[0.06] rounded-lg mb-4 overflow-hidden">
           <img
             src={project.images[0]}
             alt={project.name}
@@ -162,11 +162,11 @@ export function Portfolio() {
   const ProjectListItem = ({ project }: { project: Project }) => (
     <div
       onClick={() => handleProjectClick(project)}
-      className="bg-os-ink-900 rounded p-4 border border-white/[0.08] hover:border-primary-500/50 transition-all cursor-pointer group flex gap-4"
+      className="bg-black/30 rounded p-4 border border-white/[0.08] hover:border-primary-500/50 transition-all cursor-pointer group flex gap-4"
     >
       {/* Thumbnail */}
       {project.images.length > 0 && (
-        <div className="w-24 h-24 bg-os-ink-800 rounded-lg overflow-hidden flex-shrink-0">
+        <div className="w-24 h-24 bg-white/[0.06] rounded-lg overflow-hidden flex-shrink-0">
           <img
             src={project.images[0]}
             alt={project.name}
@@ -223,7 +223,7 @@ export function Portfolio() {
   );
 
   return (
-    <div className="w-full h-full bg-os-ink-950 flex flex-col">
+    <div className="w-full h-full bg-black/50 flex flex-col">
       {/* Header */}
       <div className="px-6 py-4 border-b border-white/[0.08]">
         <div className="flex items-center justify-between">
@@ -269,10 +269,10 @@ export function Portfolio() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
           >
-            <option value="all" className="bg-os-ink-900">All Status</option>
-            <option value="In Progress" className="bg-os-ink-900">In Progress</option>
-            <option value="Completed" className="bg-os-ink-900">Completed</option>
-            <option value="Archived" className="bg-os-ink-900">Archived</option>
+            <option value="all" className="bg-black/30">All Status</option>
+            <option value="In Progress" className="bg-black/30">In Progress</option>
+            <option value="Completed" className="bg-black/30">Completed</option>
+            <option value="Archived" className="bg-black/30">Archived</option>
           </select>
 
           {/* Technology Filter */}
@@ -281,9 +281,9 @@ export function Portfolio() {
             onChange={(e) => setFilterTechnology(e.target.value)}
             className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
           >
-            <option value="all" className="bg-os-ink-900">All Technologies</option>
+            <option value="all" className="bg-black/30">All Technologies</option>
             {allTechnologies.map((tech) => (
-              <option key={tech} value={tech} className="bg-os-ink-900">{tech}</option>
+              <option key={tech} value={tech} className="bg-black/30">{tech}</option>
             ))}
           </select>
 
@@ -358,7 +358,7 @@ export function Portfolio() {
             className="max-w-4xl w-full max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex-1 bg-os-ink-950 rounded border border-white/[0.08] overflow-hidden flex flex-col shadow-os-window">
+            <div className="flex-1 bg-black/50 rounded border border-white/[0.08] overflow-hidden flex flex-col shadow-os-window">
               {/* Modal Header - Fixed */}
               <div className="shrink-0 px-6 py-4 flex items-start justify-between">
               <div>
@@ -374,7 +374,7 @@ export function Portfolio() {
               </div>
               <button
                 onClick={closeModal}
-                className="text-white/40 hover:text-white transition-colors p-1 hover:bg-white/10 rounded"
+                className="text-white/40 hover:text-white transition-colors p-1 hover:bg-white/[0.08] rounded"
               >
                 <Icons.X className="w-6 h-6" />
               </button>
@@ -388,7 +388,7 @@ export function Portfolio() {
               {/* Image Carousel */}
               {selectedProject.images.length > 0 && (
                 <div className="mb-6 relative">
-                  <div className="w-full h-96 bg-slate-950 rounded-lg overflow-hidden">
+                  <div className="w-full h-96 bg-black/50 rounded-lg overflow-hidden">
                     <img
                       src={selectedProject.images[currentImageIndex]}
                       alt={`${selectedProject.name} screenshot ${currentImageIndex + 1}`}
@@ -460,7 +460,7 @@ export function Portfolio() {
                         href={selectedProject.links.live}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg border border-white/20 transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.12] text-white px-4 py-2 rounded-lg border border-white/[0.10] transition-all"
                       >
                         <Icons.ExternalLink className="w-4 h-4" />
                         Live Demo
@@ -471,7 +471,7 @@ export function Portfolio() {
                         href={selectedProject.links.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg border border-white/20 transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.12] text-white px-4 py-2 rounded-lg border border-white/[0.10] transition-all"
                       >
                         <Icons.Github className="w-4 h-4" />
                         Source Code
@@ -482,7 +482,7 @@ export function Portfolio() {
                         href={selectedProject.links.demo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg border border-white/20 transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.12] text-white px-4 py-2 rounded-lg border border-white/[0.10] transition-all"
                       >
                         <Icons.Play className="w-4 h-4" />
                         Video Demo
@@ -493,6 +493,7 @@ export function Portfolio() {
               )}
             </div>
           </div>
+        </div>
         </div>
       )}
     </div>

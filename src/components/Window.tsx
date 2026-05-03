@@ -67,7 +67,7 @@ export function Window({ window, children }: WindowProps) {
 
   useEffect(() => {
     const SNAP_THRESHOLD = 20; // pixels from edge to trigger snap
-    const TASKBAR_HEIGHT = 48;
+    const TASKBAR_HEIGHT = 72; // floating island: 12px bottom gap + 48px height + 12px clearance
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && !window.isMaximized) {
@@ -215,7 +215,7 @@ export function Window({ window, children }: WindowProps) {
   if (window.isMinimized) return null;
 
   const windowStyle = window.isMaximized
-    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 48px)' }
+    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 72px)' }
     : {
       left: `${window.position.x}px`,
       top: `${window.position.y}px`,
@@ -232,6 +232,7 @@ export function Window({ window, children }: WindowProps) {
     utilityDark: 'bg-[#111111]',
     immersive: 'bg-black',
     iframe: 'bg-white',
+    glass: 'bg-black/20 backdrop-blur-xl',
   }[surfaceMode];
 
   return (
@@ -307,7 +308,7 @@ export function Window({ window, children }: WindowProps) {
           >
             <div className={cn(
               'absolute bottom-1 right-1 w-2.5 h-2.5 border-r-2 border-b-2 transition-colors',
-              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/20 group-hover:border-white/40',
+              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/[0.16] group-hover:border-white/[0.32]',
             )} />
           </div>
         )}
@@ -329,13 +330,13 @@ export function Window({ window, children }: WindowProps) {
       {isDragging && snapZone && (
         <div className="fixed inset-0 pointer-events-none z-[9996]">
           {snapZone === 'left' && (
-            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute left-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
           {snapZone === 'right' && (
-            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute right-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
           {snapZone === 'top' && (
-            <div className="absolute left-0 right-0 top-0 bottom-12 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute left-0 right-0 top-0 bottom-[72px] bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
         </div>
       )}

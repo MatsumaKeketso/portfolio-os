@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { Button } from './ui/button';
 
-const WELCOME_STORAGE_KEY = 'portfolioOS_welcomeShown';
+const WELCOME_STORAGE_KEY = 'genos_welcomeShown';
 
 interface Feature {
   icon: React.ComponentType<{ className?: string }>;
@@ -86,8 +86,8 @@ export function WelcomeScreen() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-os-ink-800 border border-white/[0.08] rounded-xl mb-4">
                   <Icons.Sparkles className="w-8 h-8 text-white/80" />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-2">Welcome to Keketso OS</h1>
-                <p className="text-white/50 text-sm">A portfolio operating system by Keketso — built by Generative Studio</p>
+                <h1 className="text-2xl font-bold text-white mb-2">Welcome to GenOS</h1>
+                <p className="text-white/50 text-sm">A portfolio operating system built by Generative Studio</p>
               </div>
 
               <div className="h-px bg-white/[0.07] mb-7" />
@@ -195,7 +195,7 @@ export function WelcomeScreen() {
               {[0, 1, 2].map((step) => (
                 <div
                   key={step}
-                  className={`h-1.5 rounded-full transition-all ${step === currentStep ? 'w-6 bg-white/60' : 'w-1.5 bg-white/20'}`}
+                  className={`h-1.5 rounded-full transition-all ${step === currentStep ? 'w-6 bg-white/60' : 'w-1.5 bg-white/[0.16]'}`}
                 />
               ))}
             </div>

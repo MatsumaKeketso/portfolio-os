@@ -1,12 +1,12 @@
-# PortfolioOS Look And Feel Direction
+# GenOS Look And Feel Direction
 
 > Design target: a calm, premium, product-grade operating system inspired by the supplied reference image. The OS should feel like a precise black chrome layer floating above clean white work surfaces, not like a neon HUD or a marketing landing page.
 
 ## Intent
 
-PortfolioOS is already an operating-system metaphor: desktop, taskbar, windows, start menu, file explorer, settings, project apps, admin tools, themes, and persistent user content. This document defines the visual direction for evolving that system into a more refined UI language.
+GenOS is already an operating-system metaphor: desktop, taskbar, windows, start menu, file explorer, settings, project apps, admin tools, themes, and persistent user content. This document defines the visual direction for evolving that system into a more refined UI language.
 
-The reference image has three important lessons for PortfolioOS:
+The reference image has three important lessons for GenOS:
 
 1. **Chrome is dark and compact.** Navigation, menus, side panels, and command surfaces live in near-black panels with subtle borders.
 2. **Content is light and spacious.** Plans, tables, documents, profiles, file previews, and portfolio content sit on white or near-white canvases.
@@ -40,7 +40,7 @@ Use light work surfaces for:
 
 ### 2. Density Beats Drama
 
-The reference UI is compact and information-rich. PortfolioOS should adopt that same discipline. Prefer tight rows, small labels, clear grouping, and fast scanning over large decorative blocks.
+The reference UI is compact and information-rich. GenOS should adopt that same discipline. Prefer tight rows, small labels, clear grouping, and fast scanning over large decorative blocks.
 
 Avoid:
 
@@ -132,7 +132,7 @@ Recommended styling:
 
 ### Mega Menus And Launchers
 
-The reference desktop menu is a wide black command surface with columns. This pattern is ideal for PortfolioOS app launchers, profile navigation, admin resource menus, and project directories.
+The reference desktop menu is a wide black command surface with columns. This pattern is ideal for GenOS app launchers, profile navigation, admin resource menus, and project directories.
 
 Use columns such as:
 
@@ -556,7 +556,7 @@ Avoid nested cards. If a section already has a framed surface, use rows, separat
 
 ### Tables And Comparison Views
 
-The pricing grid in the reference is useful for PortfolioOS.
+The pricing grid in the reference is useful for GenOS.
 
 Use table-like layouts for:
 

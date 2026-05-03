@@ -103,7 +103,7 @@ export function FileViewer({ file }: FileViewerProps) {
     return (
       <div className="flex flex-col h-full">
         {/* Toolbar */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-os-ink-900 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2 px-4 py-2 bg-black/30 border-b border-white/[0.08]">
           {fileTypeInfo.icon && (
             <fileTypeInfo.icon className={`w-4 h-4 ${fileTypeInfo.color}`} />
           )}
@@ -126,7 +126,7 @@ export function FileViewer({ file }: FileViewerProps) {
         {/* Content - native elements for media, iframe for documents */}
         <div className="flex-1 overflow-auto">
           {category === 'image' ? (
-            <div className="flex items-center justify-center h-full p-4 bg-os-ink-950">
+            <div className="flex items-center justify-center h-full p-4 bg-black/50">
               <img
                 src={url}
                 alt={file.name}
@@ -144,7 +144,7 @@ export function FileViewer({ file }: FileViewerProps) {
               </video>
             </div>
           ) : category === 'audio' ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 bg-os-ink-950">
+            <div className="flex flex-col items-center justify-center h-full p-8 bg-black/50">
               <Icons.Music className="w-24 h-24 text-primary-500 mb-8" />
               <h3 className="text-xl font-semibold text-white mb-2">{file.name}</h3>
               <audio src={url} controls className="w-full max-w-md mt-4">
@@ -168,7 +168,7 @@ export function FileViewer({ file }: FileViewerProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="w-full h-full bg-os-ink-950 flex flex-col"
+      className="w-full h-full bg-black/50 flex flex-col"
     >
       {renderContent()}
 

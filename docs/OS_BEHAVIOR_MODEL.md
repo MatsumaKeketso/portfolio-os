@@ -1,6 +1,6 @@
-# Keketso OS Behavior Model
+# GenOS Behavior Model
 
-> Keketso OS should feel like an operating system first and a portfolio through that operating system. This document defines the frontend behaviors that make a web-based OS feel real.
+> GenOS should feel like an operating system first and a portfolio through that operating system. This document defines the frontend behaviors that make a web-based OS feel real.
 
 ## Principle
 
@@ -23,9 +23,9 @@ We are not building a hardware operating system. We are building a browser-nativ
 - System utilities
 - User folders
 
-The goal is not to copy Windows exactly. The goal is to align with familiar OS patterns first, then express them through Keketso OS's design language.
+The goal is not to copy Windows exactly. The goal is to align with familiar OS patterns first, then express them through GenOS's design language.
 
-This should not become a strict operating-system purity test. Keketso OS is still a website, and the web can do things native operating systems do not usually do. If a website affordance creates a richer portfolio experience, it can belong inside the OS as an app, panel, widget, or spatial interaction.
+This should not become a strict operating-system purity test. GenOS is still a website, and the web can do things native operating systems do not usually do. If a website affordance creates a richer portfolio experience, it can belong inside the OS as an app, panel, widget, or spatial interaction.
 
 Use this rule:
 
@@ -86,7 +86,7 @@ This does not mean the product can never support feedback, comments, reactions, 
 
 ## Web-Native Experiences
 
-Keketso OS can contain experiences that are more website-like than Windows-like, as long as they are framed as apps or system spaces.
+GenOS can contain experiences that are more website-like than Windows-like, as long as they are framed as apps or system spaces.
 
 Examples:
 
@@ -390,7 +390,7 @@ Visitor install flow should not exist unless intentionally designed as a safe, l
 
 ## Context Menu Taxonomy
 
-Windows has many context menus because the context changes by surface, selection, and file type. Keketso OS should model this with a context registry rather than one generic menu.
+Windows has many context menus because the context changes by surface, selection, and file type. GenOS should model this with a context registry rather than one generic menu.
 
 Recommended contexts:
 

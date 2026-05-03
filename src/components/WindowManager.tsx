@@ -15,6 +15,8 @@ const Weather = lazy(() => import('./apps/Weather').then(m => ({ default: m.Weat
 const TaskManager = lazy(() => import('./apps/TaskManager').then(m => ({ default: m.TaskManager })));
 const CV = lazy(() => import('./apps/CV').then(m => ({ default: m.CV })));
 const AboutOS = lazy(() => import('./apps/AboutOS').then(m => ({ default: m.AboutOS })));
+const Feedback = lazy(() => import('./apps/Feedback').then(m => ({ default: m.Feedback })));
+const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })));
 // Legacy apps — still launchable if pinned/bookmarked, not in default app list
 const About = lazy(() => import('./apps/About').then(m => ({ default: m.About })));
 const Settings = lazy(() => import('./apps/Settings').then(m => ({ default: m.Settings })));
@@ -100,6 +102,10 @@ export function WindowManager() {
             return <CV />;
           case 'AboutOS':
             return <AboutOS />;
+          case 'Feedback':
+            return <Feedback />;
+          case 'AdminPanel':
+            return <AdminPanel />;
           case 'About':
             return <About />;
           case 'Settings':

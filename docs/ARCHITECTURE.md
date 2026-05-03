@@ -1,15 +1,15 @@
-# PortfolioOS - Interactive Web Desktop
+# GenOS - Interactive Web Desktop
 
-> **Documentation** - Last Updated: 2026-05-01 (v2.1.0 — Firebase migration, Keketso OS identity, surface primitives, context menu registry)
+> **Documentation** - Last Updated: 2026-05-01 (v2.1.0 — Firebase migration, GenOS identity, surface primitives, context menu registry)
 
 ## 📋 Project Overview
 
-**Keketso OS** (project name: PortfolioOS) is a browser-based operating system experience built as a portfolio by Keketso, developed by Generative Studio. The application simulates a complete OS in the browser: window management, file explorer, taskbar, start menu, app registry, admin publishing workflow, and multiple built-in and project apps.
+**GenOS** (project name: GenOS) is a browser-based operating system experience built as a portfolio by Keketso, developed by Generative Studio. The application simulates a complete OS in the browser: window management, file explorer, taskbar, start menu, app registry, admin publishing workflow, and multiple built-in and project apps.
 
 ### Key Characteristics
 - **Type**: Single Page Application (SPA)
-- **Product name**: Keketso OS
-- **Repo name**: portfolio-os / PortfolioOS
+- **Product name**: GenOS
+- **Repo name**: portfolio-os / GenOS
 - **Purpose**: Portfolio operating system — the OS itself is the portfolio
 - **Architecture**: Component-based desktop environment
 - **Developer**: Keketso Matsuma, Johannesburg, South Africa — built by Generative Studio
@@ -498,7 +498,7 @@ Media files (images, videos) are stored in Firebase Storage under `portfolio-fil
 ### LocalStorage (secondary / preferences)
 | Key | Purpose |
 |-----|---------|
-| `portfolioOS_systemPreferences` | Taskbar position/size, icon size, animations |
+| `GenOS_systemPreferences` | Taskbar position/size, icon size, animations |
 
 ### Reset to Defaults
 Clear Firestore documents or local state to restore defaults. The stores include fallback defaults for all Firestore documents.

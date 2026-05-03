@@ -35,13 +35,13 @@ const buttonVariants = cva(
 
         // Soft Brand Colors
         'soft-brand-primary':
-          'bg-gray-900/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         'soft-brand-secondary':
-          'bg-gray-900/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         'soft-brand-tertiary':
-          'bg-gray-900/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         // Soft System Colors (neutral UI)
         'soft-system-primary':
@@ -91,7 +91,7 @@ const buttonVariants = cva(
 
         // Taskbar - Special taskbar buttons (no angled corners)
         taskbar:
-          'hover:bg-primary-500/10 text-white data-[active=true]:bg-primary-500/15 data-[active=true]:border-t-2 data-[active=true]:border-primary-500 data-[active=true]:translate-y-[-2px] data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/30 relative',
+          'text-white/50 hover:text-white hover:bg-white/[0.08] relative rounded transition-colors duration-150',
 
         // Menu Item - Context menu items (no angled corners)
         'menu-item':
@@ -130,7 +130,7 @@ const buttonVariants = cva(
         icon: 'w-8 h-8 rounded',
 
         // Larger icon buttons (taskbar)
-        iconLg: 'w-10 h-10 rounded',
+        iconLg: 'w-10 h-10 rounded-[10px]',
 
         // Text button sizes
         sm: 'px-3 py-1.5 text-sm rounded-md',
@@ -174,27 +174,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
 
-    // Variants that get angled corners (Star Citizen HUD style)
-    const hasAngledCorners = variant && [
-      // New prominence-based variants
-      'soft-brand-primary', 'soft-brand-secondary', 'soft-brand-tertiary',
-      'solid-brand-primary', 'solid-brand-secondary', 'solid-brand-tertiary',
-      'outline',
-      // Legacy variants (backward compatibility)
-      'primary', 'secondary', 'tertiary', 'danger', 'success'
-    ].includes(variant)
-
-    const clipPathStyle = hasAngledCorners
-      ? {
-          clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
-          ...style,
-        }
-      : style
-
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
-        style={clipPathStyle}
+        style={style}
         ref={ref}
         {...props}
       />

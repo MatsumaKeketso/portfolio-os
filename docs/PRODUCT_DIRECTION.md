@@ -1,10 +1,10 @@
-# PortfolioOS Product Direction
+# GenOS Product Direction
 
-> PortfolioOS is not a portfolio website with desktop styling. It is Keketso's portfolio expressed as an operating system concept, built by Generative Studio.
+> GenOS is not a portfolio website with desktop styling. It is Keketso's portfolio expressed as an operating system concept, built by Generative Studio.
 
 ## Core Idea
 
-PortfolioOS should feel like a real system that happens to be Keketso's portfolio. The operating system itself is the work: the desktop, windows, app model, file explorer, admin panel, theme system, motion language, and interaction patterns are all evidence of the portfolio.
+GenOS should feel like a real system that happens to be Keketso's portfolio. The operating system itself is the work: the desktop, windows, app model, file explorer, admin panel, theme system, motion language, and interaction patterns are all evidence of the portfolio.
 
 The user should not feel like they opened a normal portfolio and then clicked through separate portfolio apps. They should feel like they entered a designed computing environment where every app, folder, project, setting, and system detail communicates Keketso's taste for systems, complexity, dynamic interfaces, and pattern-making.
 
@@ -23,7 +23,7 @@ The product should constantly communicate three truths:
 
 Recommended phrasing:
 
-- `Keketso OS`
+- `GenOS`
 - `A portfolio operating system by Keketso`
 - `Built by Generative Studio`
 - `A Generative Studio system concept`
@@ -180,7 +180,7 @@ Best fit for this product:
 
 `Visitor Gallery`
 
-This folder should feel like a small participatory layer inside Keketso OS, not an unrestricted file system.
+This folder should feel like a small participatory layer inside GenOS, not an unrestricted file system.
 
 ### Visitor Capabilities
 
@@ -252,7 +252,7 @@ Recommended storage structure:
 
 ## Admin Publishing Workflow
 
-The admin panel should be reframed as the publishing console for Keketso OS.
+The admin panel should be reframed as the publishing console for GenOS.
 
 Primary admin jobs:
 
@@ -281,12 +281,12 @@ The OS should remind users of Keketso and Generative Studio without turning ever
 
 Recommended placements:
 
-- Boot or loading screen: `Keketso OS` and `Built by Generative Studio`.
+- Boot or loading screen: `GenOS` and `Built by Generative Studio`.
 - Start menu footer: compact `Generative Studio` mark or text.
 - About screen: full explanation of concept, authorship, and build.
 - Settings/System: OS name, version, build info.
 - Window chrome or taskbar: subtle system identity.
-- Visitor Gallery empty state: explain that this is a public folder inside Keketso OS.
+- Visitor Gallery empty state: explain that this is a public folder inside GenOS.
 
 Avoid:
 
@@ -313,7 +313,7 @@ Use this checklist when refactoring the product architecture.
 
 ### Phase 1: Rename The Product Center
 
-- Decide on the system name, such as `Keketso OS`.
+- Decide on the system name, such as `GenOS`.
 - Update About, boot, taskbar/start menu text, and docs to reflect the concept.
 - Make Generative Studio visible in system-level surfaces.
 

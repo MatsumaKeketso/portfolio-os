@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
+import { BackgroundBeams } from '../aceternity/backgrounds/background-beams'
+import { AuroraBackground } from '../aceternity/backgrounds/aurora-background'
+import { useDesktopStore } from '../../store/desktopStore'
 
 /**
  * Surface system — unified OS surface primitives.
@@ -47,11 +50,11 @@ const surfaceVariants = cva(
 
         // Elevated dark panel: dropdowns, date pickers, notification panels
         floating:
-          'bg-[#1f1f21] border border-[rgba(255,255,255,0.10)] text-os-text-inverse shadow-os-floating',
+          'bg-black/70 backdrop-blur-md border border-white/[0.10] text-os-text-inverse shadow-os-floating',
 
         // Inset control area on dark chrome: inputs, inner rows
         inset:
-          'bg-os-ink-700 border border-os-line-dark text-os-text-inverse/80',
+          'bg-white/[0.08] border border-white/[0.08] text-os-text-inverse/80',
 
         // Inset control area on light content: inputs, inner rows
         'inset-light':
@@ -61,40 +64,51 @@ const surfaceVariants = cva(
         media:
           'relative overflow-hidden',
 
-        // ── Legacy variants (updated to OS tokens) ──────────────────────────
+        // ── App-facing variants (glass-compatible) ──────────────────────────
 
+        // Window title bar / OS chrome panels (intentionally opaque)
         window:
           'bg-os-ink-950 shadow-os-window border border-white/[0.08] overflow-hidden',
 
+        // In-app floating dialog — heavy blur keeps it readable over glass
         dialog:
-          'bg-os-ink-950 shadow-os-window border border-white/[0.08] overflow-hidden',
+          'bg-black/80 backdrop-blur-md border border-white/[0.08] overflow-hidden',
 
+        // Raised card / section container within an app
         panel:
-          'bg-os-ink-900 shadow-os-card border border-white/[0.08] hover:border-white/[0.14] hover:bg-os-ink-800',
+          'bg-black/30 border border-white/[0.08] hover:border-white/[0.14] hover:bg-black/40',
 
+        // Hoverable card — same as panel but lifts on hover
         card:
-          'bg-os-ink-900 shadow-os-card border border-white/[0.08] hover:bg-os-ink-800 hover:border-white/[0.14] hover:translate-y-[-1px]',
+          'bg-black/30 border border-white/[0.08] hover:bg-black/40 hover:border-white/[0.14] hover:translate-y-[-1px]',
 
+        // Horizontal toolbar / action bar at top of an app
         toolbar:
-          'bg-os-ink-950 shadow-sm border-b border-white/[0.08]',
+          'bg-white/[0.06] border-b border-white/[0.08]',
 
+        // Vertical left-nav panel
         sidebar:
-          'bg-os-ink-950 shadow-os-card border-r border-white/[0.08]',
+          'bg-black/50 border-r border-white/[0.08]',
 
+        // Dropdown / context overlay
         popover:
-          'bg-os-ink-900 shadow-os-floating border border-white/[0.10]',
+          'bg-black/70 backdrop-blur-md border border-white/[0.10]',
 
+        // Text input / select / textarea well
         input:
-          'bg-os-ink-700 border border-white/[0.08] focus-within:border-white/[0.20]',
+          'bg-white/[0.08] border border-white/[0.08] focus-within:border-white/[0.20]',
 
+        // Root app container — transparent, window body provides the blur
         app:
-          'bg-os-ink-950',
+          'bg-transparent',
 
+        // Subtle inline container (no prominent border)
         inline:
           'bg-white/[0.04] border border-white/[0.06]',
 
+        // Glass card — same as panel, preferred alias for app surfaces
         glass:
-          'bg-os-ink-900 shadow-os-card border border-white/[0.08]',
+          'bg-black/30 border border-white/[0.08]',
       },
 
       elevation: {
@@ -149,10 +163,12 @@ export interface SurfaceProps
   VariantProps<typeof surfaceVariants> {
   animate?: boolean
   glowColor?: 'primary' | 'tertiary' | 'none'
+  showBeams?: boolean
+  showAurora?: boolean
 }
 
 const Surface = React.forwardRef<HTMLDivElement, SurfaceProps>(
-  ({ className, variant, elevation, blur, border, padding, animate = false, glowColor = 'none', children, ...props }, ref) => {
+  ({ className, variant, elevation, blur, border, padding, animate = false, glowColor = 'none', showBeams = false, showAurora = false, children, ...props }, ref) => {
     const glowClasses = {
       primary: 'shadow-[0_0_40px_rgba(239,68,68,0.15)]',
       tertiary: 'shadow-[0_0_40px_rgba(249,115,22,0.15)]',
@@ -166,10 +182,24 @@ const Surface = React.forwardRef<HTMLDivElement, SurfaceProps>(
           surfaceVariants({ variant, elevation, blur, border, padding }),
           glowClasses[glowColor],
           animate && 'animate-in fade-in slide-in-from-bottom-4 duration-300',
+          'overflow-hidden isolate',
           className
         )}
         {...props}
       >
+        {showBeams && (
+          <BackgroundBeams
+            className="opacity-[0.12] z-[-1]"
+            color="rgba(var(--color-primary), 0.5)"
+          />
+        )}
+        {showAurora && (
+          <AuroraBackground
+            className="absolute inset-0 opacity-[0.08] pointer-events-none z-[-1]"
+            colors={['#00d9ff', '#0066ff', '#00d9ff']}
+            showRadialGradient={false}
+          />
+        )}
         {children}
       </div>
     )
@@ -212,6 +242,8 @@ const ContentSurface = React.forwardRef<HTMLDivElement, ContentSurfaceProps>(
       elevation="none"
       blur="none"
       border="none"
+      showBeams={true}
+      showAurora={true}
       className={className}
       {...props}
     />

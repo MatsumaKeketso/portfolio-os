@@ -67,7 +67,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
               <div className="relative flex-shrink-0 mt-1">
                 <div className={`absolute inset-0 opacity-30`} />
                 <div className={`relative w-8 h-8 rounded bg-gradient-to-br ${config.color} flex items-center justify-center`}>
-                  <CategoryIcon className="w-4 h-4 text-slate-950" />
+                  <CategoryIcon className="w-4 h-4 text-white" />
                 </div>
               </div>
 
@@ -243,7 +243,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                   onClick={() => setShowImageModal(false)}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-4 right-4 backdrop-blur-xl"
+                  className="absolute top-4 right-4"
                 >
                   <Icons.X className="w-5 h-5" />
                 </Button>

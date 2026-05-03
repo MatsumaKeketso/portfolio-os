@@ -89,7 +89,7 @@ export function Skills() {
   const filteredSkillsCount = filteredCategories.reduce((sum, cat) => sum + cat.skills.length, 0);
 
   return (
-    <div className="w-full h-full bg-os-ink-950 flex flex-col">
+    <div className="w-full h-full bg-black/50 flex flex-col">
       {/* Header */}
       <div className="px-6 py-4 border-b border-white/[0.08]">
         <div className="flex items-center justify-between">
@@ -135,11 +135,11 @@ export function Skills() {
             onChange={(e) => setFilterProficiency(e.target.value)}
             className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
           >
-            <option value="all" className="bg-os-ink-900">All Levels</option>
-            <option value="Beginner" className="bg-os-ink-900">Beginner</option>
-            <option value="Intermediate" className="bg-os-ink-900">Intermediate</option>
-            <option value="Advanced" className="bg-os-ink-900">Advanced</option>
-            <option value="Expert" className="bg-os-ink-900">Expert</option>
+            <option value="all" className="bg-black/30">All Levels</option>
+            <option value="Beginner" className="bg-black/30">Beginner</option>
+            <option value="Intermediate" className="bg-black/30">Intermediate</option>
+            <option value="Advanced" className="bg-black/30">Advanced</option>
+            <option value="Expert" className="bg-black/30">Expert</option>
           </select>
         </div>
       </div>
@@ -165,7 +165,7 @@ export function Skills() {
             {filteredCategories.map((category) => (
               <div
                 key={category.id}
-                className="bg-os-ink-900 rounded p-6 border border-white/[0.08]"
+                className="bg-black/30 rounded p-6 border border-white/[0.08]"
               >
                 {/* Category Header */}
                 <div className="flex items-center justify-between mb-4">

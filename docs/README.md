@@ -1,6 +1,6 @@
-# PortfolioOS Documentation
+# GenOS Documentation
 
-Welcome to the PortfolioOS documentation directory. This folder contains detailed technical documentation, architecture guides, and additional resources for developers.
+Welcome to the GenOS documentation directory. This folder contains detailed technical documentation, architecture guides, and additional resources for developers.
 
 ## 📚 Documentation Index
 
@@ -28,7 +28,7 @@ Welcome to the PortfolioOS documentation directory. This folder contains detaile
   - Component guidance for taskbar, start menu, windows, apps, and admin surfaces
   - Implementation phases and acceptance checklist
 
-- **[PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md)** - Keketso OS product architecture
+- **[PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md)** - GenOS product architecture
   - Positions the OS itself as the portfolio
   - Defines project apps, CV tabs, system About, and Generative Studio branding
   - Documents the image-only visitor folder concept

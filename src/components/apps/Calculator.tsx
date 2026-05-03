@@ -171,10 +171,10 @@ export function Calculator() {
   };
 
   return (
-    <div className="w-full h-full bg-os-ink-950 flex">
+    <div className="w-full h-full bg-black/50 flex">
       {/* History Sidebar */}
       {showHistory && (
-        <div className="w-64 border-r border-white/[0.08] bg-os-ink-900 flex flex-col">
+        <div className="w-64 border-r border-white/[0.08] bg-black/30 flex flex-col">
           <div className="p-3 border-b border-white/[0.08] flex items-center justify-between">
             <h3 className="text-white font-semibold flex items-center gap-2">
               <Icons.History className="w-4 h-4" />
@@ -218,7 +218,7 @@ export function Calculator() {
       {/* Main Calculator */}
       <div className="flex-1 p-4 flex flex-col">
         {/* Display */}
-        <div className="bg-os-ink-900 rounded p-4 text-right border border-white/[0.08] mb-3">
+        <div className="bg-black/30 rounded p-4 text-right border border-white/[0.08] mb-3">
           <div className="text-white/40 text-sm mb-1 h-5">
             {previousValue !== null && operation && `${previousValue} ${operation}`}
           </div>

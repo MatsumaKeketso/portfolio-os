@@ -22,7 +22,7 @@ export interface App {
     demo?: string;
   };
   // Window surface contract — controls body background and chrome style
-  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe';
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe' | 'glass';
   // Window behaviour hints
   preferredWindowMode?: 'floating' | 'maximized' | 'fixed';
   mobileBehavior?: 'maximize' | 'fullscreen' | 'hide';
@@ -47,7 +47,7 @@ export interface WindowState {
   isMaximized: boolean;
   zIndex: number;
   /** Controls window body background and chrome treatment */
-  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe';
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe' | 'glass';
   /** Minimum resize dimensions — enforced during drag-resize */
   minSize?: { width: number; height: number };
 }

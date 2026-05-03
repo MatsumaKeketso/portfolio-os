@@ -303,7 +303,7 @@ export function Resume() {
       {/* Header - Ultra Clean */}
       <div className="mb-8">
         <h1 className="text-5xl font-light mb-1">{profile.personal.name}</h1>
-        <div className="w-16 h-0.5 bg-gray-900 mb-3"></div>
+        <div className="w-16 h-0.5 bg-black/30 mb-3"></div>
         <h2 className="text-lg text-gray-600 font-light mb-4">{profile.personal.title}</h2>
         <div className="flex gap-3 text-xs text-gray-600">
           {profile.preferences.showEmail && profile.personal.email && (
@@ -432,7 +432,7 @@ export function Resume() {
         }
       `}</style>
 
-      <div className="w-full h-full flex flex-col bg-os-ink-950">
+      <div className="w-full h-full flex flex-col bg-black/50">
         {/* Header with Controls */}
         <div className="px-6 py-4 border-b border-white/[0.08] no-print">
           <div className="flex items-center justify-between">
@@ -453,9 +453,9 @@ export function Resume() {
                   onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
                   className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
                 >
-                  <option value="modern" className="bg-os-ink-900">Modern</option>
-                  <option value="classic" className="bg-os-ink-900">Classic</option>
-                  <option value="minimalist" className="bg-os-ink-900">Minimalist</option>
+                  <option value="modern" className="bg-black/30">Modern</option>
+                  <option value="classic" className="bg-black/30">Classic</option>
+                  <option value="minimalist" className="bg-black/30">Minimalist</option>
                 </select>
               </div>
 

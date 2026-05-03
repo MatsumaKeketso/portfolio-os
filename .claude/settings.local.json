@@ -14,7 +14,8 @@
       "Bash(node --input-type=module)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\keket\\\\Documents\\\\GitHub\\\\portfolio-os\\\\src\" -Recurse -Filter \"*.tsx\" -o BasicFileInfo)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Measure-Object -Line)"
+      "Bash(Measure-Object -Line)",
+      "Bash(node .\\\\node_modules\\\\typescript\\\\bin\\\\tsc --noEmit)"
     ]
   }
 }

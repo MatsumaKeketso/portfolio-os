@@ -4,6 +4,7 @@ import { useUserStore, UserProfile } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../ui/button';
 import { compressImage, validateImageFile } from '../../lib/imageUtils';
+import { AppShell } from '../ui/AppShell';
 
 type TabType = 'overview' | 'experience' | 'projects' | 'skills' | 'contact';
 
@@ -69,7 +70,7 @@ export function About() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-full bg-os-ink-950 flex items-center justify-center">
+      <div className="w-full h-full bg-black/50 flex items-center justify-center">
         <Icons.Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
         <span className="ml-3 text-white font-medium">Loading profile...</span>
       </div>
@@ -191,7 +192,7 @@ export function About() {
   };
 
   return (
-    <div className="w-full h-full bg-os-ink-950 flex flex-col">
+    <AppShell>
       {/* Header with Edit Controls */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
         <h1 className="text-2xl font-bold text-white">About Me</h1>
@@ -338,7 +339,7 @@ export function About() {
               </div>
 
               {/* Name and Title */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
@@ -388,7 +389,7 @@ export function About() {
               </div>
 
               {/* Bio */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.FileText className="w-5 h-5" />
                   Biography
@@ -422,7 +423,7 @@ export function About() {
               </div>
 
               {/* Social Links */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Link className="w-5 h-5" />
                   Social Links
@@ -643,7 +644,7 @@ export function About() {
           {activeTab === 'experience' && (
             <div className="space-y-6">
               {/* Resume Summary */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Resume Summary</h3>
                 {isEditing ? (
                   <textarea
@@ -659,7 +660,7 @@ export function About() {
               </div>
 
               {/* Work Experience */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Work Experience</h3>
                 {editForm.experience.length === 0 ? (
                   <p className="text-white/40 text-center py-8">No experience added yet. Click Edit to add your work history.</p>
@@ -867,7 +868,7 @@ export function About() {
               </div>
 
               {/* Education */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Education</h3>
                 {editForm.education.length === 0 ? (
                   <p className="text-white/40 text-center py-8">No education added yet. Click Edit to add your education history.</p>
@@ -1063,7 +1064,7 @@ export function About() {
               </div>
 
               {/* Certifications */}
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Certifications</h3>
                 {editForm.certifications.length === 0 ? (
                   <p className="text-white/40 text-center py-8">No certifications added yet. Click Edit to add your professional certifications.</p>
@@ -1215,7 +1216,7 @@ export function About() {
           {/* Projects Tab */}
           {activeTab === 'projects' && (
             <div className="space-y-6">
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Portfolio Projects</h3>
                 <div className="space-y-4">
                   {editForm.projects.map((project, index) => (
@@ -1273,9 +1274,9 @@ export function About() {
                                 }}
                                 className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white"
                               >
-                                <option value="In Progress" className="bg-os-ink-900">In Progress</option>
-                                <option value="Completed" className="bg-os-ink-900">Completed</option>
-                                <option value="Archived" className="bg-os-ink-900">Archived</option>
+                                <option value="In Progress" className="bg-black/30">In Progress</option>
+                                <option value="Completed" className="bg-black/30">Completed</option>
+                                <option value="Archived" className="bg-black/30">Archived</option>
                               </select>
                             </div>
                             <div>
@@ -1443,7 +1444,7 @@ export function About() {
           {activeTab === 'skills' && (
             <div className="space-y-6">
               {editForm.skills.categories.map((category: UserProfile['skills']['categories'][0], catIndex: number) => (
-                <div key={category.id} className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+                <div key={category.id} className="bg-black/30 rounded p-6 border border-white/[0.08]">
                   {isEditing ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-4">
@@ -1493,10 +1494,10 @@ export function About() {
                               }}
                               className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-2 text-white text-sm"
                             >
-                              <option value="Beginner" className="bg-os-ink-900">Beginner</option>
-                              <option value="Intermediate" className="bg-os-ink-900">Intermediate</option>
-                              <option value="Advanced" className="bg-os-ink-900">Advanced</option>
-                              <option value="Expert" className="bg-os-ink-900">Expert</option>
+                              <option value="Beginner" className="bg-black/30">Beginner</option>
+                              <option value="Intermediate" className="bg-black/30">Intermediate</option>
+                              <option value="Advanced" className="bg-black/30">Advanced</option>
+                              <option value="Expert" className="bg-black/30">Expert</option>
                             </select>
                             <input
                               type="number"
@@ -1594,7 +1595,7 @@ export function About() {
           {/* Contact Tab */}
           {activeTab === 'contact' && (
             <div className="space-y-6">
-              <div className="bg-os-ink-900 rounded p-6 border border-white/[0.08]">
+              <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
                 <h3 className="text-xl font-semibold text-white mb-4">Contact Information</h3>
                 {isEditing ? (
                   <div className="space-y-4">
@@ -1690,6 +1691,6 @@ export function About() {
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

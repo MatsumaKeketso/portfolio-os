@@ -56,7 +56,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, y: -4 }}
       transition={{ duration: 0.08, ease: 'easeOut' }}
-      className="fixed z-[15002] min-w-[200px] py-1 rounded-lg overflow-hidden bg-[#1f1f21] border border-white/10 shadow-os-floating backdrop-blur-sm"
+      className="fixed z-[15002] min-w-[200px] py-1 rounded-lg overflow-hidden bg-[#1f1f21] border border-white/[0.08] shadow-os-floating"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}

@@ -147,7 +147,7 @@ const handleExport = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'portfolioOS-config.json';
+  a.download = 'GenOS-config.json';
   a.click();  // ✅ Triggers download
 };
 ```

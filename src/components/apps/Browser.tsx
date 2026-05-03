@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AppShell } from '../ui/AppShell';
 
 interface Bookmark {
   name: string;
@@ -178,7 +179,7 @@ export function Browser() {
   const isBookmarked = activeTab && bookmarks.some(b => b.url === activeTab.url);
 
   return (
-    <div className="w-full h-full flex flex-col bg-os-ink-950">
+    <AppShell>
       {/* Tabs Bar */}
       <div className="border-b border-white/[0.08] bg-white/[0.02] flex items-center gap-1 px-2 pt-2">
         <div className="flex-1 flex items-center gap-1 overflow-x-auto">
@@ -190,7 +191,7 @@ export function Browser() {
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={() => setActiveTabId(tab.id)}
               className={`group flex items-center gap-2 px-3 py-2 rounded-t transition-all min-w-[120px] max-w-[200px] ${activeTabId === tab.id
-                ? 'bg-os-ink-900 text-white'
+                ? 'bg-black/30 text-white'
                 : 'bg-white/[0.04] text-white/50 hover:bg-white/[0.08] hover:text-white/80'
                 }`}
             >
@@ -202,7 +203,7 @@ export function Browser() {
                     e.stopPropagation();
                     closeTab(tab.id);
                   }}
-                  className="shrink-0 opacity-0 group-hover:opacity-100 hover:bg-white/20 rounded p-0.5 transition-all"
+                  className="shrink-0 opacity-0 group-hover:opacity-100 hover:bg-white/[0.16] rounded p-0.5 transition-all"
                 >
                   <Icons.X className="w-3 h-3" />
                 </button>
@@ -212,7 +213,7 @@ export function Browser() {
         </div>
         <button
           onClick={addNewTab}
-          className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+          className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors"
           title="New Tab"
         >
           <Icons.Plus className="w-4 h-4" />
@@ -225,7 +226,7 @@ export function Browser() {
           <button
             onClick={handleBack}
             disabled={historyIndex <= 0}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Back"
           >
             <Icons.ChevronLeft className="w-4 h-4" />
@@ -233,28 +234,28 @@ export function Browser() {
           <button
             onClick={handleForward}
             disabled={historyIndex >= history.length - 1}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="Forward"
           >
             <Icons.ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={handleRefresh}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+            className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors"
             title="Refresh"
           >
             <Icons.RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleHome}
-            className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+            className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors"
             title="Home"
           >
             <Icons.Home className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex-1 flex items-center gap-2 bg-os-ink-800 px-3 py-2 rounded border border-white/[0.08]">
+        <div className="flex-1 flex items-center gap-2 bg-white/[0.06] px-3 py-2 rounded border border-white/[0.08]">
           <Icons.Lock className="w-3.5 h-3.5 text-white/30 shrink-0" />
           <input
             type="text"
@@ -272,7 +273,7 @@ export function Browser() {
 
         <button
           onClick={isBookmarked ? () => removeBookmark(activeTab!.url) : addBookmark}
-          className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+          className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors"
           title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
         >
           <Icons.Star className={`w-4 h-4 ${isBookmarked ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -280,7 +281,7 @@ export function Browser() {
 
         <button
           onClick={() => setShowBookmarkDialog(!showBookmarkDialog)}
-          className="p-1.5 hover:bg-white/10 rounded text-white transition-colors"
+          className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors"
           title="Bookmarks"
         >
           <Icons.Bookmark className="w-4 h-4" />
@@ -307,7 +308,7 @@ export function Browser() {
                 {bookmarks.map((bookmark, index) => (
                   <div
                     key={index}
-                    className="group flex items-center justify-between gap-2 px-3 py-2 hover:bg-white/10 rounded-lg transition-all"
+                    className="group flex items-center justify-between gap-2 px-3 py-2 hover:bg-white/[0.08] rounded-lg transition-all"
                   >
                     <button
                       onClick={() => {
@@ -337,7 +338,7 @@ export function Browser() {
       </AnimatePresence>
 
       {/* Content Area */}
-      <div className="flex-1 bg-white relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-3">
@@ -349,10 +350,10 @@ export function Browser() {
         {activeTab && (
           <>
             {activeTab.url === 'browser://newtab' ? (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-os-ink-950 text-white p-8 overflow-y-auto">
+              <div className="w-full h-full flex flex-col items-center justify-center bg-black/50 text-white p-8 overflow-y-auto">
                 <div className="max-w-4xl w-full flex flex-col items-center gap-10">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-xl bg-os-ink-800 border border-white/[0.08] flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
                       <Icons.Globe className="w-8 h-8 text-white/60" />
                     </div>
                     <h1 className="text-2xl font-bold text-white">Portfolio Browser</h1>
@@ -360,7 +361,7 @@ export function Browser() {
 
                   {/* Search Bar */}
                   <div className="w-full max-w-2xl">
-                    <div className="bg-os-ink-800 border border-white/[0.08] rounded-lg p-3 flex items-center gap-3 focus-within:border-white/[0.20] transition-colors">
+                    <div className="bg-white/[0.06] border border-white/[0.08] rounded-lg p-3 flex items-center gap-3 focus-within:border-white/[0.20] transition-colors">
                       <Icons.Search className="w-4 h-4 text-white/30" />
                       <input
                         type="text"
@@ -396,7 +397,7 @@ export function Browser() {
                           onClick={() => updateTabUrl(activeTab.id, bookmark.url)}
                           className="group flex flex-col items-center gap-2 p-4 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all hover:-translate-y-0.5"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-os-ink-800 border border-white/[0.08] flex items-center justify-center text-2xl">
+                          <div className="w-12 h-12 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-2xl">
                             {bookmark.icon}
                           </div>
                           <span className="text-xs font-medium text-white/50 group-hover:text-white/80 transition-colors truncate w-full text-center">
@@ -432,6 +433,6 @@ export function Browser() {
           </>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }

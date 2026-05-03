@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { useDesktopContrast } from '../hooks/useDesktopContrast';
 import { App } from '../types';
 
 interface GridPosition {
@@ -28,6 +29,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
   const { apps, openWindow, reorderApps } = useDesktopStore();
+  const contrastMode = useDesktopContrast();
   const [draggingAppId, setDraggingAppId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
@@ -395,8 +397,13 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               e.stopPropagation();
               if (!isDragging) openWindow(app);
             }}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${isDragging ? 'bg-white/20' : isHovered ? 'bg-white/20' : 'hover:bg-white/10 active:bg-white/20'
-              }`}
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${
+              isDragging || isHovered
+                ? contrastMode === 'light' ? 'bg-black/[0.12]' : 'bg-white/[0.16]'
+                : contrastMode === 'light'
+                  ? 'hover:bg-black/[0.07] active:bg-black/[0.12]'
+                  : 'hover:bg-white/[0.08] active:bg-white/[0.16]'
+            }`}
           >
             <div
               className="flex items-center justify-center"
@@ -406,8 +413,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               }}
             >
               <div
-                className={`text-white drop-shadow-lg transition-transform ${isHovered ? 'scale-110' : 'group-hover:scale-110'
-                  }`}
+                className={`transition-transform ${isHovered ? 'scale-110' : 'group-hover:scale-110'} ${
+                  contrastMode === 'light' ? 'text-gray-950 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'text-white drop-shadow-lg'
+                }`}
                 style={{
                   width: `${SIZES[iconSize].icon * 4}px`,
                   height: `${SIZES[iconSize].icon * 4}px`,
@@ -416,8 +424,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                 {renderIcon(app, "w-full h-full")}
               </div>
             </div>
-            <span className={`text-white ${SIZES[iconSize].text} text-center drop-shadow-lg line-clamp-2 px-1 transition-all ${isHovered ? 'font-bold' : ''
-              }`}>
+            <span className={`${SIZES[iconSize].text} text-center line-clamp-2 px-1 transition-all ${isHovered ? 'font-bold' : ''} ${
+              contrastMode === 'light' ? 'text-gray-950 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'text-white drop-shadow-lg'
+            }`}>
               {app.name}
             </span>
           </motion.button>

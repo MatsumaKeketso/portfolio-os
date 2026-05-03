@@ -62,7 +62,7 @@ function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any })
   }
   const Icon = getIcon(app.icon);
   return (
-    <span className="w-5 h-5 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
+    <span className="w-5 h-5 rounded bg-white/[0.08] flex items-center justify-center flex-shrink-0">
       <Icon className="w-3 h-3 text-white/80" />
     </span>
   );
@@ -72,7 +72,11 @@ function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any })
 // Component
 // ---------------------------------------------------------------------------
 
-export function StartMenu() {
+interface StartMenuProps {
+  anchor?: { bottom: number; centerX: number };
+}
+
+export function StartMenu({ anchor }: StartMenuProps = {}) {
   const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp } =
     useDesktopStore();
   const { isAuthenticated, logout } = useAuthStore();
@@ -143,7 +147,11 @@ export function StartMenu() {
           label: 'Edit in Admin',
           icon: Icons.Settings,
           group: 'system' as MenuGroup,
-          action: () => { setStartMenuOpen(false); },
+          action: () => {
+            const adminApp = apps.find(a => a.id === 'admin-panel');
+            if (adminApp) openWindow(adminApp);
+            setStartMenuOpen(false);
+          },
         }]
       : []),
   ];
@@ -186,8 +194,14 @@ export function StartMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-14 left-2 w-[340px] z-[9999] flex flex-col"
-            style={{ maxHeight: 'calc(100vh - 80px)' }}
+            className="fixed w-[340px] z-[9999] flex flex-col"
+            style={{
+              bottom: anchor ? anchor.bottom : 76,
+              left: anchor
+                ? Math.max(8, Math.min(anchor.centerX - 170, window.innerWidth - 348))
+                : Math.max(8, window.innerWidth / 2 - 170),
+              maxHeight: 'calc(100vh - 100px)',
+            }}
           >
             <div
               className="flex flex-col overflow-hidden rounded-lg"
@@ -203,11 +217,11 @@ export function StartMenu() {
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-[18px] h-[18px] bg-white/10 rounded flex items-center justify-center">
+                  <div className="w-[18px] h-[18px] bg-white/[0.08] rounded flex items-center justify-center">
                     <Icons.Grid3x3 className="w-2.5 h-2.5 text-white" />
                   </div>
                   <span className="text-[12px] font-semibold text-white tracking-wide">
-                    Keketso OS
+                    GenOS
                   </span>
                 </div>
                 <button
@@ -227,7 +241,7 @@ export function StartMenu() {
                     placeholder="Search apps..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/20 transition-colors"
+                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/[0.16] transition-colors"
                     autoFocus
                   />
                 </div>
@@ -295,7 +309,7 @@ export function StartMenu() {
               <SystemRowDivider context="chrome" className="mx-0 my-0" />
               <div className="flex items-center justify-between px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-white/[0.08] flex items-center justify-center flex-shrink-0">
                     <Icons.User className="w-3 h-3 text-white/50" />
                   </div>
                   <div className="leading-tight">

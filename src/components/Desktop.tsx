@@ -8,7 +8,6 @@ import { useNotificationStore } from '../store/notificationStore';
 import { uploadFile, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgressToast } from './UploadProgress';
 import { Taskbar } from './Taskbar';
-import { StartMenu } from './StartMenu';
 import { DesktopIcons } from './DesktopIcons';
 import { WindowManager } from './WindowManager';
 import { AdminPanel } from './AdminPanel';
@@ -386,9 +385,6 @@ export function Desktop() {
           <Taskbar />
         </div>
 
-        <div className="start-menu">
-          <StartMenu />
-        </div>
 
         {isAuthenticated && <AdminPanel />}
 
@@ -421,7 +417,7 @@ export function Desktop() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[15000] flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/60 z-[15000] flex items-center justify-center p-4"
               onClick={() => setShowBackgroundSelector(false)}
             >
               <motion.div

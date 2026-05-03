@@ -1,6 +1,6 @@
 {
-  "name": "PortfolioOS",
-  "short_name": "PortfolioOS",
+  "name": "GenOS",
+  "short_name": "GenOS",
   "description": "An innovative desktop OS-style portfolio platform",
   "start_url": "/",
   "display": "standalone",
