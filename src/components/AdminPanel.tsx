@@ -6,18 +6,21 @@ import { useUserStore } from '../store/userStore';
 import { App } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Surface, SurfaceHeader } from './ui/surface';
+import { ContentSurface, SurfaceHeader } from './ui/surface';
 import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
+import { ContextMenu } from './ContextMenu';
+import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
 
 export function AdminPanel() {
   const {
-    apps, isAdminMode, addApp, removeApp, updateApp, exportConfig, importConfig,
+    apps, isAdminMode, addApp, removeApp, updateApp, openWindow, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground
   } = useDesktopStore();
   const { profile, addMilestone, updateMilestone, removeMilestone } = useUserStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [appContextMenu, setAppContextMenu] = useState<{ x: number; y: number; app: App } | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [quickURL, setQuickURL] = useState('');
   const [bulkURLs, setBulkURLs] = useState('');
@@ -166,7 +169,7 @@ export function AdminPanel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'portfolioOS-config.json';
+    a.download = 'GenOS-config.json';
     a.click();
   };
 
@@ -321,51 +324,33 @@ export function AdminPanel() {
   if (!isAdminMode) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-[10000]"
-      >
-        <motion.div
-          initial={{ scale: 0.95, y: 20, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0.95, y: 20, opacity: 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-6xl max-h-[90vh] flex flex-col"
-        >
-          {/* Top gradient accent line - Netflix style */}
-          <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-          <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 overflow-hidden flex flex-col shadow-2xl">
-            {/* Header */}
-            <div className="shrink-0 px-6 py-4 border-b bg-gradient-to-r from-transparent via-gray-700/30 to-transparent" style={{borderImage: 'linear-gradient(to right, transparent, rgb(55 65 81 / 0.5), transparent) 1'}}>
+    <>
+    <ContentSurface className="flex-1 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="shrink-0 px-6 py-4 border-b border-white/[0.08]">
               <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                   <Icons.Shield className="w-6 h-6" />
                   Admin Dashboard
                 </h2>
-                <p className="text-blue-100 text-sm mt-1">Manage apps and configuration</p>
+                <p className="text-white/50 text-sm mt-1">Manage apps and configuration</p>
               </div>
               <div className="flex items-center gap-2">
                 {activeTab === 'apps' && (
                   <>
                     <Button
                       onClick={handleExport}
-                      variant="secondary"
+                      variant="soft-system-primary"
                       size="sm"
-                      className="bg-white/20 hover:bg-white/30 border-none"
                     >
                       <Icons.Download className="w-4 h-4" />
                       Export
                     </Button>
                     <label className="cursor-pointer">
                       <Button
-                        variant="secondary"
+                        variant="soft-system-primary"
                         size="sm"
-                        className="bg-white/20 hover:bg-white/30 border-none"
                         asChild
                       >
                         <span>
@@ -389,39 +374,24 @@ export function AdminPanel() {
             <div className="flex gap-2 mt-4">
               <Button
                 onClick={() => setActiveTab('apps')}
-                variant="secondary"
+                variant={activeTab === 'apps' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
-                className={
-                  activeTab === 'apps'
-                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
-                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
-                }
               >
                 <Icons.Grid3x3 className="w-4 h-4 inline mr-2" />
                 Apps
               </Button>
               <Button
                 onClick={() => setActiveTab('backgrounds')}
-                variant="secondary"
+                variant={activeTab === 'backgrounds' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
-                className={
-                  activeTab === 'backgrounds'
-                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
-                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
-                }
               >
                 <Icons.Image className="w-4 h-4 inline mr-2" />
                 Backgrounds
               </Button>
               <Button
                 onClick={() => setActiveTab('milestones')}
-                variant="secondary"
+                variant={activeTab === 'milestones' ? 'solid-system-primary' : 'soft-system-primary'}
                 size="md"
-                className={
-                  activeTab === 'milestones'
-                    ? 'bg-white text-primary-600 hover:bg-white/90 border-none'
-                    : 'bg-white/20 text-white hover:bg-white/30 border-none'
-                }
               >
                 <Icons.Calendar className="w-4 h-4 inline mr-2" />
                 Milestones
@@ -450,9 +420,8 @@ export function AdminPanel() {
                   setShowAddForm(false);
                   setShowBulkImport(false);
                 }}
-                variant="success"
+                variant="soft-system-primary"
                 size="lg"
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
                 <Icons.Zap className="w-5 h-5" />
                 Quick Add URL
@@ -463,7 +432,7 @@ export function AdminPanel() {
                   setShowAddForm(false);
                   setShowQuickAdd(false);
                 }}
-                variant="tertiary"
+                variant="soft-system-primary"
                 size="lg"
               >
                 <Icons.Package className="w-5 h-5" />
@@ -475,7 +444,7 @@ export function AdminPanel() {
                   setShowQuickAdd(false);
                   setShowBulkImport(false);
                 }}
-                variant="primary"
+                variant="soft-system-primary"
                 size="lg"
               >
                 <Icons.Plus className="w-5 h-5" />
@@ -487,13 +456,13 @@ export function AdminPanel() {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
-                className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-md rounded p-6 mb-6 border-b border-green-500/30"
+                className="bg-os-ink-900 rounded p-6 mb-6 border border-white/[0.08]"
               >
                 <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
                   <Icons.Zap className="w-5 h-5" />
                   Quick Add from URL
                 </h3>
-                <p className="text-green-100 text-sm mb-4">
+                <p className="text-white/50 text-sm mb-4">
                   Paste any website URL to instantly add it as an iframe app. We'll auto-detect the name and set optimal defaults.
                 </p>
                 <div className="space-y-3">
@@ -511,7 +480,7 @@ export function AdminPanel() {
                   <div className="flex gap-2">
                     <Button
                       onClick={handleQuickAdd}
-                      variant="success"
+                      variant="solid-system-primary"
                       size="md"
                       className="flex-1"
                     >
@@ -535,20 +504,20 @@ export function AdminPanel() {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
-                className="bg-gradient-to-br from-tertiary-900/30 to-primary-900/30 backdrop-blur-md rounded p-6 mb-6 border-b border-tertiary-500/30"
+                className="bg-os-ink-900 rounded p-6 mb-6 border border-white/[0.08]"
               >
                 <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
                   <Icons.Package className="w-5 h-5" />
                   Bulk Import Apps
                 </h3>
-                <p className="text-tertiary-100 text-sm mb-4">
-                  Add multiple apps at once. Enter one URL per line. Optional format: <code className="bg-black/30 px-1 rounded">URL | Name | Icon</code>
+                <p className="text-white/50 text-sm mb-4">
+                  Add multiple apps at once. Enter one URL per line. Optional format: <code className="bg-white/[0.08] px-1 rounded">URL | Name | Icon</code>
                 </p>
                 <div className="space-y-3">
                   <textarea
                     value={bulkURLs}
                     onChange={(e) => setBulkURLs(e.target.value)}
-                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-tertiary-600 focus:outline-none focus:border-tertiary-400 placeholder-gray-400 font-mono text-sm"
+                    className="w-full bg-os-ink-800 text-white px-4 py-3 rounded-lg border border-white/[0.08] focus:outline-none focus:border-white/[0.20] placeholder-white/30 font-mono text-sm"
                     placeholder={"https://example1.com\nhttps://example2.com | Custom Name | gamepad-2\nhttps://example3.com | Another App"}
                     rows={6}
                     autoFocus
@@ -569,7 +538,7 @@ export function AdminPanel() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-gray-900/70 backdrop-blur-md rounded p-6 mb-6 border-b border-white/10"
+                className="bg-os-ink-900 rounded p-6 mb-6 border border-white/[0.08]"
               >
                 <h3 className="text-white text-lg font-semibold mb-4">
                   {editingApp ? 'Edit App' : 'New App'}
@@ -592,7 +561,7 @@ export function AdminPanel() {
                       <select
                         value={formData.icon}
                         onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                        className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-primary-500"
+                        className="w-full bg-os-ink-800 text-white px-3 py-2 rounded-lg border border-white/[0.08] focus:outline-none focus:border-white/[0.20]"
                       >
                         {iconOptions.map((icon) => (
                           <option key={icon} value={icon}>{icon}</option>
@@ -607,14 +576,14 @@ export function AdminPanel() {
                     <div className="flex items-center gap-3">
                       {formData.customIcon ? (
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center border border-gray-600">
+                          <div className="w-12 h-12 bg-os-ink-800 rounded-lg flex items-center justify-center border border-white/[0.08]">
                             <img
                               src={formData.customIcon}
                               alt="Custom icon preview"
                               className="w-10 h-10 object-contain"
                             />
                           </div>
-                          <span className="text-gray-300 text-sm flex-1">Custom icon uploaded</span>
+                          <span className="text-white/60 text-sm flex-1">Custom icon uploaded</span>
                           <Button
                             type="button"
                             onClick={() => setFormData({ ...formData, customIcon: undefined })}
@@ -627,7 +596,7 @@ export function AdminPanel() {
                         </div>
                       ) : (
                         <label className="flex-1 cursor-pointer">
-                          <div className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg border border-gray-600 flex items-center justify-center gap-2 transition-colors">
+                          <div className="bg-os-ink-800 hover:bg-os-ink-700 text-white px-4 py-2 rounded-lg border border-white/[0.08] flex items-center justify-center gap-2 transition-colors">
                             <Icons.Upload className="w-4 h-4" />
                             Upload Custom Icon
                           </div>
@@ -664,7 +633,7 @@ export function AdminPanel() {
                         </label>
                       )}
                     </div>
-                    <p className="text-gray-400 text-xs mt-1">Upload PNG, JPG, or SVG (max 2MB). Custom icon will override the selected icon above.</p>
+                    <p className="text-white/40 text-xs mt-1">Upload PNG, JPG, or SVG (max 2MB). Custom icon will override the selected icon above.</p>
                   </div>
 
                   {/* Icon Library */}
@@ -681,7 +650,7 @@ export function AdminPanel() {
                             className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
                               isSelected
                                 ? 'border-primary-500 bg-primary-500/20'
-                                : 'border-gray-600 bg-gray-700 hover:border-gray-500 hover:bg-gray-600'
+                                : 'border-white/[0.08] bg-os-ink-800 hover:border-white/[0.20] hover:bg-os-ink-700'
                             }`}
                           >
                             <img
@@ -694,7 +663,7 @@ export function AdminPanel() {
                         );
                       })}
                     </div>
-                    <p className="text-gray-400 text-xs mt-2">Click any icon to use it for your app</p>
+                    <p className="text-white/40 text-xs mt-2">Click any icon to use it for your app</p>
                   </div>
 
                   <div>
@@ -702,7 +671,7 @@ export function AdminPanel() {
                     <select
                       value={formData.type}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                      className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-primary-500"
+                      className="w-full bg-os-ink-800 text-white px-3 py-2 rounded-lg border border-white/[0.08] focus:outline-none focus:border-white/[0.20]"
                     >
                       <option value="component">React Component</option>
                       <option value="iframe">IFrame URL</option>
@@ -734,7 +703,7 @@ export function AdminPanel() {
                         placeholder="https://example.com"
                         required
                       />
-                      <p className="text-gray-400 text-xs mt-1">Add any external website or web app URL</p>
+                      <p className="text-white/40 text-xs mt-1">Add any external website or web app URL</p>
                     </div>
                   )}
 
@@ -821,8 +790,8 @@ export function AdminPanel() {
               </motion.div>
             )}
 
-            <div className="bg-gray-900/70 backdrop-blur-md rounded border-b border-white/10 overflow-hidden shadow-xl">
-              <div className="bg-white/5 backdrop-blur-sm px-4 py-3 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-300 uppercase border-b border-white/10">
+            <div className="bg-os-ink-900 rounded border border-white/[0.08] overflow-hidden">
+              <div className="bg-white/[0.04] px-4 py-3 grid grid-cols-12 gap-4 text-xs font-semibold text-white/40 uppercase border-b border-white/[0.08]">
                 <div className="col-span-3">Name</div>
                 <div className="col-span-2">Type</div>
                 <div className="col-span-2">Taskbar</div>
@@ -830,11 +799,15 @@ export function AdminPanel() {
                 <div className="col-span-3">Actions</div>
               </div>
 
-              <div className="divide-y divide-white/10">
+              <div className="divide-y divide-white/[0.06]">
                 {apps.map((app) => {
                   const Icon = getIcon(app.icon);
                   return (
-                    <div key={app.id} className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/5 transition-colors">
+                    <div
+                      key={app.id}
+                      className="px-4 py-3 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.04] transition-colors"
+                      onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}
+                    >
                       <div className="col-span-3 flex items-center gap-2">
                         {app.customIcon ? (
                           <img
@@ -848,7 +821,7 @@ export function AdminPanel() {
                         <span className="text-white text-sm font-medium truncate">{app.name}</span>
                       </div>
                       <div className="col-span-2">
-                        <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
+                        <span className="text-xs px-2 py-1 bg-white/[0.08] text-white/60 rounded">
                           {app.type}
                         </span>
                       </div>
@@ -856,14 +829,14 @@ export function AdminPanel() {
                         {app.pinnedToTaskbar ? (
                           <Icons.Check className="w-4 h-4 text-green-400" />
                         ) : (
-                          <Icons.X className="w-4 h-4 text-gray-500" />
+                          <Icons.X className="w-4 h-4 text-white/30" />
                         )}
                       </div>
                       <div className="col-span-2">
                         {app.pinnedToDesktop ? (
                           <Icons.Check className="w-4 h-4 text-green-400" />
                         ) : (
-                          <Icons.X className="w-4 h-4 text-gray-500" />
+                          <Icons.X className="w-4 h-4 text-white/30" />
                         )}
                       </div>
                       <div className="col-span-3 flex gap-2">
@@ -895,7 +868,7 @@ export function AdminPanel() {
             {activeTab === 'backgrounds' && (
               <>
                 <div className="mb-6">
-                  <label className={`bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                  <label className={`bg-os-ink-800 hover:bg-os-ink-700 border border-white/[0.08] text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                     {isUploading ? (
                       <>
                         <Icons.Loader className="w-5 h-5 animate-spin" />
@@ -916,7 +889,7 @@ export function AdminPanel() {
                       disabled={isUploading}
                     />
                   </label>
-                  <p className="text-gray-400 text-sm text-center mt-2">
+                  <p className="text-white/40 text-sm text-center mt-2">
                     Upload JPG, PNG, or WebP images (multiple files supported)
                   </p>
                 </div>
@@ -930,10 +903,10 @@ export function AdminPanel() {
                     return (
                       <div
                         key={bg.id}
-                        className={`relative rounded-xl overflow-hidden border-4 transition-all cursor-pointer group ${
+                        className={`relative rounded-xl overflow-hidden border-2 transition-all cursor-pointer group ${
                           isSelected
-                            ? 'border-primary-500 shadow-lg shadow-primary-500/50'
-                            : 'border-gray-700 hover:border-gray-500'
+                            ? 'border-primary-500'
+                            : 'border-white/[0.08] hover:border-white/[0.20]'
                         }`}
                         onClick={() => setSelectedBackground(bg.id)}
                       >
@@ -947,14 +920,14 @@ export function AdminPanel() {
                           }}
                         />
 
-                        <div className="bg-gray-900/80 backdrop-blur-sm p-3 border-t border-white/10">
+                        <div className="bg-os-ink-900 p-3 border-t border-white/[0.08]">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <h3 className="text-white font-semibold text-sm truncate">
                                 {bg.name}
                               </h3>
                               {isDefault && (
-                                <span className="text-xs text-gray-400">Built-in</span>
+                                <span className="text-xs text-white/40">Built-in</span>
                               )}
                             </div>
                             {isSelected && (
@@ -982,7 +955,7 @@ export function AdminPanel() {
                 </div>
 
                 {backgrounds.length === 0 && (
-                  <div className="text-center py-12 text-gray-400">
+                  <div className="text-center py-12 text-white/40">
                     <Icons.Image className="w-16 h-16 mx-auto mb-4 opacity-50" />
                     <p>No backgrounds available. Upload some images to get started!</p>
                   </div>
@@ -1008,9 +981,8 @@ export function AdminPanel() {
                         featured: false
                       });
                     }}
-                    variant="primary"
+                    variant="solid-brand-primary"
                     size="lg"
-                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700"
                   >
                     <Icons.Plus className="w-5 h-5" />
                     Add Milestone
@@ -1022,9 +994,9 @@ export function AdminPanel() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="bg-gray-900/70 backdrop-blur-md rounded p-6 mb-6 border-b border-cyan-400/20"
+                    className="bg-os-ink-900 rounded p-6 mb-6 border border-white/[0.08]"
                   >
-                    <h3 className="text-cyan-400 text-lg font-semibold mb-4 flex items-center gap-2">
+                    <h3 className="text-white text-lg font-semibold mb-4 flex items-center gap-2">
                       <Icons.Star className="w-5 h-5" />
                       {editingMilestone ? 'Edit Milestone' : 'New Milestone'}
                     </h3>
@@ -1056,7 +1028,7 @@ export function AdminPanel() {
                     >
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-cyan-400 text-sm mb-2 block">Title *</label>
+                          <label className="text-white text-sm mb-2 block">Title *</label>
                           <Input
                             type="text"
                             value={milestoneFormData.title}
@@ -1067,7 +1039,7 @@ export function AdminPanel() {
                           />
                         </div>
                         <div>
-                          <label className="text-cyan-400 text-sm mb-2 block">Date *</label>
+                          <label className="text-white text-sm mb-2 block">Date *</label>
                           <Input
                             type="date"
                             value={milestoneFormData.date}
@@ -1079,11 +1051,11 @@ export function AdminPanel() {
                       </div>
 
                       <div>
-                        <label className="text-cyan-400 text-sm mb-2 block">Category</label>
+                        <label className="text-white text-sm mb-2 block">Category</label>
                         <select
                           value={milestoneFormData.category}
                           onChange={(e) => setMilestoneFormData({ ...milestoneFormData, category: e.target.value as any })}
-                          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-cyan-400/30 focus:outline-none focus:border-cyan-400"
+                          className="w-full bg-os-ink-800 text-white px-3 py-2 rounded-lg border border-white/[0.08] focus:outline-none focus:border-white/[0.20]"
                         >
                           <option value="project">Project</option>
                           <option value="achievement">Achievement</option>
@@ -1095,18 +1067,18 @@ export function AdminPanel() {
                       </div>
 
                       <div>
-                        <label className="text-cyan-400 text-sm mb-2 block">Description</label>
+                        <label className="text-white text-sm mb-2 block">Description</label>
                         <textarea
                           value={milestoneFormData.description}
                           onChange={(e) => setMilestoneFormData({ ...milestoneFormData, description: e.target.value })}
-                          className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-cyan-400/30 focus:outline-none focus:border-cyan-400 placeholder-gray-400"
+                          className="w-full bg-os-ink-800 text-white px-3 py-2 rounded-lg border border-white/[0.08] focus:outline-none focus:border-white/[0.20] placeholder-white/30"
                           placeholder="Describe this milestone..."
                           rows={3}
                         />
                       </div>
 
                       <div>
-                        <label className="text-cyan-400 text-sm mb-2 block">Tags (comma-separated)</label>
+                        <label className="text-white text-sm mb-2 block">Tags (comma-separated)</label>
                         <Input
                           type="text"
                           value={milestoneFormData.tags.join(', ')}
@@ -1120,10 +1092,10 @@ export function AdminPanel() {
                       </div>
 
                       <div>
-                        <label className="text-cyan-400 text-sm mb-2 block flex items-center justify-between">
+                        <label className="text-white text-sm mb-2 block flex items-center justify-between">
                           <span>Images</span>
                           <label className="cursor-pointer">
-                            <span className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-xs transition-colors">
+                            <span className="bg-os-ink-800 hover:bg-os-ink-700 border border-white/[0.08] text-white px-3 py-1 rounded text-xs transition-colors">
                               <Icons.Upload className="w-3 h-3 inline mr-1" />
                               Upload
                             </span>
@@ -1202,7 +1174,7 @@ export function AdminPanel() {
                       </div>
 
                       <div>
-                        <label className="text-cyan-400 text-sm mb-2 block flex items-center justify-between">
+                        <label className="text-white text-sm mb-2 block flex items-center justify-between">
                           <span>Links</span>
                           <button
                             type="button"
@@ -1212,7 +1184,7 @@ export function AdminPanel() {
                                 links: [...prev.links, { label: '', url: '' }]
                               }));
                             }}
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                            className="bg-os-ink-800 hover:bg-os-ink-700 border border-white/[0.08] text-white px-3 py-1 rounded text-xs transition-colors"
                           >
                             <Icons.Plus className="w-3 h-3 inline mr-1" />
                             Add Link
@@ -1254,7 +1226,7 @@ export function AdminPanel() {
                                       links: prev.links.filter((_, i) => i !== idx)
                                     }));
                                   }}
-                                  variant="danger"
+                                  variant="ghost-danger"
                                   size="icon"
                                   className="w-9 h-9"
                                 >
@@ -1267,7 +1239,7 @@ export function AdminPanel() {
                       </div>
 
                       <div>
-                        <label className="flex items-center gap-2 text-cyan-400 cursor-pointer">
+                        <label className="flex items-center gap-2 text-white cursor-pointer">
                           <input
                             type="checkbox"
                             checked={milestoneFormData.featured}
@@ -1282,9 +1254,9 @@ export function AdminPanel() {
                       <div className="flex gap-3 pt-2">
                         <Button
                           type="submit"
-                          variant="primary"
+                          variant="solid-system-primary"
                           size="md"
-                          className="flex-1 bg-cyan-600 hover:bg-cyan-700"
+                          className="flex-1"
                         >
                           {editingMilestone ? 'Update Milestone' : 'Create Milestone'}
                         </Button>
@@ -1294,7 +1266,7 @@ export function AdminPanel() {
                             setShowMilestoneForm(false);
                             setEditingMilestone(null);
                           }}
-                          variant="secondary"
+                          variant="soft-system-secondary"
                           size="md"
                         >
                           Cancel
@@ -1307,7 +1279,7 @@ export function AdminPanel() {
                 {/* Milestones List */}
                 <div className="space-y-3">
                   {profile.milestones.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400">
+                    <div className="text-center py-12 text-white/40">
                       <Icons.Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
                       <p>No milestones yet. Add your first milestone to get started!</p>
                     </div>
@@ -1317,7 +1289,7 @@ export function AdminPanel() {
                       .map((milestone) => (
                         <div
                           key={milestone.id}
-                          className="bg-gray-900/70 backdrop-blur-md rounded-lg p-4 border border-cyan-400/20 hover:border-cyan-400/40 transition-colors"
+                          className="bg-os-ink-900 rounded-lg p-4 border border-white/[0.08] hover:border-white/[0.16] transition-colors"
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
@@ -1328,29 +1300,29 @@ export function AdminPanel() {
                                 )}
                               </div>
                               <div className="flex items-center gap-3 mb-2">
-                                <span className={`text-xs px-2 py-1 rounded bg-gradient-to-r ${
-                                  milestone.category === 'project' ? 'from-cyan-600 to-blue-600' :
-                                  milestone.category === 'achievement' ? 'from-yellow-600 to-amber-600' :
-                                  milestone.category === 'education' ? 'from-purple-600 to-pink-600' :
-                                  milestone.category === 'career' ? 'from-green-600 to-emerald-600' :
-                                  milestone.category === 'personal' ? 'from-red-600 to-rose-600' :
-                                  'from-slate-600 to-gray-600'
-                                } text-white font-semibold`}>
+                                <span className={`text-xs px-2 py-1 rounded font-semibold ${
+                                  milestone.category === 'project' ? 'bg-blue-500/20 text-blue-300' :
+                                  milestone.category === 'achievement' ? 'bg-yellow-500/20 text-yellow-300' :
+                                  milestone.category === 'education' ? 'bg-purple-500/20 text-purple-300' :
+                                  milestone.category === 'career' ? 'bg-green-500/20 text-green-300' :
+                                  milestone.category === 'personal' ? 'bg-red-500/20 text-red-300' :
+                                  'bg-white/[0.08] text-white/60'
+                                }`}>
                                   {milestone.category}
                                 </span>
-                                <span className="text-cyan-400/60 text-sm">
+                                <span className="text-white/40 text-sm">
                                   {new Date(milestone.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </span>
                               </div>
                               {milestone.description && (
-                                <p className="text-gray-300 text-sm mb-2">{milestone.description}</p>
+                                <p className="text-white/60 text-sm mb-2">{milestone.description}</p>
                               )}
                               {milestone.tags && milestone.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                   {milestone.tags.map((tag, idx) => (
                                     <span
                                       key={idx}
-                                      className="text-xs px-2 py-0.5 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 rounded"
+                                      className="text-xs px-2 py-0.5 bg-white/[0.06] text-white/50 border border-white/[0.10] rounded"
                                     >
                                       {tag}
                                     </span>
@@ -1374,9 +1346,9 @@ export function AdminPanel() {
                                   });
                                   setShowMilestoneForm(true);
                                 }}
-                                variant="primary"
+                                variant="soft-system-primary"
                                 size="icon"
-                                className="w-8 h-8 bg-cyan-600 hover:bg-cyan-700"
+                                className="w-8 h-8"
                               >
                                 <Icons.Edit2 className="w-4 h-4" />
                               </Button>
@@ -1386,7 +1358,7 @@ export function AdminPanel() {
                                     removeMilestone(milestone.id);
                                   }
                                 }}
-                                variant="danger"
+                                variant="ghost-danger"
                                 size="icon"
                                 className="w-8 h-8"
                               >
@@ -1401,15 +1373,13 @@ export function AdminPanel() {
               </>
             )}
             </div>
-          </div>
-        </motion.div>
 
         {previewURL && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[15001] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 z-[15001] flex items-center justify-center p-4"
             onClick={() => setPreviewURL(null)}
           >
             <motion.div
@@ -1426,7 +1396,7 @@ export function AdminPanel() {
                 border="default"
                 className="flex flex-col h-full overflow-hidden"
               >
-                <SurfaceHeader className="bg-gradient-to-r from-primary-600 to-tertiary-600 border-b border-white/20">
+                <SurfaceHeader className="bg-os-ink-900 border-b border-white/[0.08]">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-white">Preview</h3>
@@ -1436,7 +1406,7 @@ export function AdminPanel() {
                       onClick={() => setPreviewURL(null)}
                       variant="ghost"
                       size="icon"
-                      className="text-white hover:bg-white/20"
+                      className="text-white hover:bg-white/[0.16]"
                     >
                       <Icons.X className="w-5 h-5" />
                     </Button>
@@ -1454,7 +1424,68 @@ export function AdminPanel() {
             </motion.div>
           </motion.div>
         )}
-      </motion.div>
+      </ContentSurface>
+
+    <AnimatePresence>
+      {appContextMenu && (() => {
+        const { x, y, app } = appContextMenu;
+        const defs: ContextMenuItemDef[] = [
+          {
+            id: 'open',
+            label: 'Open',
+            icon: Icons.ExternalLink,
+            group: 'primary',
+            action: () => { openWindow(app); setAppContextMenu(null); },
+          },
+          {
+            id: 'edit',
+            label: 'Edit',
+            icon: Icons.Edit2,
+            group: 'organize',
+            action: () => { handleEdit(app); setAppContextMenu(null); },
+          },
+          {
+            id: 'pin-desktop',
+            label: app.pinnedToDesktop ? 'Unpin from Desktop' : 'Pin to Desktop',
+            icon: app.pinnedToDesktop ? Icons.PinOff : Icons.Pin,
+            group: 'organize',
+            action: () => { updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }); setAppContextMenu(null); },
+          },
+          {
+            id: 'pin-taskbar',
+            label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
+            icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
+            group: 'organize',
+            action: () => { updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }); setAppContextMenu(null); },
+          },
+          {
+            id: 'delete',
+            label: 'Delete',
+            icon: Icons.Trash2,
+            group: 'danger',
+            danger: true,
+            action: () => { removeApp(app.id); setAppContextMenu(null); },
+          },
+        ];
+        const items = sortAndSeparate(defs).map((d) => ({
+          label: d.label,
+          icon: d.icon,
+          onClick: d.action,
+          disabled: d.disabled,
+          danger: d.danger,
+          divider: d.divider,
+          shortcut: d.shortcut,
+        }));
+        return (
+          <ContextMenu
+            x={x}
+            y={y}
+            items={items}
+            onClose={() => setAppContextMenu(null)}
+          />
+        );
+      })()}
     </AnimatePresence>
+    </>
   );
 }

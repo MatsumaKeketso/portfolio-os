@@ -8,6 +8,18 @@ import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
+import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
 
 // ---------------------------------------------------------------------------
 // App grouping
@@ -50,7 +62,7 @@ function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any })
   }
   const Icon = getIcon(app.icon);
   return (
-    <span className="w-5 h-5 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
+    <span className="w-5 h-5 rounded bg-white/[0.08] flex items-center justify-center flex-shrink-0">
       <Icon className="w-3 h-3 text-white/80" />
     </span>
   );
@@ -60,7 +72,11 @@ function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any })
 // Component
 // ---------------------------------------------------------------------------
 
-export function StartMenu() {
+interface StartMenuProps {
+  anchor?: { bottom: number; centerX: number };
+}
+
+export function StartMenu({ anchor }: StartMenuProps = {}) {
   const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp } =
     useDesktopStore();
   const { isAuthenticated, logout } = useAuthStore();
@@ -92,47 +108,51 @@ export function StartMenu() {
     setAppMenu({ app, x: e.clientX, y: e.clientY });
   };
 
-  const getAppMenuItems = (app: App): ContextMenuItem[] => [
+  const getAppMenuDefs = (app: App): ContextMenuItemDef[] => [
     {
+      id: 'open',
       label: 'Open',
       icon: Icons.ExternalLink,
-      onClick: () => handleOpenApp(app),
+      group: 'primary',
+      action: () => handleOpenApp(app),
     },
-    { label: '', divider: true, onClick: () => {} },
     {
+      id: 'pin-taskbar',
       label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
       icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
-      onClick: () => updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }),
+      group: 'organize',
+      action: () => updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }),
     },
     {
+      id: 'pin-desktop',
       label: app.pinnedToDesktop ? 'Unpin from Desktop' : 'Pin to Desktop',
       icon: app.pinnedToDesktop ? Icons.MonitorOff : Icons.Monitor,
-      onClick: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
+      group: 'organize',
+      action: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
     },
     ...(app.description
-      ? [
-          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
-          {
-            label: 'App Info',
-            icon: Icons.Info,
-            disabled: true,
-            onClick: () => {},
-            shortcut: app.description?.slice(0, 28) + (app.description && app.description.length > 28 ? '…' : ''),
-          } as ContextMenuItem,
-        ]
+      ? [{
+          id: 'app-info',
+          label: 'App Info',
+          icon: Icons.Info,
+          group: 'system' as MenuGroup,
+          disabled: true,
+          shortcut: app.description.slice(0, 28) + (app.description.length > 28 ? '…' : ''),
+          action: () => {},
+        }]
       : []),
     ...(isAuthenticated && isAdminMode
-      ? [
-          { label: '', divider: true, onClick: () => {} } as ContextMenuItem,
-          {
-            label: 'Edit in Admin',
-            icon: Icons.Settings,
-            onClick: () => {
-              // Admin panel opens via the global keyboard shortcut Ctrl+Shift+A
-              setStartMenuOpen(false);
-            },
-          } as ContextMenuItem,
-        ]
+      ? [{
+          id: 'edit-admin',
+          label: 'Edit in Admin',
+          icon: Icons.Settings,
+          group: 'system' as MenuGroup,
+          action: () => {
+            const adminApp = apps.find(a => a.id === 'admin-panel');
+            if (adminApp) openWindow(adminApp);
+            setStartMenuOpen(false);
+          },
+        }]
       : []),
   ];
 
@@ -174,8 +194,14 @@ export function StartMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-14 left-2 w-[340px] z-[9999] flex flex-col"
-            style={{ maxHeight: 'calc(100vh - 80px)' }}
+            className="fixed w-[340px] z-[9999] flex flex-col"
+            style={{
+              bottom: anchor ? anchor.bottom : 76,
+              left: anchor
+                ? Math.max(8, Math.min(anchor.centerX - 170, window.innerWidth - 348))
+                : Math.max(8, window.innerWidth / 2 - 170),
+              maxHeight: 'calc(100vh - 100px)',
+            }}
           >
             <div
               className="flex flex-col overflow-hidden rounded-lg"
@@ -191,11 +217,11 @@ export function StartMenu() {
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-[18px] h-[18px] bg-white/10 rounded flex items-center justify-center">
+                  <div className="w-[18px] h-[18px] bg-white/[0.08] rounded flex items-center justify-center">
                     <Icons.Grid3x3 className="w-2.5 h-2.5 text-white" />
                   </div>
                   <span className="text-[12px] font-semibold text-white tracking-wide">
-                    Keketso OS
+                    GenOS
                   </span>
                 </div>
                 <button
@@ -215,7 +241,7 @@ export function StartMenu() {
                     placeholder="Search apps..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/20 transition-colors"
+                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/[0.16] transition-colors"
                     autoFocus
                   />
                 </div>
@@ -283,7 +309,7 @@ export function StartMenu() {
               <SystemRowDivider context="chrome" className="mx-0 my-0" />
               <div className="flex items-center justify-between px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-white/[0.08] flex items-center justify-center flex-shrink-0">
                     <Icons.User className="w-3 h-3 text-white/50" />
                   </div>
                   <div className="leading-tight">
@@ -343,7 +369,7 @@ export function StartMenu() {
               <ContextMenu
                 x={appMenu.x}
                 y={appMenu.y}
-                items={getAppMenuItems(appMenu.app)}
+                items={toContextMenuItems(getAppMenuDefs(appMenu.app))}
                 onClose={() => setAppMenu(null)}
               />
             )}

@@ -42,10 +42,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
       >
         {/* Card background with Star Citizen styling */}
         <div
-          className="relative bg-gradient-to-br from-slate-900/90 to-slate-950/95 backdrop-blur-xl border border-cyan-400/20 overflow-hidden"
-          style={{
-            clipPath: 'polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)'
-          }}
+          className="relative bg-os-ink-900 border border-white/[0.08] overflow-hidden rounded"
         >
           {/* Holographic grid pattern */}
           <div
@@ -68,18 +65,18 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
             <div className="flex items-start gap-3 mb-3">
               {/* Category icon with glow */}
               <div className="relative flex-shrink-0 mt-1">
-                <div className={`absolute inset-0 bg-${config.glow}/30 blur-lg`} />
+                <div className={`absolute inset-0 opacity-30`} />
                 <div className={`relative w-8 h-8 rounded bg-gradient-to-br ${config.color} flex items-center justify-center`}>
-                  <CategoryIcon className="w-4 h-4 text-slate-950" />
+                  <CategoryIcon className="w-4 h-4 text-white" />
                 </div>
               </div>
 
               {/* Title and date */}
               <div className="flex-1 min-w-0">
-                <h4 className="text-cyan-400 font-semibold text-sm leading-tight mb-1 group-hover:text-cyan-300 transition-colors">
+                <h4 className="text-white font-semibold text-sm leading-tight mb-1 group-hover:text-white/80 transition-colors">
                   {milestone.title}
                 </h4>
-                <div className="flex items-center gap-2 text-[10px] text-cyan-400/50 uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-wide">
                   <Icons.Calendar className="w-3 h-3" />
                   <span>{formatDate(milestone.date)}</span>
                   {milestone.featured && (
@@ -100,12 +97,12 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                 transition={{ duration: 0.2 }}
                 className="flex-shrink-0"
               >
-                <Icons.ChevronDown className="w-4 h-4 text-cyan-400/50" />
+                <Icons.ChevronDown className="w-4 h-4 text-white/40" />
               </motion.div>
             </div>
 
             {/* Description preview */}
-            <p className={`text-cyan-400/70 text-xs leading-relaxed ${
+            <p className={`text-white/50 text-xs leading-relaxed ${
               isExpanded ? '' : 'line-clamp-2'
             }`}>
               {milestone.description}
@@ -121,13 +118,13 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-4 pt-4 border-t border-cyan-400/10 space-y-3">
+                  <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-3">
                     {/* Images */}
                     {milestone.images && milestone.images.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <Icons.Image className="w-3 h-3 text-cyan-400/50" />
-                          <span className="text-[10px] text-cyan-400/50 uppercase tracking-wide">
+                          <Icons.Image className="w-3 h-3 text-white/30" />
+                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
                             Media
                           </span>
                         </div>
@@ -135,7 +132,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                           {milestone.images.map((img, idx) => (
                             <div
                               key={idx}
-                              className="relative aspect-video rounded overflow-hidden border border-cyan-400/20 hover:border-cyan-400/40 transition-colors cursor-pointer group/img"
+                              className="relative aspect-video rounded overflow-hidden border border-white/[0.10] hover:border-white/[0.20] transition-colors cursor-pointer group/img"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedImage(img);
@@ -160,8 +157,8 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                     {milestone.links && milestone.links.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <Icons.Link className="w-3 h-3 text-cyan-400/50" />
-                          <span className="text-[10px] text-cyan-400/50 uppercase tracking-wide">
+                          <Icons.Link className="w-3 h-3 text-white/30" />
+                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
                             Links
                           </span>
                         </div>
@@ -173,7 +170,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-2 text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors group/link"
+                              className="flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors group/link"
                             >
                               <Icons.ExternalLink className="w-3 h-3" />
                               <span className="group-hover/link:underline">{link.label}</span>
@@ -187,8 +184,8 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                     {milestone.tags && milestone.tags.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <Icons.Tag className="w-3 h-3 text-cyan-400/50" />
-                          <span className="text-[10px] text-cyan-400/50 uppercase tracking-wide">
+                          <Icons.Tag className="w-3 h-3 text-white/30" />
+                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
                             Tags
                           </span>
                         </div>
@@ -196,7 +193,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                           {milestone.tags.map((tag, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-0.5 text-[10px] text-cyan-400/70 bg-cyan-400/5 border border-cyan-400/20 rounded uppercase tracking-wide"
+                              className="px-2 py-0.5 text-[10px] text-white/50 bg-white/[0.04] border border-white/[0.10] rounded uppercase tracking-wide"
                             >
                               {tag}
                             </span>
@@ -210,16 +207,13 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
             </AnimatePresence>
 
             {/* Corner accents */}
-            <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-cyan-400/30" />
-            <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-cyan-400/30" />
+            <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white/[0.20]" />
+            <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white/[0.20]" />
           </div>
 
-          {/* Hover glow effect */}
-          <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-cyan-400/5 to-transparent`} />
+          {/* Hover overlay */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-white/[0.02]" />
         </div>
-
-        {/* External glow on hover */}
-        <div className={`absolute -inset-0.5 bg-gradient-to-br ${config.color} opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-300 -z-10`} />
       </motion.div>
 
       {/* Image modal */}
@@ -229,7 +223,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[20000] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 z-[20000] flex items-center justify-center p-4"
             onClick={() => setShowImageModal(false)}
           >
             <motion.div
@@ -239,7 +233,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
               className="relative max-w-4xl max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="relative rounded-lg overflow-hidden border-2 border-cyan-400/30">
+              <div className="relative rounded-lg overflow-hidden border border-white/[0.12]">
                 <img
                   src={selectedImage}
                   alt="Expanded view"
@@ -249,7 +243,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                   onClick={() => setShowImageModal(false)}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-4 right-4 backdrop-blur-xl"
+                  className="absolute top-4 right-4"
                 >
                   <Icons.X className="w-5 h-5" />
                 </Button>

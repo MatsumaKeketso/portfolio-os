@@ -1,17 +1,20 @@
-# PortfolioOS - Interactive Web Desktop
+# GenOS - Interactive Web Desktop
 
-> **Documentation** - Last Updated: 2026-05-01 (updated for v2.1 Firebase migration)
+> **Documentation** - Last Updated: 2026-05-01 (v2.1.0 — Firebase migration, GenOS identity, surface primitives, context menu registry)
 
 ## 📋 Project Overview
 
-**PortfolioOS** is an innovative, interactive web-based desktop environment built to showcase a developer's portfolio in a unique and engaging way. The application simulates a complete operating system experience directly in the browser, featuring a window management system, file explorer, taskbar, start menu, and multiple built-in applications.
+**GenOS** (project name: GenOS) is a browser-based operating system experience built as a portfolio by Keketso, developed by Generative Studio. The application simulates a complete OS in the browser: window management, file explorer, taskbar, start menu, app registry, admin publishing workflow, and multiple built-in and project apps.
 
 ### Key Characteristics
 - **Type**: Single Page Application (SPA)
-- **Purpose**: Interactive Portfolio Showcase
+- **Product name**: GenOS
+- **Repo name**: portfolio-os / GenOS
+- **Purpose**: Portfolio operating system — the OS itself is the portfolio
 - **Architecture**: Component-based desktop environment
-- **Developer**: Based in Johannesburg, South Africa
-- **Version**: 1.0.0
+- **Developer**: Keketso Matsuma, Johannesburg, South Africa — built by Generative Studio
+- **Version**: 2.1.0
+- **Live**: genos.dev
 
 ---
 
@@ -38,11 +41,12 @@
   - `fileStore` - Virtual file system
   - `notificationStore` - Toast notification queue
 
-#### Backend Integration
-- **Firebase ^11.10.0** - Firestore (database), Authentication, Cloud Storage
+#### Backend
+- **Firebase ^11.10.0** — Firestore (database), Authentication, Cloud Storage
   - `src/lib/firebase.ts` — exports `auth`, `db`, `storage`
   - Firestore collection: `os-site_content` (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`)
   - Storage path: `portfolio-files/`
+  - Env vars: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`
 
 #### Development Tools
 - **ESLint 9.9.1** - Code linting
@@ -74,44 +78,63 @@ portfolio-os/
 ├── src/
 │   ├── components/
 │   │   ├── apps/              # Built-in applications
-│   │   │   ├── About.tsx
+│   │   │   ├── About.tsx          # Legacy About Me (kept for compat)
+│   │   │   ├── AboutOS.tsx        # About This OS — system concept screen
 │   │   │   ├── Browser.tsx
 │   │   │   ├── Calculator.tsx
+│   │   │   ├── CV.tsx             # Tabbed CV (Profile/Experience/Skills/Projects/Contact/Files)
+│   │   │   ├── Contact.tsx        # Legacy (kept for compat, not in default apps)
 │   │   │   ├── FileExplorer.tsx
 │   │   │   ├── Notepad.tsx
+│   │   │   ├── Portfolio.tsx      # Legacy (kept for compat)
+│   │   │   ├── Resume.tsx         # Legacy (kept for compat)
+│   │   │   ├── Settings.tsx
+│   │   │   ├── Skills.tsx         # Legacy (kept for compat)
 │   │   │   ├── TaskManager.tsx
 │   │   │   └── Weather.tsx
-│   │   ├── AdminPanel.tsx     # Admin configuration UI
-│   │   ├── Desktop.tsx        # Main desktop component
-│   │   ├── DesktopIcons.tsx   # Desktop icon grid
-│   │   ├── StartMenu.tsx      # Start menu interface
-│   │   ├── Taskbar.tsx        # Bottom taskbar
-│   │   ├── Window.tsx         # Window wrapper component
-│   │   └── WindowManager.tsx  # Window rendering manager
+│   │   ├── ui/                # Shared design-system primitives
+│   │   │   ├── surface.tsx        # Surface, ChromeSurface, ContentSurface, FloatingSurface, InsetSurface, MediaSurface
+│   │   │   ├── SystemRow.tsx      # SystemRow, SystemRowGroup, SystemRowDivider
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   └── input.tsx
+│   │   ├── AdminPanel.tsx
+│   │   ├── ContextMenu.tsx
+│   │   ├── Desktop.tsx
+│   │   ├── DesktopIcons.tsx
+│   │   ├── StartMenu.tsx
+│   │   ├── Taskbar.tsx
+│   │   ├── Window.tsx
+│   │   └── WindowManager.tsx
 │   ├── store/
-│   │   ├── desktopStore.ts    # Desktop, window, background state
+│   │   ├── desktopStore.ts    # Windows, apps, backgrounds, system prefs
 │   │   ├── authStore.ts       # Firebase Auth session
 │   │   ├── themeStore.ts      # Theme presets + CSS variable injection
 │   │   ├── userStore.ts       # User profile, CV, projects
-│   │   ├── fileStore.ts       # Virtual file system
+│   │   ├── fileStore.ts       # Virtual file system + Visitor Gallery
 │   │   └── notificationStore.ts # Toast queue
 │   ├── lib/
-│   │   ├── firebase.ts        # Firebase app init (auth, db, storage)
-│   │   ├── uploadUtils.ts     # Firebase Storage upload helpers
+│   │   ├── firebase.ts            # Firebase app init (auth, db, storage)
+│   │   ├── uploadUtils.ts         # Firebase Storage upload helpers
+│   │   ├── contextMenuRegistry.ts # Context IDs, ContextMenuItemDef, resolveMenuItems, sortAndSeparate
+│   │   ├── filePermissions.ts     # LocationContext, getPermissions, fileIsWritable
+│   │   ├── fileUtils.ts
 │   │   ├── utils.ts
 │   │   ├── design-tokens.ts
 │   │   └── imageUtils.ts
-│   ├── theme/                 # Centralized design system
+│   ├── theme/                 # Design token system
 │   │   ├── theme.ts
 │   │   ├── ThemeProvider.tsx
 │   │   ├── helpers.ts
 │   │   └── index.ts
-│   ├── App.tsx                # Root component
-│   ├── main.tsx               # Entry point
-│   ├── types.ts               # TypeScript definitions
-│   └── index.css              # Tailwind imports
-├── public/                    # Static assets + PWA manifest
-├── index.html                 # HTML template
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── types.ts               # App, WindowState, FileItem, VISITOR_GALLERY_ID, etc.
+│   └── index.css
+├── public/
+├── firebase.json
+├── .firebaserc
+├── index.html
 ├── package.json
 ├── vite.config.ts
 ├── tailwind.config.js
@@ -194,77 +217,42 @@ portfolio-os/
 
 ---
 
-## 🖥️ Built-in Applications
+## 🖥️ Default System Apps
 
-### 1. File Explorer
-- **Icon**: Folder
-- **Default Size**: 800x600px
-- **Features**:
-  - Navigation breadcrumb path
-  - Grid view (4 columns)
-  - Create folders and text files
-  - Upload files via button or drag-drop
-  - File properties sidebar
-  - Document and image preview
-  - Delete functionality
-  - File metadata display
+### 1. File Explorer (`surfaceMode: 'content'`)
+- Side navigation: Desktop, Documents, Downloads, Projects, CV, Images, Visitor Gallery, System
+- Grid/list view, sort, search, upload, drag/drop, rename, duplicate, cut/copy/paste, delete
+- Permission-aware: Visitor Gallery restricts file creation to image uploads only
+- Context menus use `contextMenuRegistry.ts` item model + `sortAndSeparate`
 
-### 2. Portfolio Browser
-- **Icon**: Globe
-- **Default Size**: 900x700px
-- **Type**: Component
-- **Purpose**: Browse portfolio websites
+### 2. CV (`surfaceMode: 'content'`)
+- Tabs: Profile, Experience, Skills, Projects, Contact, Files
+- Pulls from `userStore`; respects contact privacy settings
+- Light content surface; keeps project work as summaries
 
-### 3. Calculator
-- **Icon**: Calculator
-- **Default Size**: 320x480px
-- **Features**:
-  - Basic operations (+, −, ×, ÷)
-  - Decimal support
-  - Clear function
-  - Operation history display
-  - Dark theme UI
+### 3. About This OS (`surfaceMode: 'content'`)
+- Sections: System, Concept, Keketso, Generative Studio, Credits, Build
+- System-level screen explaining the OS concept; does not duplicate CV
+- Side-nav uses `SystemRow` pattern
 
-### 4. Notepad
-- **Icon**: FileText
-- **Default Size**: 600x400px
-- **Type**: Simple text editor
+### 4. Settings (`surfaceMode: 'content'`)
+- Tabs: Profile, Appearance, System, Privacy, Data
 
-### 5. Weather Widget
-- **Icon**: Cloud
-- **Default Size**: 400x500px
-- **Features**:
-  - Current weather for Johannesburg
-  - Temperature, feels like, condition
-  - Humidity and wind speed
-  - 5-day forecast
-  - Hardcoded data (no API integration)
+### 5. Task Manager (`surfaceMode: 'utilityDark'`)
+- Dark utility UI; shows running processes/project overview
 
-### 6. Task Manager
-- **Icon**: Activity
-- **Default Size**: 700x500px
-- **Purpose**: View running portfolio projects
+### 6. Calculator (`surfaceMode: 'utilityDark'`)
+- Basic operations, decimal support, dark theme UI
 
-### 7. About Me
-- **Icon**: User
-- **Default Size**: 600x500px
-- **Content**:
-  - Developer bio
-  - Featured projects (NailHub Social, Delegation Coach, 3D ShapeShift)
-  - Social links (GitHub, Base44, Udemy, NailHub)
-  - Technology stack information
+### 7. Browser (`surfaceMode: 'iframe'`)
+- Project preview and external exploration iframe
 
-### 8. NailHub Social (iframe)
-- **Icon**: Heart
-- **URL**: https://www.nailhub.co.za
-- **Default Size**: 900x700px
-- **Description**: Social platform for nail artists
+### 8. Notepad
+- Simple text editor
 
-### 9. GitHub (iframe)
-- **Icon**: Github
-- **URL**: https://github.com
-- **Default Size**: 900x700px
-- **Not pinned by default**
+### Legacy Apps (kept for compatibility, not in default app list)
+- `About.tsx`, `Resume.tsx`, `Portfolio.tsx`, `Skills.tsx`, `Contact.tsx`, `Weather.tsx`
+- Still lazy-loadable via `WindowManager.tsx`; not shown as first-level defaults
 
 ---
 
@@ -313,7 +301,7 @@ portfolio-os/
 
 **Key Actions**:
 - `addFile()` - Create new file/folder
-- `removeFile()` - Delete file and children
+- `removeFile()` - Delete file and children (protected folders blocked)
 - `updateFile()` - Modify file properties
 - `navigateToFolder()` - Enter folder
 - `navigateUp()` - Go to parent folder
@@ -322,14 +310,9 @@ portfolio-os/
 - `getPathString()` - Generate breadcrumb path
 - `getAllFiles()` - Get complete file list
 
-**Default Files**:
-- Projects (folder)
-- Portfolio Sites (folder)
-- Certificates (folder)
-- Resume.txt (document)
-- About Me.txt (document)
+**Protected Root Folders**: Desktop, Documents, Downloads, Projects, CV, Images, Visitor Gallery (`VISITOR_GALLERY_ID`), System
 
-**Persistence**: File tree saved to Firestore `os-site_content/filesystem`; media files stored in Firebase Storage
+**Persistence**: File tree saved to Firestore `os-site_content/filesystem`; media files stored in Firebase Storage under `portfolio-files/`
 
 ---
 
@@ -338,25 +321,36 @@ portfolio-os/
 ### App Interface
 ```typescript
 interface App {
-  id: string                     // Unique identifier
-  name: string                   // Display name
+  id: string
+  name: string
   icon: string                   // Lucide icon name
   type: 'component' | 'iframe' | 'static'
-  component?: string             // React component name
-  url?: string                   // External URL (for iframe)
+  component?: string
+  url?: string
   pinnedToTaskbar?: boolean
   pinnedToDesktop?: boolean
   desktopPosition?: { x: number; y: number }
   defaultSize?: { width: number; height: number }
   description?: string
+  // Surface/window contract
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe'
+  preferredWindowMode?: 'floating' | 'maximized' | 'fixed'
+  minSize?: { width: number; height: number }
+  mobileBehavior?: 'maximize' | 'fullscreen' | 'hide'
+  // Project/portfolio metadata
+  projectStatus?: string
+  tags?: string[]
+  role?: string
+  year?: number
+  projectLinks?: { label: string; url: string }[]
 }
 ```
 
 ### WindowState Interface
 ```typescript
 interface WindowState {
-  id: string                     // Unique window instance ID
-  appId: string                  // Reference to App
+  id: string
+  appId: string
   title: string
   icon: string
   type: 'component' | 'iframe' | 'static'
@@ -368,6 +362,7 @@ interface WindowState {
   isMinimized: boolean
   isMaximized: boolean
   zIndex: number
+  surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe'
 }
 ```
 
@@ -392,13 +387,31 @@ interface FileItem {
 
 ## 🎨 Design System
 
-### Color Palette
-- **Desktop Background**: Gradient (blue-900 → blue-800 → purple-900)
-- **Window Chrome**: Gray-900/95 with backdrop blur
-- **Window Header**: Gray-800/80
-- **Taskbar**: Gray-900/95 with backdrop blur
-- **Accent Color**: Blue-600 (active states)
-- **Destructive**: Red-600 (delete, close)
+### Surface Primitives (`src/components/ui/surface.tsx`)
+- `ChromeSurface` — dark taskbar, start menu, title bars, menus, admin nav
+- `ContentSurface` — light app body for CV, Settings, File Explorer, AboutOS
+- `FloatingSurface` — dropdowns, context menus, date pickers, notification panels
+- `InsetSurface` — input wells, selected rows, nested controls
+- `MediaSurface` — image previews with optional halftone dot hover treatment
+- `SurfaceHeader`, `SurfaceContent`, `SurfaceFooter`, `SurfaceDivider`
+
+### System Row (`src/components/ui/SystemRow.tsx`)
+- `SystemRow` — 36–44px rows with icon, label, metadata, hover/selected state
+- `SystemRowGroup` — grouped section with optional header
+- `SystemRowDivider` — visual separator
+- Used in Start Menu, AboutOS; planned for File Explorer sidebar, Settings, Admin
+
+### Default Theme Preset — Product Mono
+| Token | Value |
+|-------|-------|
+| `primary` (ink) | `#111111` |
+| `secondary` | `#666666` |
+| `tertiary` (canvas) | `#f5f5f3` |
+| `accent` | `#10b981` (emerald) |
+| `borderRadius` | `md` (8px) |
+| `spacing` | `compact` |
+
+Additional theme presets remain available: Default, Ocean Blue, Forest Green, Purple Haze, Sunset Orange, Monochrome, Cyberpunk, Star Citizen.
 
 ### Typography
 - **Default**: System font stack
@@ -468,20 +481,27 @@ http://localhost:5173?admin=1
 
 ## 💾 Data Persistence
 
-### LocalStorage Keys
-- `portfolioOS_apps` - Application configuration
-- `portfolioOS_files` - Virtual file system
+### Firebase (primary backend)
+All backend state is persisted via Firebase. Firestore collection: `os-site_content`.
 
-### Data Format
-- **Apps**: JSON array of App objects
-- **Files**: JSON array of FileItem objects
+| Document | Store | Contents |
+|----------|-------|----------|
+| `profile` | `userStore` | Name, bio, experience, skills, projects, social links |
+| `apps` | `desktopStore` | App registry |
+| `backgrounds` | `desktopStore` | Background list |
+| `selectedBackground` | `desktopStore` | Active background ID |
+| `filesystem` | `fileStore` | Virtual file tree |
+| `theme` | `themeStore` | Active theme settings |
+
+Media files (images, videos) are stored in Firebase Storage under `portfolio-files/`.
+
+### LocalStorage (secondary / preferences)
+| Key | Purpose |
+|-----|---------|
+| `GenOS_systemPreferences` | Taskbar position/size, icon size, animations |
 
 ### Reset to Defaults
-Clear localStorage keys to restore default configuration:
-```javascript
-localStorage.removeItem('portfolioOS_apps');
-localStorage.removeItem('portfolioOS_files');
-```
+Clear Firestore documents or local state to restore defaults. The stores include fallback defaults for all Firestore documents.
 
 ---
 
@@ -536,59 +556,46 @@ The `WindowManager` component dynamically loads app components based on the `com
 ## 🔒 Security Considerations
 
 ### Current Implementation
-- **No Authentication**: Admin mode accessible via keyboard shortcut
-- **Client-Side Storage**: All data in browser localStorage
-- **No Server Communication**: Fully client-side application
-- **IFrame Security**: External sites loaded in sandboxed iframes
+- **Authentication**: Firebase Auth (`signInWithEmailAndPassword`, `onAuthStateChanged`). Admin features require authenticated session.
+- **Backend**: Firebase Firestore + Storage. Data is not purely client-side.
+- **Visitor Gallery**: Client-side upload filtering enforces image-only (JPEG/PNG/WebP/GIF). SVG is blocked. Storage security rules should mirror client-side constraints (pending).
+- **IFrame Security**: External sites loaded in sandboxed iframes.
 
-### Recommendations for Production
-- Implement authentication for admin panel
-- Add server-side storage for persistence
-- Sanitize user inputs in file names and content
-- Implement CSP headers for iframe security
-- Add rate limiting for file uploads
+### Still Needed for Production
+- Server/storage security rules to enforce visitor image-only upload constraints
+- Rate limiting for visitor uploads
+- CSP headers for iframe security
+- Re-encoding visitor images to strip metadata
 
 ---
 
 ## 🐛 Known Limitations
 
-1.  **Static Weather Data**: No API integration for real weather
-2.  **No Multi-User Support**: Single-user experience
-3.  **Browser Storage Limits**: LocalStorage quota (mitigated by Supabase Storage for media)
-4.  **No Mobile Optimization**: Desktop-focused experience
+1. **Static Weather Data**: No API integration for real weather
+2. **No Multi-User Support**: Single-user experience; visitor uploads are not authenticated
+3. **No Mobile Optimization**: Desktop-focused experience; mobile window behavior is not yet intentionally handled
+4. **Surface Adoption Incomplete**: `ChromeSurface`/`ContentSurface` primitives exist but are not yet fully adopted across Window, ContextMenu, FileExplorer, Settings, and dialogs
+5. **Context Menu Registry**: Partially wired — File Explorer uses it; Desktop, Start Menu, Taskbar, Window, and Admin still use local assembly
 
 ---
 
-## 🔄 Future Enhancement Opportunities
+## 🔄 Upcoming Work
 
-### Suggested Features
-- [x] Cloud storage integration (Supabase implementation)
-- [ ] User authentication and profiles
-- [ ] Real-time weather API integration
-- [ ] Mobile responsive design
-- [ ] Multi-monitor support (virtual desktops)
-- [ ] Keyboard navigation improvements
-- [ ] Context menus (right-click)
-- [ ] Window snapping (edge docking)
-- [ ] Search functionality
-- [ ] Themes and customization
-- [ ] Notification system
-- [ ] Terminal/command line app
-- [ ] Code editor app
-- [ ] Music player app
-- [ ] Settings app for preferences
+See `docs/INCREMENTAL_REFINEMENT_PLAN.md` and `docs/IMPLEMENTATION_PROGRESS.md` for the active execution plan. High-level items:
 
-### Technical Improvements
-- [ ] Lazy loading for app components
-- [ ] Virtual scrolling for large file lists
-- [ ] IndexedDB for larger file storage
-- [ ] Service worker for offline support
-- [ ] Progressive Web App (PWA) capabilities
-- [ ] Accessibility (ARIA labels, keyboard nav)
-- [ ] Unit and integration tests
-- [ ] Performance monitoring
-- [ ] Error boundaries
-- [ ] Analytics integration
+### In Progress / Next
+- Finish context menu registry adoption (Desktop, Start Menu, Taskbar, Window)
+- Server/storage-side Visitor Gallery upload enforcement
+- `minSize` / `mobileBehavior` window enforcement
+- Adopt `FloatingSurface` in `ContextMenu.tsx`; `MediaSurface` in File Explorer image grid
+- Real App Info panel + Admin deep-link from Start Menu
+
+### Planned
+- Feedback app (Section 6 of refinement plan)
+- `DateRangePicker`, `NotificationPanel`, `SettingsShell` shared components
+- Mobile responsive window behavior
+- Trash location in File Explorer
+- Server-side visitor upload moderation controls in Admin Panel
 
 ---
 
@@ -682,4 +689,4 @@ The `WindowManager` component dynamically loads app components based on the `com
 
 ---
 
-**Note**: This documentation is AI-generated based on comprehensive code analysis performed on 2025-12-30. It will be updated as new changes are added to the project.
+**Note**: Last updated 2026-05-01 for v2.1.0 (Firebase migration, surface primitives, context menu registry, File Explorer OS locations).

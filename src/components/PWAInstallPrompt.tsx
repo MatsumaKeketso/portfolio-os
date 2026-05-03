@@ -59,14 +59,11 @@ export function PWAInstallPrompt() {
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[10002]"
         >
-          {/* Top gradient accent line */}
-          <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-          <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-4">
+          <div className="bg-os-ink-950 rounded border border-white/[0.08] shadow-os-floating p-4">
             <div className="flex items-start gap-3">
               {/* Icon */}
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-tertiary-600 rounded flex items-center justify-center flex-shrink-0">
-                <Icons.Download className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-os-ink-800 border border-white/[0.08] rounded flex items-center justify-center flex-shrink-0">
+                <Icons.Download className="w-6 h-6 text-white/60" />
               </div>
 
               {/* Content */}
@@ -74,7 +71,7 @@ export function PWAInstallPrompt() {
                 <h3 className="text-white font-semibold mb-1">
                   Install GenOS
                 </h3>
-                <p className="text-gray-300 text-sm mb-3">
+                <p className="text-white/60 text-sm mb-3">
                   Add to your home screen for a native app experience
                 </p>
 
@@ -82,14 +79,14 @@ export function PWAInstallPrompt() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleInstall}
-                    className="flex-1 bg-gradient-to-r from-primary-500 to-tertiary-500 hover:from-primary-600 hover:to-tertiary-600 text-white px-4 py-2 rounded font-semibold text-sm transition-all"
+                    className="flex-1 bg-os-ink-800 hover:bg-os-ink-700 text-white px-4 py-2 rounded font-semibold text-sm transition-all"
                   >
                     <Icons.Plus className="w-4 h-4 inline mr-1" />
                     Install
                   </button>
                   <button
                     onClick={handleDismiss}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded text-sm transition-all"
+                    className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.10] text-white rounded text-sm transition-all"
                   >
                     Not Now
                   </button>
@@ -99,15 +96,15 @@ export function PWAInstallPrompt() {
               {/* Close button */}
               <button
                 onClick={handleDismiss}
-                className="p-1 hover:bg-white/20 rounded transition-all flex-shrink-0"
+                className="p-1 hover:bg-white/[0.10] rounded transition-all flex-shrink-0"
               >
-                <Icons.X className="w-4 h-4 text-gray-400" />
+                <Icons.X className="w-4 h-4 text-white/40" />
               </button>
             </div>
 
             {/* Features */}
-            <div className="mt-3 pt-3 border-t border-white/10">
-              <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
+            <div className="mt-3 pt-3 border-t border-white/[0.08]">
+              <div className="grid grid-cols-3 gap-2 text-xs text-white/40">
                 <div className="flex items-center gap-1">
                   <Icons.Zap className="w-3 h-3 text-primary-400" />
                   <span>Fast</span>

@@ -1,8 +1,8 @@
-# PortfolioOS
+# GenOS
 
 > A fully-featured, interactive web-based desktop environment for showcasing your portfolio in a unique and engaging way.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![React](https://img.shields.io/badge/react-18.3.1-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-5.5.3-3178c6.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -28,13 +28,13 @@
 
 ## 🌟 Overview
 
-**PortfolioOS** is an innovative web application that simulates a complete desktop operating system experience directly in your browser. Built with React and TypeScript, it provides a professional and interactive way to showcase your portfolio, skills, and projects.
+**GenOS** is an innovative web application that simulates a complete desktop operating system experience directly in your browser. Built with React and TypeScript, it provides a professional and interactive way to showcase your portfolio, skills, and projects.
 
 ### Key Highlights
 
 - 🖥️ **Full Desktop Environment** - Windows, taskbar, start menu, and desktop icons
-- 📁 **Virtual File System** - Complete file management with Supabase storage integration
-- 🎨 **8 Theme Presets** - Including Star Citizen inspired theme (default)
+- 📁 **Virtual File System** - Complete file management with Firebase Storage integration
+- 🎨 **Product Mono Design System** - Clean, professional default aesthetic
 - 🔐 **Authentication System** - Secure admin access via Firebase Auth
 - 📱 **12 Built-in Applications** - From file explorer to portfolio showcase
 - ⚡ **Real-time Database** - All data persisted to Firebase Firestore with automatic sync
@@ -274,8 +274,6 @@ portfolio-os/
 │   └── main.tsx
 ├── public/                 # Static assets + PWA
 ├── docs/                   # Additional documentation
-├── supabase-setup.sql      # Database schema
-├── storage-setup.sql       # Storage setup
 ├── package.json
 ├── vite.config.ts
 ├── tailwind.config.js
@@ -344,7 +342,7 @@ User Action → Store Update → Debounced Save → Firestore/Storage
 
 ## 📱 Applications
 
-PortfolioOS includes 12 built-in applications:
+GenOS includes 12 built-in applications:
 
 ### 1. **File Explorer** 📁
 - Complete file management system
@@ -650,7 +648,7 @@ npm run typecheck    # TypeScript type checking
 - CSS variables injected at runtime
 - Theme changes don't require component re-renders
 - Presets defined in `themeStore`
-- Custom themes persisted to Supabase
+- Custom themes persisted to Firebase Firestore
 
 ---
 
@@ -761,4 +759,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ by Keketso Matsuma**
 
-*PortfolioOS - Your portfolio, reimagined as an operating system.*
+*GenOS - Your portfolio, reimagined as an operating system.*

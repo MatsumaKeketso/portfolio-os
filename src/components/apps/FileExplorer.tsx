@@ -4,31 +4,59 @@ import * as Icons from 'lucide-react';
 import { useFileStore } from '../../store/fileStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useAuthStore } from '../../store/authStore';
+import { useNotificationStore } from '../../store/notificationStore';
 import { FileItem, VISITOR_GALLERY_ID } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from '../ui/SystemRow';
+import { MediaSurface } from '../ui/surface';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgressToast } from '../UploadProgress';
 import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
 import { getLocationContext, getPermissions, fileIsWritable } from '../../lib/filePermissions';
+import { ContextMenuItemDef, sortAndSeparate } from '../../lib/contextMenuRegistry';
+import { AuroraBackground } from '../aceternity/backgrounds/aurora-background';
+import { cn } from '../../lib/utils';
 
 // ---------------------------------------------------------------------------
 // Sidebar location definitions
 // ---------------------------------------------------------------------------
 
 const SIDEBAR_LOCATIONS = [
-  { id: 'home', label: 'Home', icon: Icons.Home, folderId: null as string | null },
+  { id: 'desktop', label: 'Desktop', icon: Icons.Monitor, folderId: null as string | null },
   { id: 'folder-documents', label: 'Documents', icon: Icons.FileText, folderId: 'folder-documents' },
   { id: 'folder-downloads', label: 'Downloads', icon: Icons.Download, folderId: 'folder-downloads' },
   { id: 'folder-projects', label: 'Projects', icon: Icons.Briefcase, folderId: 'folder-projects' },
+  { id: 'folder-cv', label: 'CV', icon: Icons.UserCheck, folderId: 'folder-cv' },
   { id: 'folder-images', label: 'Images', icon: Icons.Image, folderId: 'folder-images' },
   { id: VISITOR_GALLERY_ID, label: 'Visitor Gallery', icon: Icons.Users, folderId: VISITOR_GALLERY_ID },
+  { id: 'folder-system', label: 'System', icon: Icons.HardDrive, folderId: 'folder-system' },
 ] as const;
+
+const VISITOR_ALLOWED_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+
+const isAllowedVisitorImage = (file: File) => VISITOR_ALLOWED_IMAGE_TYPES.has(file.type);
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
 
 export function FileExplorer() {
   const fileStore = useFileStore();
   const { openWindow } = useDesktopStore();
   const { isAuthenticated } = useAuthStore();
+  const { addNotification } = useNotificationStore();
 
   const [showNewDialog, setShowNewDialog] = useState<'folder' | 'file' | null>(null);
   const [newName, setNewName] = useState('');
@@ -154,7 +182,7 @@ export function FileExplorer() {
   // ---------------------------------------------------------------------------
 
   const handleCreateFolder = () => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || !permissions.canCreateFolder) return;
     const folderId = `folder-${Date.now()}`;
     const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
     fileStore.addFile({
@@ -203,7 +231,15 @@ export function FileExplorer() {
       const file = fileArray[i];
 
       // Enforce Visitor Gallery image-only restriction
-      if (locationContext === 'visitorGallery' && !file.type.startsWith('image/')) continue;
+      if (locationContext === 'visitorGallery' && !isAllowedVisitorImage(file)) {
+        addNotification({
+          type: 'warning',
+          title: 'Upload skipped',
+          message: 'Visitor Gallery accepts JPG, PNG, WebP, and GIF images only.',
+          duration: 4000,
+        });
+        continue;
+      }
 
       const fileType = file.type.startsWith('image/')
         ? 'image'
@@ -217,7 +253,9 @@ export function FileExplorer() {
         try {
           const result = await uploadFile(file, {
             maxSizeMB: 100,
-            allowedTypes: ['image/*', 'video/*'],
+            allowedTypes: locationContext === 'visitorGallery'
+              ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+              : ['image/*', 'video/*'],
             onProgress: (progress) => {
               setUploadProgress((prev) => {
                 const existing = prev.findIndex((p) => p.fileName === progress.fileName);
@@ -354,7 +392,15 @@ export function FileExplorer() {
 
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
-      if (locationContext === 'visitorGallery' && !file.type.startsWith('image/')) continue;
+      if (locationContext === 'visitorGallery' && !isAllowedVisitorImage(file)) {
+        addNotification({
+          type: 'warning',
+          title: 'Drop skipped',
+          message: 'Visitor Gallery accepts JPG, PNG, WebP, and GIF images only.',
+          duration: 4000,
+        });
+        continue;
+      }
 
       const fileType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file';
       let dataUrl = '';
@@ -363,7 +409,9 @@ export function FileExplorer() {
         try {
           const result = await uploadFile(file, {
             maxSizeMB: 100,
-            allowedTypes: ['image/*', 'video/*'],
+            allowedTypes: locationContext === 'visitorGallery'
+              ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+              : ['image/*', 'video/*'],
             onProgress: (progress) => {
               setUploadProgress((prev) => {
                 const existing = prev.findIndex((p) => p.fileName === progress.fileName);
@@ -439,62 +487,71 @@ export function FileExplorer() {
     const selectedFiles = fileStore.selectedFileIds.map((id) => fileStore.getFileById(id)).filter(Boolean) as FileItem[];
     const allWritable = selectedFiles.every((f) => fileIsWritable(f, isAuthenticated));
 
-    const items: ContextMenuItem[] = [];
+    const items: ContextMenuItemDef[] = [];
 
     if (selectedCount > 0 && permissions.canMove) {
       items.push(
-        { label: 'Cut', icon: Icons.Scissors, onClick: () => fileStore.cutFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+X' },
-        { label: 'Copy', icon: Icons.Copy, onClick: () => fileStore.copyFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+C' },
+        { id: 'cut', label: 'Cut', icon: Icons.Scissors, action: () => fileStore.cutFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+X', group: 'clipboard' },
+        { id: 'copy', label: 'Copy', icon: Icons.Copy, action: () => fileStore.copyFiles(fileStore.selectedFileIds), shortcut: 'Ctrl+C', group: 'clipboard' },
       );
     }
 
     if (hasClipboard) {
       items.push({
+        id: 'paste',
         label: 'Paste',
         icon: Icons.Clipboard,
-        onClick: () => {
+        action: () => {
           const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
           fileStore.pasteFiles(currentFolderId);
         },
         shortcut: 'Ctrl+V',
+        group: 'clipboard',
       });
     }
 
     if (selectedCount === 1 && permissions.canRename && allWritable) {
       items.push(
-        { divider: true } as ContextMenuItem,
-        { label: 'Rename', icon: Icons.Edit, onClick: () => startRename(fileStore.selectedFileIds[0]), shortcut: 'F2' },
+        { id: 'rename', label: 'Rename', icon: Icons.Edit, action: () => startRename(fileStore.selectedFileIds[0]), shortcut: 'F2', group: 'organize' },
       );
     }
 
     if (selectedCount > 0) {
-      items.push({ label: 'Duplicate', icon: Icons.CopyPlus, onClick: () => fileStore.duplicateFiles(fileStore.selectedFileIds) });
+      items.push({
+        id: 'duplicate',
+        label: 'Duplicate',
+        icon: Icons.CopyPlus,
+        action: () => fileStore.duplicateFiles(fileStore.selectedFileIds),
+        group: 'organize',
+        disabled: !permissions.canCreateFolder && !permissions.canCreateFile,
+      });
     }
 
     if (selectedCount > 0 && permissions.canDelete && allWritable) {
-      items.push({ label: 'Delete', icon: Icons.Trash2, danger: true, onClick: handleDeleteMultiple, shortcut: 'Del' });
+      items.push({ id: 'delete', label: 'Delete', icon: Icons.Trash2, danger: true, action: handleDeleteMultiple, shortcut: 'Del', group: 'danger' });
     }
 
     if (selectedCount === 0) {
-      items.push({ label: 'New Folder', icon: Icons.FolderPlus, onClick: () => setShowNewDialog('folder') });
-      if (permissions.canCreateFile) {
-        items.push({ label: 'New File', icon: Icons.FilePlus, onClick: () => setShowNewDialog('file') });
+      if (permissions.canCreateFolder) {
+        items.push({ id: 'new-folder', label: 'New Folder', icon: Icons.FolderPlus, action: () => setShowNewDialog('folder'), group: 'primary' });
       }
-      items.push(
-        { divider: true } as ContextMenuItem,
-        {
-          label: 'Select All',
-          icon: Icons.CheckSquare,
-          onClick: () => {
-            const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
-            fileStore.selectAll(currentFolderId);
-          },
-          shortcut: 'Ctrl+A',
+      if (permissions.canCreateFile) {
+        items.push({ id: 'new-file', label: 'New File', icon: Icons.FilePlus, action: () => setShowNewDialog('file'), group: 'primary' });
+      }
+      items.push({
+        id: 'select-all',
+        label: 'Select All',
+        icon: Icons.CheckSquare,
+        action: () => {
+          const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+          fileStore.selectAll(currentFolderId);
         },
-      );
+        shortcut: 'Ctrl+A',
+        group: 'system',
+      });
     }
 
-    return items;
+    return toContextMenuItems(items);
   };
 
   const handleDeleteMultiple = () => {
@@ -545,21 +602,24 @@ export function FileExplorer() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex flex-col border-b border-white/10">
+    <div className="w-full h-full bg-[#111111]/95 backdrop-blur-md flex flex-col border-b border-white/[0.08] overflow-hidden relative">
+      <AuroraBackground className="absolute inset-0 opacity-[0.2] pointer-events-none" colors={['#00d9ff', '#0066ff', '#00d9ff']} />
+      
+      <div className="relative z-10 flex flex-col h-full w-full">
       {/* Navigation Bar */}
-      <div className="border-b border-white/10 p-3 flex items-center gap-2 flex-wrap backdrop-blur-sm bg-white/5">
-        <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Back">
+      <div className="border-b border-white/[0.08] p-3 flex items-center gap-2 flex-wrap">
+        <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="Back">
           <Icons.ChevronLeft className="w-4 h-4" />
         </button>
-        <button className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Forward">
+        <button className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="Forward">
           <Icons.ChevronRight className="w-4 h-4" />
         </button>
-        <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Refresh">
+        <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="Refresh">
           <Icons.RefreshCw className="w-4 h-4" />
         </button>
 
         {/* Breadcrumb */}
-        <div className="flex-1 bg-gray-700/40 px-3 py-1.5 rounded border border-gray-600/50 text-sm text-white flex items-center gap-1 overflow-x-auto">
+        <div className="flex-1 bg-white/[0.06] px-3 py-1.5 rounded border border-white/[0.08] text-sm text-white flex items-center gap-1 overflow-x-auto">
           <button onClick={() => fileStore.navigateTo([])} className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap">
             <Icons.Home className="w-3.5 h-3.5" />
             Home
@@ -569,7 +629,7 @@ export function FileExplorer() {
             if (!folder) return null;
             return (
               <div key={folderId} className="flex items-center gap-1">
-                <Icons.ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                <Icons.ChevronRight className="w-3.5 h-3.5 text-white/20" />
                 <button
                   onClick={() => fileStore.navigateTo(fileStore.currentPath.slice(0, index + 1))}
                   className="hover:text-primary-400 transition-colors whitespace-nowrap"
@@ -582,16 +642,18 @@ export function FileExplorer() {
         </div>
 
         <div className="flex gap-1">
-          <button onClick={() => setShowNewDialog('folder')} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="New Folder">
-            <Icons.FolderPlus className="w-4 h-4" />
-          </button>
+          {permissions.canCreateFolder && (
+            <button onClick={() => setShowNewDialog('folder')} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="New Folder">
+              <Icons.FolderPlus className="w-4 h-4" />
+            </button>
+          )}
           {permissions.canCreateFile && (
-            <button onClick={() => setShowNewDialog('file')} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="New File">
+            <button onClick={() => setShowNewDialog('file')} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="New File">
               <Icons.FilePlus className="w-4 h-4" />
             </button>
           )}
           {permissions.canUpload && (
-            <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-white/10 rounded text-white transition-colors" title="Upload">
+            <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="Upload">
               <Icons.Upload className="w-4 h-4" />
             </button>
           )}
@@ -600,32 +662,32 @@ export function FileExplorer() {
       </div>
 
       {/* Toolbar */}
-      <div className="border-b border-white/10 p-2 flex items-center gap-2 backdrop-blur-sm bg-white/5">
+      <div className="border-b border-white/[0.08] p-2 flex items-center gap-2">
         {/* View Mode */}
-        <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
+        <div className="flex items-center gap-1 bg-white/[0.06] rounded p-1">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
           >
             <Icons.Grid3x3 className="w-3 h-3" /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
           >
             <Icons.List className="w-3 h-3" /> List
           </button>
         </div>
 
-        <div className="h-6 w-px bg-gray-600 mx-1" />
+        <div className="h-6 w-px bg-white/[0.08] mx-1" />
 
         {/* Sort */}
         <div className="flex items-center gap-1">
-          <Icons.ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+          <Icons.ArrowUpDown className="w-3.5 h-3.5 text-white/40" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-2 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500"
+            className="px-2 py-1 text-xs bg-white/[0.06] text-white rounded border border-white/[0.08] focus:outline-none focus:border-primary-500"
           >
             <option value="name">Name</option>
             <option value="date">Date Modified</option>
@@ -634,7 +696,7 @@ export function FileExplorer() {
           </select>
           <button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="p-1 hover:bg-white/10 rounded text-white transition-colors"
+            className="p-1 hover:bg-white/[0.08] rounded text-white transition-colors"
             title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
           >
             {sortOrder === 'asc' ? <Icons.ArrowUp className="w-3.5 h-3.5" /> : <Icons.ArrowDown className="w-3.5 h-3.5" />}
@@ -643,13 +705,13 @@ export function FileExplorer() {
 
         {viewMode === 'grid' && (
           <>
-            <div className="h-6 w-px bg-gray-600 mx-1" />
-            <div className="flex items-center gap-1 bg-gray-800 rounded p-1">
+            <div className="h-6 w-px bg-white/[0.08] mx-1" />
+            <div className="flex items-center gap-1 bg-white/[0.06] rounded p-1">
               {(['small', 'medium', 'large'] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setIconSize(s)}
-                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
                 >
                   {s[0].toUpperCase()}
                 </button>
@@ -670,84 +732,117 @@ export function FileExplorer() {
 
         {/* Search */}
         <div className="relative">
-          <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
           <input
             type="text"
             placeholder="Search files..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 pr-3 py-1 text-xs bg-gray-800 text-white rounded border border-gray-600 focus:outline-none focus:border-primary-500 w-48"
+            className="pl-7 pr-3 py-1 text-xs bg-white/[0.08] text-white rounded border border-white/[0.08] focus:outline-none focus:border-primary-500 w-48"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
               <Icons.X className="w-3 h-3" />
             </button>
           )}
         </div>
 
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-white/40">
           {displayFiles.length} {displayFiles.length === 1 ? 'item' : 'items'}
           {fileStore.selectedFileIds.length > 0 && ` (${fileStore.selectedFileIds.length} selected)`}
         </span>
       </div>
 
       {/* Main area: sidebar + content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden p-2 gap-2">
 
-        {/* Sidebar */}
-        <div className="w-[188px] flex-shrink-0 border-r border-white/10 overflow-y-auto flex flex-col bg-black/20">
-          <SystemRowGroup context="chrome" className="pt-3">Locations</SystemRowGroup>
-          {SIDEBAR_LOCATIONS.map((loc) => {
-            const Icon = loc.icon;
-            return (
-              <SystemRow
-                key={loc.id}
-                icon={<Icon />}
-                label={loc.label}
-                context="chrome"
-                selected={isLocationActive(loc)}
-                accentRail={false}
-                onClick={() => navigateToLocation(loc.folderId ?? null)}
-              />
-            );
-          })}
-          <SystemRowDivider context="chrome" className="mt-2" />
-          <SystemRowGroup context="chrome">Info</SystemRowGroup>
-          <div className="px-3 py-2">
-            <p className="text-[11px] text-white/25 leading-relaxed">
-              {locationContext === 'visitorGallery'
-                ? 'Visitor Gallery: folders and images only.'
-                : locationContext === 'system'
-                  ? isAuthenticated ? 'System folder: full access.' : 'System folder: read-only.'
-                  : 'Open location for full access.'}
-            </p>
+        {/* Sidebar Floating Container with Beam Border */}
+        <div className="w-[188px] flex-shrink-0 p-[1px] bg-gradient-to-br from-[#00d9ff] via-[#0066ff] to-[#00d9ff] rounded-xl shadow-2xl overflow-hidden">
+          <div className="flex-1 h-full w-full bg-black/50 rounded-[11px] flex flex-col overflow-hidden relative">
+            <div className="flex-1 overflow-y-auto flex flex-col">
+              <SystemRowGroup context="chrome" className="pt-3">Locations</SystemRowGroup>
+              {SIDEBAR_LOCATIONS.map((loc) => {
+                const Icon = loc.icon;
+                const isActive = isLocationActive(loc);
+                return (
+                  <div key={loc.id} className="relative">
+                    {isActive && (
+                      <motion.div
+                        layoutId="explorer-sidebar-active"
+                        className="absolute left-0 top-1 bottom-1 w-[3px] bg-primary-400 rounded-r-full shadow-[0_0_12px_rgba(0,217,255,0.8)] z-10"
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <SystemRow
+                      icon={<Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary-400" : "text-white/40")} />}
+                      label={loc.label}
+                      context="chrome"
+                      selected={isActive}
+                      accentRail={false}
+                      className={cn(
+                        "transition-all duration-200",
+                        isActive ? "bg-white/[0.06] text-white" : "hover:bg-white/[0.04] text-white/60"
+                      )}
+                      onClick={() => navigateToLocation(loc.folderId ?? null)}
+                    />
+                  </div>
+                );
+              })}
+              <SystemRowDivider context="chrome" className="mt-2" />
+              <SystemRowGroup context="chrome">Info</SystemRowGroup>
+              <div className="px-3 py-2">
+                <p className="text-[11px] text-white/25 leading-relaxed">
+                  {locationContext === 'visitorGallery'
+                    ? 'Visitor Gallery: folders and images only.'
+                    : locationContext === 'system'
+                      ? isAuthenticated ? 'System folder: full access.' : 'System folder: read-only.'
+                      : 'Open location for full access.'}
+                </p>
+              </div>
+            </div>
+
+            {/* SideNav Footer Card */}
+            <div className="p-2 mt-auto">
+              <div className="p-[1px] bg-gradient-to-br from-[#00d9ff] via-[#0066ff] to-[#00d9ff] rounded-lg">
+                <div className="bg-white px-3 py-2 rounded-[7px] flex flex-col gap-1 shadow-inner relative overflow-hidden group/footer">
+                  <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00d9ff] to-transparent animate-shimmer" />
+                  <div className="text-[10px] font-bold text-black/40 uppercase tracking-tight">System Status</div>
+                  <div className="text-[11px] font-bold text-black flex items-center justify-between">
+                    <span>Latest Update</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                  </div>
+                  <div className="text-[9px] text-black/60 font-medium">Visual Design v2.4</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Content area */}
+        {/* Content area Floating Container */}
         <div
-          className="flex-1 p-4 overflow-y-auto"
+          className="flex-1 overflow-y-auto bg-transparent rounded-xl relative group/content"
           onContextMenu={(e) => handleContextMenu(e)}
           onDragOver={(e) => handleDragOver(e)}
           onDrop={(e) => handleDrop(e)}
           onDragLeave={handleDragLeave}
         >
           {displayFiles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <div className="flex flex-col items-center justify-center h-full text-white/40">
               <Icons.FolderOpen className="w-16 h-16 mb-4 opacity-30" />
               <p className="text-white/50">
                 {searchQuery ? 'No files match your search' : 'This folder is empty'}
               </p>
             </div>
           ) : viewMode === 'grid' ? (
-            <div className={`grid ${getGridColumns()} gap-4`}>
+            <div className="flex flex-wrap gap-10 p-10 overflow-y-auto content-start">
               {displayFiles.map((file) => {
                 const FileIcon = getFileIconComponent(file);
                 const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
                 const isCut = fileStore.clipboard.operation === 'cut' && fileStore.clipboard.fileIds.includes(file.id);
                 const isDropTarget = dropTargetId === file.id;
-
+                const childCount = file.type === 'folder' ? fileStore.files.filter(f => f.parentId === file.id).length : 0;
+                
                 return (
                   <motion.button
                     key={file.id}
@@ -758,30 +853,70 @@ export function FileExplorer() {
                     onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
-                    whileHover={{ scale: 1.05 }}
-                    className={`flex flex-col items-center gap-2 p-3 rounded backdrop-blur-sm transition-all ${
-                      isSelected ? 'bg-primary-500/20 border-2 border-primary-500' : 'hover:bg-white/10 border-2 border-transparent'
-                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
+                    whileHover={{ y: -5 }}
+                    className={cn(
+                      "relative flex flex-col items-center gap-4 group/file w-40",
+                      isCut ? 'opacity-50' : ''
+                    )}
                   >
-                    {file.type === 'image' && file.dataUrl ? (
-                      <img src={file.dataUrl} alt={file.name} className={`${getIconSizeClasses()} object-cover rounded`} />
-                    ) : (
-                      <FileIcon className={`${getIconSizeClasses()} ${fileColor}`} />
-                    )}
-                    {renamingFileId === file.id ? (
-                      <input
-                        type="text"
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={finishRename}
-                        onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
-                        onClick={(e) => e.stopPropagation()}
-                        autoFocus
-                        className="text-xs text-center w-full bg-gray-700/70 text-white border border-primary-500 rounded px-1 focus:outline-none"
-                      />
-                    ) : (
-                      <span className="text-xs text-center line-clamp-2 text-white">{file.name}</span>
-                    )}
+                    {/* Item Container */}
+                    <div className={cn(
+                      "relative w-full aspect-[4/3] rounded-3xl transition-all duration-300 flex items-center justify-center overflow-hidden",
+                      isSelected 
+                        ? "bg-primary-500/20 ring-2 ring-primary-500/50 shadow-[0_0_30px_rgba(0,217,255,0.2)]" 
+                        : "bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.15]",
+                      isDropTarget && "ring-4 ring-primary-500/50 bg-primary-500/30"
+                    )}>
+                      {file.type === 'image' && file.dataUrl ? (
+                        <img src={file.dataUrl} alt={file.name} className="w-full h-full object-cover group-hover/file:scale-110 transition-transform duration-500" />
+                      ) : (
+                        <div className="relative flex flex-col items-center justify-center gap-2">
+                          <FileIcon className={cn(
+                            "w-12 h-12 transition-all duration-300",
+                            fileColor,
+                            file.type === 'folder' ? "drop-shadow-[0_0_12px_rgba(0,217,255,0.3)]" : ""
+                          )} />
+                          {file.type === 'folder' && childCount > 0 && (
+                            <div className="absolute -top-1 -right-1 bg-primary-500 text-[9px] font-black text-white px-1.5 py-0.5 rounded-full shadow-lg border border-white/20">
+                              {childCount}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Selection Glow */}
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-primary-500/10 pointer-events-none animate-pulse" />
+                      )}
+                    </div>
+
+                    {/* Label Area */}
+                    <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
+                      {renamingFileId === file.id ? (
+                        <input
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={finishRename}
+                          onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                          className="text-xs text-center w-full bg-white/[0.08] text-white border border-primary-500 rounded-lg px-2 py-1 focus:outline-none"
+                        />
+                      ) : (
+                        <>
+                          <span className={cn(
+                            "text-sm font-semibold text-center line-clamp-1 transition-colors px-2",
+                            isSelected ? "text-primary-400" : "text-white/90 group-hover/file:text-white"
+                          )}>
+                            {file.name}
+                          </span>
+                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">
+                            {file.type === 'folder' ? `${childCount} items` : file.type}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </motion.button>
                 );
               })}
@@ -789,7 +924,7 @@ export function FileExplorer() {
           ) : (
             <div className="flex flex-col">
               {/* List header */}
-              <div className="grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 bg-white/5 backdrop-blur-md border-b border-white/10 text-xs font-semibold text-gray-400 sticky top-0">
+              <div className="grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 bg-black/40 backdrop-blur-sm border-b border-white/[0.08] text-xs font-semibold text-white/40 sticky top-0">
                 <div />
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('name')}>
                   Name {sortBy === 'name' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
@@ -822,13 +957,13 @@ export function FileExplorer() {
                     onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
-                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/5 transition-all ${
-                      isSelected ? 'bg-primary-500/20 border-primary-500' : 'hover:bg-white/10'
+                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-white/[0.04] transition-all ${
+                      isSelected ? 'bg-primary-500/20 border-primary-500' : 'hover:bg-white/[0.08]'
                     } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     <div className="flex items-center justify-center">
                       {file.type === 'image' && file.dataUrl
-                        ? <img src={file.dataUrl} alt={file.name} className="w-6 h-6 object-cover rounded" />
+                        ? <MediaSurface className="w-6 h-6 rounded"><img src={file.dataUrl} alt={file.name} className="w-full h-full object-cover" /></MediaSurface>
                         : <FileIcon className={`w-6 h-6 ${fileColor}`} />
                       }
                     </div>
@@ -842,15 +977,15 @@ export function FileExplorer() {
                           onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
                           onClick={(e) => e.stopPropagation()}
                           autoFocus
-                          className="w-full bg-gray-700/70 text-white text-sm border border-primary-500 rounded px-2 py-1 focus:outline-none"
+                          className="w-full bg-white/[0.08] text-white text-sm border border-primary-500 rounded px-2 py-1 focus:outline-none"
                         />
                       ) : (
                         <span className="text-sm text-white truncate">{file.name}</span>
                       )}
                     </div>
-                    <div className="flex items-center text-sm text-gray-400">{file.type === 'folder' ? '—' : formatFileSize(file.size)}</div>
-                    <div className="flex items-center text-sm text-gray-400 capitalize">{file.type}</div>
-                    <div className="flex items-center text-sm text-gray-400">
+                    <div className="flex items-center text-sm text-white/40">{file.type === 'folder' ? '—' : formatFileSize(file.size)}</div>
+                    <div className="flex items-center text-sm text-white/40 capitalize">{file.type}</div>
+                    <div className="flex items-center text-sm text-white/40">
                       {new Date(file.modifiedAt || file.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </motion.button>
@@ -870,8 +1005,7 @@ export function FileExplorer() {
             onClick={() => setShowNewDialog(null)}
           >
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} onClick={(e) => e.stopPropagation()} className="max-w-sm w-full mx-4">
-              <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-              <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-6">
+              <div className="bg-black/80 backdrop-blur-md rounded border border-white/[0.08] shadow-2xl p-6">
                 <h2 className="text-lg font-semibold mb-4 text-white">
                   {showNewDialog === 'folder' ? 'New Folder' : 'New Text File'}
                 </h2>
@@ -882,19 +1016,19 @@ export function FileExplorer() {
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile(); }}
                   autoFocus
-                  className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500"
+                  className="w-full px-3 py-2 bg-white/[0.08] text-white placeholder-white/25 border border-white/[0.08] rounded mb-4 focus:outline-none focus:border-primary-500"
                 />
                 {showNewDialog === 'file' && (
                   <textarea
                     placeholder="File content (optional)"
                     value={newFileContent}
                     onChange={(e) => setNewFileContent(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700/40 text-white placeholder-gray-400 border border-gray-600/50 rounded mb-4 focus:outline-none focus:border-primary-500 resize-none h-24"
+                    className="w-full px-3 py-2 bg-white/[0.08] text-white placeholder-white/25 border border-white/[0.08] rounded mb-4 focus:outline-none focus:border-primary-500 resize-none h-24"
                   />
                 )}
                 <div className="flex gap-3">
                   <button onClick={() => showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile()} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-all">Create</button>
-                  <button onClick={() => setShowNewDialog(null)} className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition-all">Cancel</button>
+                  <button onClick={() => setShowNewDialog(null)} className="flex-1 px-4 py-2 bg-white/[0.08] hover:bg-white/[0.14] text-white rounded transition-all">Cancel</button>
                 </div>
               </div>
             </motion.div>
@@ -908,15 +1042,14 @@ export function FileExplorer() {
             onClick={() => setPreviewFile(null)}
           >
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} onClick={(e) => e.stopPropagation()} className="max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
-              <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-              <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
+              <div className="flex-1 bg-black/80 backdrop-blur-md rounded border border-white/[0.08] shadow-2xl overflow-hidden flex flex-col">
                 <div className="shrink-0 flex items-center justify-between p-4">
                   <h2 className="text-lg font-semibold text-white">{previewFile.name}</h2>
-                  <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/10 rounded text-white transition-colors"><Icons.X className="w-5 h-5" /></button>
+                  <button onClick={() => setPreviewFile(null)} className="p-1 hover:bg-white/[0.08] rounded text-white transition-colors"><Icons.X className="w-5 h-5" /></button>
                 </div>
-                <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+                <div className="h-px bg-white/[0.08]" />
                 <div className="flex-1 overflow-auto p-4">
-                  {previewFile.type === 'document' && <pre className="whitespace-pre-wrap font-mono text-sm text-gray-300">{previewFile.content}</pre>}
+                  {previewFile.type === 'document' && <pre className="whitespace-pre-wrap font-mono text-sm text-white/60">{previewFile.content}</pre>}
                   {previewFile.type === 'image' && previewFile.dataUrl && <img src={previewFile.dataUrl} alt={previewFile.name} className="max-w-full h-auto rounded" />}
                 </div>
               </div>
@@ -935,6 +1068,7 @@ export function FileExplorer() {
       </AnimatePresence>
 
       <UploadProgressToast uploads={uploadProgress} onClose={() => setUploadProgress([])} />
+      </div>
     </div>
   );
 }

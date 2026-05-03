@@ -1,7 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { App } from '../types';
 import { Button } from './ui/button';
+import { ContextMenu, ContextMenuItem } from './ContextMenu';
+import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { CalendarPopup, type PopupAnchor } from './CalendarPopup';
+import { VolumePopup } from './VolumePopup';
+import { NotificationPanel } from './NotificationPanel';
+import { useNotificationStore } from '../store/notificationStore';
+import { StartMenu } from './StartMenu';
+import { cn } from '../lib/utils';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
+
+type AppButtonMenuState = {
+  x: number;
+  y: number;
+  appId: string;
+  windowId: string | null;
+  windowMinimized: boolean;
+};
 
 export function Taskbar() {
   const {
@@ -11,9 +40,35 @@ export function Taskbar() {
     toggleStartMenu,
     openWindow,
     minimizeWindow,
+    closeWindow,
+    bringToFront,
+    updateApp,
     systemPreferences,
   } = useDesktopStore();
   const [time, setTime] = useState(new Date());
+  const [appMenu, setAppMenu] = useState<AppButtonMenuState | null>(null);
+  const [taskbarMenu, setTaskbarMenu] = useState<{ x: number; y: number } | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [volume, setVolume] = useState(75);
+  const notificationCount = useNotificationStore((s) => s.notifications.length);
+  const [startMenuAnchor, setStartMenuAnchor] = useState<PopupAnchor | null>(null);
+  const [calendarAnchor, setCalendarAnchor] = useState<PopupAnchor | null>(null);
+  const [volumeAnchor, setVolumeAnchor] = useState<PopupAnchor | null>(null);
+
+  const startBtnRef = useRef<HTMLButtonElement>(null);
+  const volumeBtnRef = useRef<HTMLButtonElement>(null);
+  const clockBtnRef = useRef<HTMLButtonElement>(null);
+  const notifBtnRef = useRef<HTMLButtonElement>(null);
+
+  const computeAnchor = (el: HTMLElement): PopupAnchor => {
+    const rect = el.getBoundingClientRect();
+    return {
+      bottom: window.innerHeight - rect.top + 8,
+      centerX: rect.left + rect.width / 2,
+    };
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -46,110 +101,328 @@ export function Taskbar() {
     return <Icon className={className} />;
   };
 
-  // Calculate taskbar classes based on system preferences
+  const handleAppButtonContextMenu = (
+    e: React.MouseEvent,
+    appId: string,
+    windowId: string | null,
+    windowMinimized: boolean,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAppMenu({ x: e.clientX, y: e.clientY, appId, windowId, windowMinimized });
+  };
+
+  const handleTaskbarContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setTaskbarMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const getAppButtonMenuDefs = ({ appId, windowId, windowMinimized }: AppButtonMenuState): ContextMenuItemDef[] => {
+    const app: App | undefined = apps.find((a) => a.id === appId);
+    const items: ContextMenuItemDef[] = [];
+
+    if (!windowId) {
+      items.push({ id: 'open', label: 'Open', icon: Icons.ExternalLink, group: 'primary', action: () => app && openWindow(app) });
+    } else if (windowMinimized) {
+      items.push({ id: 'restore', label: 'Restore', icon: Icons.Square, group: 'primary', action: () => minimizeWindow(windowId) });
+    } else {
+      items.push({ id: 'minimize', label: 'Minimize', icon: Icons.Minus, group: 'primary', action: () => minimizeWindow(windowId) });
+    }
+
+    if (app) {
+      items.push({
+        id: 'pin-taskbar',
+        label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar',
+        icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin,
+        group: 'organize',
+        action: () => updateApp(appId, { pinnedToTaskbar: !app.pinnedToTaskbar }),
+      });
+    }
+
+    if (windowId) {
+      items.push({
+        id: 'close-window',
+        label: 'Close window',
+        icon: Icons.X,
+        group: 'danger' as MenuGroup,
+        danger: true,
+        action: () => closeWindow(windowId),
+      });
+    }
+
+    return items;
+  };
+
+  const getTaskbarMenuDefs = (): ContextMenuItemDef[] => {
+    const taskManagerApp = apps.find((a) => a.component === 'TaskManager');
+    const settingsApp = apps.find((a) => a.component === 'Settings');
+
+    return [
+      {
+        id: 'show-desktop',
+        label: 'Show Desktop',
+        icon: Icons.Monitor,
+        group: 'primary',
+        action: () => windows.filter((w) => !w.isMinimized).forEach((w) => minimizeWindow(w.id)),
+      },
+      ...(taskManagerApp
+        ? [{ id: 'task-manager', label: 'Task Manager', icon: Icons.Activity, group: 'system' as MenuGroup, action: () => openWindow(taskManagerApp) }]
+        : []),
+      ...(settingsApp
+        ? [{ id: 'taskbar-settings', label: 'Taskbar Settings', icon: Icons.Settings2, group: 'system' as MenuGroup, action: () => openWindow(settingsApp) }]
+        : []),
+    ];
+  };
+
   const getTaskbarClasses = () => {
     const { taskbarPosition, taskbarSize } = systemPreferences;
+    const isVert = taskbarPosition === 'left' || taskbarPosition === 'right';
 
-    // Position classes
-    const positionClasses = {
-      top: 'top-0 left-0 right-0 flex-row',
-      bottom: 'bottom-0 left-0 right-0 flex-row',
-      left: 'left-0 top-0 bottom-0 flex-col',
-      right: 'right-0 top-0 bottom-0 flex-col',
-    };
+    const posClass = {
+      bottom: 'bottom-3 left-1/2 -translate-x-1/2',
+      top: 'top-3 left-1/2 -translate-x-1/2',
+      left: 'left-3 top-1/2 -translate-y-1/2',
+      right: 'right-3 top-1/2 -translate-y-1/2',
+    }[taskbarPosition];
 
-    // Size classes
-    const sizeClasses = {
-      horizontal: {
-        small: 'h-10',
-        medium: 'h-12',
-        large: 'h-16',
-      },
-      vertical: {
-        small: 'w-12',
-        medium: 'w-16',
-        large: 'w-20',
-      },
-    };
+    const dirClass = isVert ? 'flex-col' : 'flex-row';
 
-    const isVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
-    const sizeClass = isVertical ? sizeClasses.vertical[taskbarSize] : sizeClasses.horizontal[taskbarSize];
+    // Uniform padding on all sides — inner radius = 16px (rounded-2xl) − padding
+    // small: p-1 (4px) → inner radius 12px
+    // medium: p-1.5 (6px) → inner radius 10px  (matches rounded-[10px] on iconLg)
+    // large: p-2 (8px) → inner radius 8px
+    const paddingClass = { small: 'p-1', medium: 'p-1.5', large: 'p-2' }[taskbarSize];
 
-    // Border classes
-    const borderClasses = {
-      top: 'border-b',
-      bottom: 'border-t',
-      left: 'border-r',
-      right: 'border-l',
-    };
-    return `fixed ${positionClasses[taskbarPosition]} ${sizeClass} ${borderClasses[taskbarPosition]} bg-[#141414] border-white/[0.08] flex items-center justify-between px-2 z-[10000]`;
+    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-[#141414]/80 border border-white/[0.08] shadow-xl shadow-black/50`;
   };
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
+
+  const focusedWindowId = windows
+    .filter(w => !w.isMinimized)
+    .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null;
   return (
-    <div className={getTaskbarClasses()}>
+    <>
+    <div className={getTaskbarClasses()} onContextMenu={handleTaskbarContextMenu}>
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
-        <Button
-          onClick={toggleStartMenu}
-          variant="taskbar"
-          size="iconLg"
-          data-active={isStartMenuOpen}
-        >
-          <Icons.Grid3x3 className="w-5 h-5" />
-        </Button>
-        <div className={isVertical ? 'h-px w-6 bg-gray-700 my-1' : 'w-px h-6 bg-gray-700 mx-1'} />
+        <div className="relative group">
+          <Button
+            ref={startBtnRef}
+            onClick={() => {
+              if (!isStartMenuOpen && startBtnRef.current) {
+                setStartMenuAnchor(computeAnchor(startBtnRef.current));
+              }
+              toggleStartMenu();
+            }}
+            variant="ghost"
+            size="iconLg"
+            className={cn(
+              "transition-all duration-500 p-[1px] bg-gradient-to-br from-[#00d9ff] via-[#0066ff] to-[#00d9ff] rounded-[11px] shadow-[0_0_15px_rgba(0,217,255,0.3)]",
+              "hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] hover:scale-[1.05]"
+            )}
+            data-active={isStartMenuOpen}
+          >
+            <div className="bg-white text-black rounded-[10px] w-full h-full flex items-center justify-center">
+              <Icons.Grid3x3 className="w-5 h-5" />
+            </div>
+          </Button>
+        </div>
+        <div className={isVertical ? 'h-px w-6 bg-white/[0.08] my-1' : 'w-px h-6 bg-white/[0.08] mx-1'} />
         {pinnedApps.map((app) => {
-          const isOpen = windows.some(w => w.appId === app.id);
+          const win = windows.find(w => w.appId === app.id);
+          const hasWindow = !!win;
+          const isFocused = win?.id === focusedWindowId;
+          const iconClass = isFocused
+            ? "w-5 h-5 text-white"
+            : hasWindow ? "w-5 h-5 text-white/70" : "w-5 h-5 text-white/40";
           return (
             <Button
               key={app.id}
               onClick={() => {
-                const window = windows.find(w => w.appId === app.id);
-                if (window) {
-                  minimizeWindow(window.id);
-                } else {
+                if (!win) {
                   openWindow(app);
+                } else if (win.isMinimized) {
+                  minimizeWindow(win.id);
+                } else if (win.id === focusedWindowId) {
+                  minimizeWindow(win.id);
+                } else {
+                  bringToFront(win.id);
                 }
               }}
+              onContextMenu={(e) =>
+                handleAppButtonContextMenu(e, app.id, win?.id ?? null, win?.isMinimized ?? false)
+              }
               variant="taskbar"
               size="iconLg"
-              data-active={isOpen}
               title={app.name}
             >
-              {renderIcon(app.icon, app.customIcon, "w-5 h-5 text-white")}
-              {isOpen && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
+              {renderIcon(app.icon, app.customIcon, iconClass)}
+              {isFocused && (
+                <motion.div
+                  layoutId="taskbar-focus-indicator"
+                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-primary-400"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.5 }}
+                />
+              )}
+              {hasWindow && !isFocused && (
+                <div className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-2 rounded-full bg-white/30" />
               )}
             </Button>
           );
         })}
 
-        {openApps.filter(w => !pinnedApps.some(app => app.id === w.appId)).map((window) => {
+        {openApps.filter(w => !pinnedApps.some(app => app.id === w.appId)).map((win) => {
+          const isFocused = win.id === focusedWindowId;
+          const iconClass = isFocused ? "w-5 h-5 text-white" : "w-5 h-5 text-white/70";
           return (
             <Button
-              key={window.id}
-              onClick={() => minimizeWindow(window.id)}
+              key={win.id}
+              onClick={() => {
+                if (isFocused) {
+                  minimizeWindow(win.id);
+                } else {
+                  bringToFront(win.id);
+                }
+              }}
+              onContextMenu={(e) =>
+                handleAppButtonContextMenu(e, win.appId, win.id, false)
+              }
               variant="taskbar"
               size="iconLg"
-              data-active={true}
-              title={window.title}
+              title={win.title}
             >
-              {renderIcon(window.icon, window.customIcon, "w-5 h-5 text-white")}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
+              {renderIcon(win.icon, win.customIcon, iconClass)}
+              {isFocused ? (
+                <motion.div
+                  layoutId="taskbar-focus-indicator"
+                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-primary-400"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.5 }}
+                />
+              ) : (
+                <div className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-2 rounded-full bg-white/30" />
+              )}
             </Button>
           );
         })}
       </div>
 
-      <div className={`flex items-center gap-3 ${isVertical ? 'flex-col' : 'flex-row'}`}>
-        <div className={`flex items-center gap-2 text-white/40 text-xs ${isVertical ? 'flex-col' : 'flex-row'}`}>
-          <Icons.Wifi className="w-3.5 h-3.5" />
-          <Icons.Volume2 className="w-3.5 h-3.5" />
-        </div>
-        <div className={`text-xs ${isVertical ? 'text-center' : 'text-right'}`}>
-          <div className="font-medium text-white/80">{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-          <div className="text-[10px] text-white/40">{time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-        </div>
+      <div className={isVertical ? 'h-px w-6 bg-white/[0.08] my-1' : 'w-px h-5 bg-white/[0.08] mx-2'} />
+      <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
+        {/* Notifications */}
+        <button
+          ref={notifBtnRef}
+          onClick={() => {
+            if (notifBtnRef.current) {
+              const rect = notifBtnRef.current.getBoundingClientRect();
+              setCalendarAnchor({ bottom: window.innerHeight - rect.top + 8, centerX: rect.left + rect.width / 2 });
+            }
+            setShowNotifications(v => !v);
+            setShowCalendar(false);
+            setShowVolume(false);
+          }}
+          className="relative p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
+          title="Notifications"
+        >
+          <Icons.Bell className={cn(
+            'w-3.5 h-3.5 transition-colors',
+            showNotifications ? 'text-white/70' : 'text-white/40 group-hover:text-white/70'
+          )} />
+          {notificationCount > 0 && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-400" />
+          )}
+        </button>
+        {/* Volume */}
+        <button
+          ref={volumeBtnRef}
+          onClick={() => {
+            if (volumeBtnRef.current) setVolumeAnchor(computeAnchor(volumeBtnRef.current));
+            setShowVolume(v => !v);
+            setShowCalendar(false);
+            setShowNotifications(false);
+          }}
+          className="p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
+          title="Volume"
+        >
+          {volume === 0
+            ? <Icons.VolumeX className="w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-colors" />
+            : volume < 40
+            ? <Icons.Volume1 className="w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-colors" />
+            : <Icons.Volume2 className="w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-colors" />
+          }
+        </button>
+        {/* Clock / Calendar toggle */}
+        <button
+          ref={clockBtnRef}
+          onClick={() => {
+            if (clockBtnRef.current) setCalendarAnchor(computeAnchor(clockBtnRef.current));
+            setShowCalendar(v => !v);
+            setShowVolume(false);
+            setShowNotifications(false);
+          }}
+          className={cn(
+            "rounded-[10px] px-2 py-1.5 transition-all duration-200",
+            "hover:bg-white/[0.08] text-white/80 hover:text-white",
+            isVertical ? "text-center" : "text-right",
+            showCalendar && "bg-white/[0.1] text-white"
+          )}
+        >
+          <div className="font-medium tabular-nums text-xs leading-tight">
+            {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+          <div className="text-[10px] opacity-50 tabular-nums leading-tight">
+            {time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </div>
+        </button>
       </div>
     </div>
+
+    {/* App button context menu */}
+    <AnimatePresence>
+      {appMenu && (
+        <ContextMenu
+          x={appMenu.x}
+          y={appMenu.y}
+          items={toContextMenuItems(getAppButtonMenuDefs(appMenu))}
+          onClose={() => setAppMenu(null)}
+        />
+      )}
+    </AnimatePresence>
+
+    {/* Taskbar background context menu */}
+    <AnimatePresence>
+      {taskbarMenu && (
+        <ContextMenu
+          x={taskbarMenu.x}
+          y={taskbarMenu.y}
+          items={toContextMenuItems(getTaskbarMenuDefs())}
+          onClose={() => setTaskbarMenu(null)}
+        />
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showCalendar && calendarAnchor && (
+        <CalendarPopup anchor={calendarAnchor} onClose={() => setShowCalendar(false)} />
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showVolume && volumeAnchor && (
+        <VolumePopup
+          anchor={volumeAnchor}
+          volume={volume}
+          onChange={setVolume}
+          onClose={() => setShowVolume(false)}
+        />
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showNotifications && calendarAnchor && (
+        <NotificationPanel anchor={calendarAnchor} onClose={() => setShowNotifications(false)} />
+      )}
+    </AnimatePresence>
+
+    <StartMenu anchor={startMenuAnchor ?? undefined} />
+    </>
   );
 }

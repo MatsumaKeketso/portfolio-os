@@ -51,128 +51,102 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[15000] flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/60 z-[15000] flex items-center justify-center p-4"
         onClick={handleClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 12 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ scale: 0.95, opacity: 0, y: 12 }}
+          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md flex flex-col mx-auto"
+          className="w-full max-w-md bg-os-ink-950 rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
         >
-          {/* Top gradient accent line */}
-          <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-          <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-tertiary-600 rounded-lg flex items-center justify-center">
-                  <Icons.Lock className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">GenOS Admin</h2>
-                  <p className="text-gray-400 text-sm">Enter credentials to access admin features</p>
-                </div>
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-os-ink-800 rounded flex items-center justify-center border border-white/[0.08]">
+                <Icons.Lock className="w-4 h-4 text-white/60" />
               </div>
+              <div>
+                <h2 className="text-sm font-semibold text-white">Admin Login</h2>
+                <p className="text-white/40 text-xs">Enter credentials to access admin features</p>
+              </div>
+            </div>
+            <Button variant="ink-ghost" size="icon" onClick={handleClose} type="button">
+              <Icons.X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Form */}
+          <div className="p-6 space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-xs font-medium text-white/60 mb-1.5">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-os-ink-800 text-white placeholder-white/30 px-3 py-2 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                placeholder="admin@genos.dev"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-xs font-medium text-white/60 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-os-ink-800 text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                  placeholder="Enter admin password"
+                />
+                <Button
+                  variant="ink-ghost"
+                  size="icon"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7"
+                >
+                  {showPassword ? <Icons.EyeOff className="w-3.5 h-3.5" /> : <Icons.Eye className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+              {error && (
+                <p className="mt-2 text-xs text-red-400 flex items-center gap-1">
+                  <Icons.AlertCircle className="w-3.5 h-3.5" />
+                  {error}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-1">
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClose}
-                type="button"
+                type="submit"
+                variant="ink"
+                size="sm"
+                className="flex-1 flex items-center justify-center gap-2"
+                onClick={handleSubmit}
               >
-                <Icons.X className="w-5 h-5" />
+                <Icons.LogIn className="w-3.5 h-3.5" />
+                Login
+              </Button>
+              <Button type="button" variant="ink-ghost" size="sm" onClick={handleClose} className="flex-1">
+                Cancel
               </Button>
             </div>
+          </div>
 
-            {/* Gradient divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-6" />
-
-            {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-700/50 text-white placeholder-gray-400 px-4 py-3 rounded-lg border border-gray-600/50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  placeholder="admin@genos.dev"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-gray-700/50 text-white placeholder-gray-400 px-4 py-3 pr-12 rounded-lg border border-gray-600/50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                    placeholder="Enter admin password"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    {showPassword ? (
-                      <Icons.EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Icons.Eye className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
-                {error && (
-                  <p className="mt-2 text-sm text-red-400 flex items-center gap-1">
-                    <Icons.AlertCircle className="w-4 h-4" />
-                    {error}
-                  </p>
-                )}
-              </div>
-
-
-
-              {/* Actions */}
-              <div className="flex flex-col gap-3 pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="flex-1 w-full flex items-center justify-center gap-2"
-                >
-                  <Icons.LogIn className="w-4 h-4" />
-                  Login
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handleClose}
-                  className="flex-1 w-full flex items-center justify-center gap-2"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-
-            {/* Gradient divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-6" />
-
-            {/* Footer */}
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Icons.Shield className="w-4 h-4" />
-              <p>Admin features are protected to prevent unauthorized modifications</p>
-            </div>
+          {/* Footer */}
+          <div className="px-6 pb-4 flex items-center gap-2 text-xs text-white/30">
+            <Icons.Shield className="w-3.5 h-3.5" />
+            <p>Admin features are protected to prevent unauthorized modifications</p>
           </div>
         </motion.div>
       </motion.div>

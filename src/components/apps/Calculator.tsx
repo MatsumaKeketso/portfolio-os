@@ -171,11 +171,11 @@ export function Calculator() {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 backdrop-blur-xl flex">
+    <div className="w-full h-full bg-black/50 flex">
       {/* History Sidebar */}
       {showHistory && (
-        <div className="w-64 border-r border-white/10 bg-black/20 backdrop-blur-md flex flex-col">
-          <div className="p-3 border-b border-white/10 flex items-center justify-between">
+        <div className="w-64 border-r border-white/[0.08] bg-black/30 flex flex-col">
+          <div className="p-3 border-b border-white/[0.08] flex items-center justify-between">
             <h3 className="text-white font-semibold flex items-center gap-2">
               <Icons.History className="w-4 h-4" />
               History
@@ -192,7 +192,7 @@ export function Calculator() {
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {history.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center mt-4">No calculations yet</p>
+              <p className="text-white/30 text-sm text-center mt-4">No calculations yet</p>
             ) : (
               history.map((entry, index) => (
                 <Button
@@ -205,7 +205,7 @@ export function Calculator() {
                   className="w-full text-left p-2 h-auto justify-start mb-1"
                 >
                   <div className="w-full">
-                    <div className="text-gray-400 text-xs truncate">{entry.expression}</div>
+                    <div className="text-white/40 text-xs truncate">{entry.expression}</div>
                     <div className="text-white font-semibold truncate">= {entry.result}</div>
                   </div>
                 </Button>
@@ -218,8 +218,8 @@ export function Calculator() {
       {/* Main Calculator */}
       <div className="flex-1 p-4 flex flex-col">
         {/* Display */}
-        <div className="bg-white/5 backdrop-blur-md rounded p-4 text-right border border-gray-700/50 shadow-lg mb-3">
-          <div className="text-gray-400 text-sm mb-1 h-5">
+        <div className="bg-black/30 rounded p-4 text-right border border-white/[0.08] mb-3">
+          <div className="text-white/40 text-sm mb-1 h-5">
             {previousValue !== null && operation && `${previousValue} ${operation}`}
           </div>
           <div className="text-white text-3xl font-bold truncate">{display}</div>

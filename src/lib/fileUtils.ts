@@ -53,7 +53,7 @@ const extensionMap: Record<string, FileTypeInfo> = {
   xml: { category: 'code', icon: Icons.FileCode, color: 'text-green-500', canPreview: true, viewerType: 'code', description: 'XML' },
   yaml: { category: 'code', icon: Icons.FileCode, color: 'text-red-400', canPreview: true, viewerType: 'code', description: 'YAML' },
   yml: { category: 'code', icon: Icons.FileCode, color: 'text-red-400', canPreview: true, viewerType: 'code', description: 'YAML' },
-  toml: { category: 'code', icon: Icons.FileCode, color: 'text-gray-400', canPreview: true, viewerType: 'code', description: 'TOML' },
+  toml: { category: 'code', icon: Icons.FileCode, color: 'text-white/40', canPreview: true, viewerType: 'code', description: 'TOML' },
 
   // Images
   jpg: { category: 'image', icon: Icons.Image, color: 'text-green-400', canPreview: true, viewerType: 'image', description: 'JPEG Image' },
@@ -157,7 +157,7 @@ const mimeTypeMap: Record<string, FileTypeInfo> = {
 const defaultFileInfo: FileTypeInfo = {
   category: 'unknown',
   icon: Icons.File,
-  color: 'text-gray-400',
+  color: 'text-white/40',
   canPreview: false,
   viewerType: 'none',
   description: 'File',

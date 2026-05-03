@@ -219,13 +219,13 @@ export const theme = {
  */
 export const cardPresets = {
   hoverCard: {
-    container: 'relative bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-xl overflow-hidden shadow-2xl border border-gray-700/50',
-    accentBar: 'absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500',
+    container: 'relative bg-os-ink-950 rounded-xl overflow-hidden shadow-os-window border border-white/[0.08]',
+    accentBar: '',
     content: 'p-6',
-    iconGlow: 'bg-gradient-to-br from-red-500/30 to-orange-500/30 blur-2xl',
+    iconGlow: 'bg-red-500/20',
     title: 'text-white text-2xl font-bold text-center mb-3 tracking-tight',
-    description: 'text-gray-300 text-sm text-center leading-relaxed mb-5 min-h-[40px]',
-    divider: 'h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent',
+    description: 'text-white/60 text-sm text-center leading-relaxed mb-5 min-h-[40px]',
+    divider: 'h-px bg-white/[0.07]',
     badge: {
       primary: 'px-2.5 py-1 bg-red-500/15 text-red-300 border border-red-500/30 rounded-full text-xs font-medium',
       tertiary: 'px-2.5 py-1 bg-orange-500/15 text-orange-300 border border-orange-500/30 rounded-full text-xs font-medium',
@@ -233,10 +233,10 @@ export const cardPresets = {
   },
 
   standardCard: {
-    container: 'bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20',
+    container: 'bg-os-ink-900 rounded-2xl border border-white/[0.08]',
     content: 'p-6',
     header: 'text-xl font-bold text-white mb-4',
-    body: 'text-slate-300 text-sm leading-relaxed',
+    body: 'text-white/60 text-sm leading-relaxed',
   },
 } as const;
 

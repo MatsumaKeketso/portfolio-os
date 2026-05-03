@@ -25,11 +25,11 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function glassEffect(variant: 'dark' | 'darker' | 'light' = 'dark') {
   return cn(
-    'backdrop-blur-xl border',
+    'border',
     {
-      'bg-gray-900/95 border-gray-700/50': variant === 'dark',
-      'bg-gray-800/95 border-gray-600/50': variant === 'darker',
-      'bg-white/10 border-white/20': variant === 'light',
+      'bg-os-ink-950 border-white/[0.08]': variant === 'dark',
+      'bg-os-ink-900 border-white/[0.08]': variant === 'darker',
+      'bg-white/[0.06] border-white/[0.08]': variant === 'light',
     }
   )
 }

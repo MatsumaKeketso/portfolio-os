@@ -1,9 +1,22 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
 import { cn } from '../lib/utils';
+import { ContextMenu, ContextMenuItem } from './ContextMenu';
+import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
 
 interface WindowProps {
   window: WindowState;
@@ -18,6 +31,7 @@ export function Window({ window, children }: WindowProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [snapZone, setSnapZone] = useState<'left' | 'right' | 'top' | null>(null);
   const [_preMaximizeState, setPreMaximizeState] = useState<{ position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
+  const [titleBarMenu, setTitleBarMenu] = useState<{ x: number; y: number } | null>(null);
 
   const {
     closeWindow,
@@ -53,7 +67,7 @@ export function Window({ window, children }: WindowProps) {
 
   useEffect(() => {
     const SNAP_THRESHOLD = 20; // pixels from edge to trigger snap
-    const TASKBAR_HEIGHT = 48;
+    const TASKBAR_HEIGHT = 72; // floating island: 12px bottom gap + 48px height + 12px clearance
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && !window.isMaximized) {
@@ -78,8 +92,10 @@ export function Window({ window, children }: WindowProps) {
       if (isResizing && !window.isMaximized) {
         const rect = windowRef.current?.getBoundingClientRect();
         if (rect) {
-          const newWidth = Math.max(300, e.clientX - rect.left);
-          const newHeight = Math.max(200, e.clientY - rect.top);
+          const minW = window.minSize?.width ?? 300;
+          const minH = window.minSize?.height ?? 200;
+          const newWidth = Math.max(minW, e.clientX - rect.left);
+          const newHeight = Math.max(minH, e.clientY - rect.top);
           updateWindowSize(window.id, { width: newWidth, height: newHeight });
         }
       }
@@ -153,10 +169,53 @@ export function Window({ window, children }: WindowProps) {
     bringToFront(window.id);
   };
 
+  const handleTitleBarContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTitleBarMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const getTitleBarMenuDefs = (): ContextMenuItemDef[] => [
+    ...(window.isMaximized
+      ? [{
+          id: 'restore',
+          label: 'Restore',
+          icon: Icons.Minimize2,
+          group: 'primary' as MenuGroup,
+          action: () => maximizeWindow(window.id),
+        }]
+      : []),
+    {
+      id: 'minimize',
+      label: 'Minimize',
+      icon: Icons.Minus,
+      group: 'primary',
+      action: () => minimizeWindow(window.id),
+    },
+    ...(!window.isMaximized
+      ? [{
+          id: 'maximize',
+          label: 'Maximize',
+          icon: Icons.Square,
+          group: 'primary' as MenuGroup,
+          action: () => maximizeWindow(window.id),
+        }]
+      : []),
+    {
+      id: 'close',
+      label: 'Close',
+      icon: Icons.X,
+      group: 'danger' as MenuGroup,
+      danger: true,
+      shortcut: 'Alt+F4',
+      action: () => closeWindow(window.id),
+    },
+  ];
+
   if (window.isMinimized) return null;
 
   const windowStyle = window.isMaximized
-    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 48px)' }
+    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 72px)' }
     : {
       left: `${window.position.x}px`,
       top: `${window.position.y}px`,
@@ -173,6 +232,7 @@ export function Window({ window, children }: WindowProps) {
     utilityDark: 'bg-[#111111]',
     immersive: 'bg-black',
     iframe: 'bg-white',
+    glass: 'bg-black/20 backdrop-blur-xl',
   }[surfaceMode];
 
   return (
@@ -199,6 +259,7 @@ export function Window({ window, children }: WindowProps) {
           ref={headerRef}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
+          onContextMenu={handleTitleBarContextMenu}
           className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-os-ink-950"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
         >
@@ -247,23 +308,35 @@ export function Window({ window, children }: WindowProps) {
           >
             <div className={cn(
               'absolute bottom-1 right-1 w-2.5 h-2.5 border-r-2 border-b-2 transition-colors',
-              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/20 group-hover:border-white/40',
+              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/[0.16] group-hover:border-white/[0.32]',
             )} />
           </div>
         )}
       </div>
 
+      {/* Title bar context menu */}
+      <AnimatePresence>
+        {titleBarMenu && (
+          <ContextMenu
+            x={titleBarMenu.x}
+            y={titleBarMenu.y}
+            items={toContextMenuItems(getTitleBarMenuDefs())}
+            onClose={() => setTitleBarMenu(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Snap zone indicators */}
       {isDragging && snapZone && (
         <div className="fixed inset-0 pointer-events-none z-[9996]">
           {snapZone === 'left' && (
-            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute left-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
           {snapZone === 'right' && (
-            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute right-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
           {snapZone === 'top' && (
-            <div className="absolute left-0 right-0 top-0 bottom-12 bg-white/[0.06] border-2 border-white/20 border-dashed" />
+            <div className="absolute left-0 right-0 top-0 bottom-[72px] bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
           )}
         </div>
       )}

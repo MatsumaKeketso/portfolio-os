@@ -8,7 +8,6 @@ import { useNotificationStore } from '../store/notificationStore';
 import { uploadFile, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgressToast } from './UploadProgress';
 import { Taskbar } from './Taskbar';
-import { StartMenu } from './StartMenu';
 import { DesktopIcons } from './DesktopIcons';
 import { WindowManager } from './WindowManager';
 import { AdminPanel } from './AdminPanel';
@@ -19,6 +18,18 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { NotificationContainer } from './NotificationContainer';
 import { Timeline } from './Timeline';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
+import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
+  sortAndSeparate(defs).map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    onClick: item.action,
+    disabled: item.disabled,
+    danger: item.danger,
+    divider: item.divider,
+    shortcut: item.shortcut,
+  }));
 
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
@@ -139,65 +150,86 @@ export function Desktop() {
     }
   };
 
-  const getDesktopMenuItems = (): ContextMenuItem[] => [
+  const getDesktopMenuDefs = (): ContextMenuItemDef[] => [
+    // organize: view options
     {
+      id: 'view-large',
       label: 'Large icons',
       icon: Icons.LayoutGrid,
+      group: 'organize',
       shortcut: systemPreferences.iconSize === 'large' ? '✓' : undefined,
-      onClick: () => setIconSize('large'),
+      action: () => setIconSize('large'),
     },
     {
+      id: 'view-medium',
       label: 'Medium icons',
       icon: Icons.Grid2X2,
+      group: 'organize',
       shortcut: systemPreferences.iconSize === 'medium' ? '✓' : undefined,
-      onClick: () => setIconSize('medium'),
+      action: () => setIconSize('medium'),
     },
     {
+      id: 'view-small',
       label: 'Small icons',
       icon: Icons.LayoutList,
+      group: 'organize',
       shortcut: systemPreferences.iconSize === 'small' ? '✓' : undefined,
-      onClick: () => setIconSize('small'),
+      action: () => setIconSize('small'),
     },
-    { label: '', divider: true, onClick: () => {} },
+    { id: 'div-view-sort', label: '', divider: true, group: 'organize', action: () => {} },
+    // organize: sort options
     {
+      id: 'sort-name',
       label: 'Sort by Name',
       icon: Icons.SortAsc,
+      group: 'organize',
       shortcut: sortBy === 'name' ? '✓' : undefined,
-      onClick: () => setSortBy('name'),
+      action: () => setSortBy('name'),
     },
     {
+      id: 'sort-type',
       label: 'Sort by Type',
       icon: Icons.Layers,
+      group: 'organize',
       shortcut: sortBy === 'type' ? '✓' : undefined,
-      onClick: () => setSortBy('type'),
+      action: () => setSortBy('type'),
     },
     {
+      id: 'sort-date',
       label: 'Sort by Date',
       icon: Icons.Calendar,
+      group: 'organize',
       shortcut: sortBy === 'date' ? '✓' : undefined,
-      onClick: () => setSortBy('date'),
+      action: () => setSortBy('date'),
     },
-    { label: '', divider: true, onClick: () => {} },
+    // system: desktop controls
     {
+      id: 'toggle-timeline',
       label: showTimeline ? 'Hide Timeline' : 'Show Timeline',
       icon: Icons.PanelRight,
-      onClick: () => setShowTimeline(!showTimeline),
+      group: 'system',
+      action: () => setShowTimeline(!showTimeline),
     },
     {
+      id: 'refresh',
       label: 'Refresh Desktop',
       icon: Icons.RotateCw,
-      onClick: () => window.location.reload(),
+      group: 'system',
+      action: () => window.location.reload(),
     },
     {
+      id: 'change-bg',
       label: 'Change Background',
       icon: Icons.Image,
-      onClick: () => setShowBackgroundSelector(true),
+      group: 'system',
+      action: () => setShowBackgroundSelector(true),
     },
-    { label: '', divider: true, onClick: () => {} },
     {
+      id: 'admin',
       label: isAuthenticated ? 'Admin Panel' : 'Admin Login',
       icon: Icons.Settings,
-      onClick: () => {
+      group: 'system',
+      action: () => {
         if (isAuthenticated) toggleAdminMode();
         else setShowLoginModal(true);
       },
@@ -353,9 +385,6 @@ export function Desktop() {
           <Taskbar />
         </div>
 
-        <div className="start-menu">
-          <StartMenu />
-        </div>
 
         {isAuthenticated && <AdminPanel />}
 
@@ -375,7 +404,7 @@ export function Desktop() {
             <ContextMenu
               x={contextMenu.x}
               y={contextMenu.y}
-              items={getDesktopMenuItems()}
+              items={toContextMenuItems(getDesktopMenuDefs())}
               onClose={() => setContextMenu(null)}
             />
           )}
@@ -388,7 +417,7 @@ export function Desktop() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[15000] flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/60 z-[15000] flex items-center justify-center p-4"
               onClick={() => setShowBackgroundSelector(false)}
             >
               <motion.div
@@ -396,75 +425,60 @@ export function Desktop() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl max-h-[80vh] flex flex-col"
+                className="w-full max-w-4xl max-h-[80vh] flex flex-col bg-os-ink-950 rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
               >
-                {/* Top gradient accent line */}
-                <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t" />
-
-                <div className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col">
-                  <div className="shrink-0 p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl font-bold flex items-center gap-2">
-                          <Icons.Image className="w-6 h-6" />
-                          Change Background
-                        </h2>
-                        <p className="text-primary-100 text-sm mt-1">Select a background for your desktop</p>
-                      </div>
-                      <button
-                        onClick={() => setShowBackgroundSelector(false)}
-                        className="p-2 hover:bg-white/20 rounded-lg transition-all"
-                      >
-                        <Icons.X className="w-6 h-6" />
-                      </button>
-                    </div>
+                <div className="shrink-0 px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                      <Icons.Image className="w-4 h-4" />
+                      Change Background
+                    </h2>
+                    <p className="text-white/40 text-xs mt-0.5">Select a background for your desktop</p>
                   </div>
+                  <button
+                    onClick={() => setShowBackgroundSelector(false)}
+                    className="p-1.5 hover:bg-white/[0.08] rounded transition-colors"
+                  >
+                    <Icons.X className="w-4 h-4 text-white/60" />
+                  </button>
+                </div>
 
-                  {/* Gradient divider */}
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+                <div className="flex-1 p-6 overflow-y-auto">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {backgrounds.map((bg) => {
+                      const isSelected = selectedBackgroundId === bg.id;
+                      const isBgGradient = bg.url.startsWith('linear-gradient');
 
-                  <div className="flex-1 p-6 overflow-y-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {backgrounds.map((bg) => {
-                        const isSelected = selectedBackgroundId === bg.id;
-                        const isBgGradient = bg.url.startsWith('linear-gradient');
-
-                        return (
-                          <button
-                            key={bg.id}
-                            onClick={() => {
-                              setSelectedBackground(bg.id);
-                              setShowBackgroundSelector(false);
+                      return (
+                        <button
+                          key={bg.id}
+                          onClick={() => {
+                            setSelectedBackground(bg.id);
+                            setShowBackgroundSelector(false);
+                          }}
+                          className={`relative rounded overflow-hidden border-2 transition-all ${isSelected
+                            ? 'border-white/60 scale-105'
+                            : 'border-white/[0.08] hover:border-white/[0.20]'
+                            }`}
+                        >
+                          <div
+                            className="w-full h-28 bg-cover bg-center"
+                            style={{
+                              background: isBgGradient ? bg.url : 'transparent',
+                              backgroundImage: !isBgGradient ? `url(${bg.url})` : undefined,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
                             }}
-                            className={`relative rounded overflow-hidden border-4 transition-all group ${isSelected
-                              ? 'border-primary-500 shadow-lg shadow-primary-500/50 scale-105'
-                              : 'border-gray-700 hover:border-gray-500 hover:scale-102'
-                              }`}
-                          >
-                            <div
-                              className="w-full h-32 bg-cover bg-center"
-                              style={{
-                                background: isBgGradient ? bg.url : 'transparent',
-                                backgroundImage: !isBgGradient ? `url(${bg.url})` : undefined,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center'
-                              }}
-                            />
-
-                            <div className="bg-gray-900/80 backdrop-blur-sm p-3 border-t border-white/10">
-                              <div className="flex items-center justify-between">
-                                <h3 className="text-white font-semibold text-sm truncate">
-                                  {bg.name}
-                                </h3>
-                                {isSelected && (
-                                  <Icons.Check className="w-5 h-5 text-primary-400 flex-shrink-0 ml-2" />
-                                )}
-                              </div>
+                          />
+                          <div className="bg-os-ink-900 p-2.5 border-t border-white/[0.08]">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-white text-xs font-medium truncate">{bg.name}</h3>
+                              {isSelected && <Icons.Check className="w-3.5 h-3.5 text-white/60 flex-shrink-0 ml-2" />}
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>

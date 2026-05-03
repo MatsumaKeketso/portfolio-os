@@ -123,6 +123,158 @@ export default {
             inverse: '#ffffff',
           },
         },
+
+        // ─── Design System Token Layer ─────────────────────────────────────────
+        // Primitive layer — ONLY place hex values are allowed in this config.
+        // Components must use semantic tokens only (background/foreground/stroke).
+        primitive: {
+          gray: {
+            50: '#fafafa',
+            100: '#f5f5f3',
+            200: '#ebebeb',
+            300: '#d6d6d6',
+            400: '#b8b8b8',
+            600: '#737373',
+            800: '#454545',
+            1000: '#2c2c2c',
+            1300: '#1a1a1a',
+            1700: '#111111',
+            2100: '#080808',
+          },
+          blue: {
+            50: '#eff8ff',
+            100: '#dbeafe',
+            200: '#bfdbfe',
+            300: '#93c5fd',
+            400: '#60a5fa',
+            600: '#2563eb',
+            800: '#1e40af',
+            1000: '#1d4ed8',
+            1300: '#1e3a8a',
+            1700: '#172554',
+            2100: '#0f172a',
+          },
+          green: {
+            50: '#f0fdf4',
+            100: '#dcfce7',
+            200: '#bbf7d0',
+            300: '#86efac',
+            400: '#4ade80',
+            600: '#16a34a',
+            800: '#166534',
+            1000: '#15803d',
+            1300: '#14532d',
+            1700: '#052e16',
+            2100: '#012617',
+          },
+          red: {
+            50: '#fff1f2',
+            100: '#ffe4e6',
+            200: '#fecdd3',
+            300: '#fda4af',
+            400: '#fb7185',
+            600: '#dc2626',
+            800: '#991b1b',
+            1000: '#b91c1c',
+            1300: '#7f1d1d',
+            1700: '#450a0a',
+            2100: '#2a0505',
+          },
+          yellow: {
+            50: '#fefce8',
+            100: '#fef9c3',
+            200: '#fef08a',
+            300: '#fde047',
+            400: '#facc15',
+            600: '#ca8a04',
+            800: '#854d0e',
+            1000: '#a16207',
+            1300: '#713f12',
+            1700: '#422006',
+            2100: '#270d02',
+          },
+          purple: {
+            50: '#faf5ff',
+            100: '#f3e8ff',
+            200: '#e9d5ff',
+            300: '#d8b4fe',
+            400: '#c084fc',
+            600: '#9333ea',
+            800: '#6b21a8',
+            1000: '#7e22ce',
+            1300: '#581c87',
+            1700: '#3b0764',
+            2100: '#1e0630',
+          },
+        },
+
+        // Semantic layer — references CSS variables; responds to light/dark mode.
+        // Usage: bg-background-primary, text-foreground-secondary, border-stroke-brand
+
+        // Surface backgrounds
+        background: {
+          primary: 'var(--color-bg-primary)',
+          secondary: 'var(--color-bg-secondary)',
+          tertiary: 'var(--color-bg-tertiary)',
+          elevated: 'var(--color-bg-elevated)',
+          overlay: 'var(--color-bg-overlay)',
+          brand: {
+            solid: { DEFAULT: 'var(--color-bg-brand-solid)', hover: 'var(--color-bg-brand-solid-hover)' },
+            subtle: { DEFAULT: 'var(--color-bg-brand-subtle)', hover: 'var(--color-bg-brand-subtle-hover)' },
+          },
+          accent: {
+            DEFAULT: 'var(--color-bg-accent)',
+            hover: 'var(--color-bg-accent-hover)',
+          },
+          feedback: {
+            success: { DEFAULT: 'var(--color-bg-success)', subtle: 'var(--color-bg-success-subtle)' },
+            warning: { DEFAULT: 'var(--color-bg-warning)', subtle: 'var(--color-bg-warning-subtle)' },
+            error: { DEFAULT: 'var(--color-bg-error)', subtle: 'var(--color-bg-error-subtle)' },
+            info: { DEFAULT: 'var(--color-bg-info)', subtle: 'var(--color-bg-info-subtle)' },
+          },
+          control: {
+            DEFAULT: 'var(--color-bg-control)',
+            hover: 'var(--color-bg-control-hover)',
+            active: 'var(--color-bg-control-active)',
+            disabled: 'var(--color-bg-control-disabled)',
+          },
+        },
+
+        // Text / icon colors
+        foreground: {
+          primary: 'var(--color-fg-primary)',
+          secondary: 'var(--color-fg-secondary)',
+          tertiary: 'var(--color-fg-tertiary)',
+          disabled: 'var(--color-fg-disabled)',
+          accent: 'var(--color-bg-accent)',
+          on: {
+            primary: 'var(--color-fg-on-primary)',
+            secondary: 'var(--color-fg-on-secondary)',
+          },
+          brand: { DEFAULT: 'var(--color-fg-brand)', hover: 'var(--color-fg-brand-hover)' },
+          feedback: {
+            success: 'var(--color-fg-success)',
+            warning: 'var(--color-fg-warning)',
+            error: 'var(--color-fg-error)',
+            info: 'var(--color-fg-info)',
+          },
+        },
+
+        // Border / divider colors — use `border-stroke-*` to avoid redundancy
+        stroke: {
+          primary: 'var(--color-stroke-primary)',
+          secondary: 'var(--color-stroke-secondary)',
+          tertiary: 'var(--color-stroke-tertiary)',
+          focus: 'var(--color-stroke-focus)',
+          brand: 'var(--color-stroke-brand)',
+          accent: 'var(--color-bg-accent)',
+          feedback: {
+            success: 'var(--color-stroke-success)',
+            warning: 'var(--color-stroke-warning)',
+            error: 'var(--color-stroke-error)',
+            info: 'var(--color-stroke-info)',
+          },
+        },
       },
 
       // Premium shadows (Framer-style elevation)
@@ -163,8 +315,8 @@ export default {
 
         // OS semantic shadows
         'os-floating': '0 18px 50px rgba(0,0,0,0.28)',
-        'os-window':   '0 24px 60px rgba(0,0,0,0.24)',
-        'os-card':     '0 8px 24px rgba(0,0,0,0.06)',
+        'os-window': '0 24px 60px rgba(0,0,0,0.24)',
+        'os-card': '0 8px 24px rgba(0,0,0,0.06)',
       },
 
       // Enhanced backdrop blur

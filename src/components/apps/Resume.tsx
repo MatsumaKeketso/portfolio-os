@@ -303,7 +303,7 @@ export function Resume() {
       {/* Header - Ultra Clean */}
       <div className="mb-8">
         <h1 className="text-5xl font-light mb-1">{profile.personal.name}</h1>
-        <div className="w-16 h-0.5 bg-gray-900 mb-3"></div>
+        <div className="w-16 h-0.5 bg-black/30 mb-3"></div>
         <h2 className="text-lg text-gray-600 font-light mb-4">{profile.personal.title}</h2>
         <div className="flex gap-3 text-xs text-gray-600">
           {profile.preferences.showEmail && profile.personal.email && (
@@ -432,16 +432,16 @@ export function Resume() {
         }
       `}</style>
 
-      <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="w-full h-full flex flex-col bg-black/50">
         {/* Header with Controls */}
-        <div className="px-6 py-4 border-b border-white/10 no-print">
+        <div className="px-6 py-4 border-b border-white/[0.08] no-print">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Icons.FileText className="w-6 h-6" />
                 Resume
               </h1>
-              <p className="text-slate-400 text-sm mt-1">Professional CV and resume</p>
+              <p className="text-white/40 text-sm mt-1">Professional CV and resume</p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -451,11 +451,11 @@ export function Resume() {
                 <select
                   value={selectedTemplate}
                   onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
-                  className="bg-white/10 border border-white/20 rounded px-3 py-1.5 text-white text-sm"
+                  className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
                 >
-                  <option value="modern" className="bg-slate-800">Modern</option>
-                  <option value="classic" className="bg-slate-800">Classic</option>
-                  <option value="minimalist" className="bg-slate-800">Minimalist</option>
+                  <option value="modern" className="bg-black/30">Modern</option>
+                  <option value="classic" className="bg-black/30">Classic</option>
+                  <option value="minimalist" className="bg-black/30">Minimalist</option>
                 </select>
               </div>
 

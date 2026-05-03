@@ -114,7 +114,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
         <div className="text-center p-6">
           <Icons.Calendar className="w-12 h-12 text-primary-400/50 mx-auto mb-3" />
           <p className="text-primary-400/70 text-sm">No milestones yet</p>
-          <p className="text-gray-500 text-xs mt-1">Add milestones from Admin Panel</p>
+          <p className="text-white/30 text-xs mt-1">Add milestones from Admin Panel</p>
         </div>
       </div>
     );
@@ -124,11 +124,8 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
     <div className="timeline h-full flex flex-col relative">
       {/* Star Citizen-style header with hexagonal accent */}
       <div className="timeline-header relative">
-        {/* Glowing top border */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent" />
-
         {/* Header content */}
-        <div className="relative bg-gradient-to-br from-gray-950/95 to-gray-900/95 backdrop-blur-xl border-b border-primary-500/20 px-4 py-3">
+        <div className="relative bg-os-ink-950 border-b border-white/[0.08] px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Title with holographic effect */}
             <div className="flex items-center gap-3">
@@ -207,14 +204,12 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
           />
         </div>
 
-        {/* Bottom glow effect */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary-500/30 to-transparent" />
       </div>
 
       {/* Timeline scroll area with month columns */}
       <div
         ref={scrollRef}
-        className="timeline-scroll flex-1 overflow-x-auto overflow-y-hidden relative bg-gradient-to-br from-gray-950/95 to-gray-900/95"
+        className="timeline-scroll flex-1 overflow-x-auto overflow-y-hidden relative bg-os-ink-950"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgba(var(--color-primary), 0.3) transparent'
@@ -238,7 +233,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                   <div
                     className={`relative px-4 py-2 ${hasCurrentMonth
                       ? 'bg-primary-500/10 border border-primary-500/40'
-                      : 'bg-gray-900/30 border border-primary-500/20'
+                      : 'bg-white/[0.04] border border-white/[0.08]'
                       }`}
                     style={{
                       clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)'
@@ -302,11 +297,6 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
         </div>
       </div>
 
-      {/* Ambient glow effects */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-secondary-500/5 rounded-full blur-3xl" />
-      </div>
     </div>
   );
 }

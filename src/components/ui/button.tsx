@@ -35,23 +35,23 @@ const buttonVariants = cva(
 
         // Soft Brand Colors
         'soft-brand-primary':
-          'bg-gray-900/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         'soft-brand-secondary':
-          'bg-gray-900/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         'soft-brand-tertiary':
-          'bg-gray-900/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
 
         // Soft System Colors (neutral UI)
         'soft-system-primary':
-          'bg-gray-900/50 text-gray-300 border border-gray-600/30 hover:border-gray-500/60 hover:bg-gray-700/20 hover:text-gray-200 hover:translate-y-[-1px] font-medium',
+          'bg-white/[0.06] text-white/60 border border-white/[0.10] hover:border-white/[0.18] hover:bg-white/[0.10] hover:text-white/80 hover:translate-y-[-1px] font-medium',
 
         'soft-system-secondary':
-          'bg-gray-800/50 text-gray-400 border border-gray-700/30 hover:border-gray-600/60 hover:bg-gray-700/30 hover:text-gray-300 hover:translate-y-[-1px] font-medium',
+          'bg-white/[0.04] text-white/40 border border-white/[0.08] hover:border-white/[0.14] hover:bg-white/[0.08] hover:text-white/60 hover:translate-y-[-1px] font-medium',
 
         'soft-system-tertiary':
-          'bg-gray-700/50 text-gray-500 border border-gray-600/30 hover:border-gray-500/60 hover:bg-gray-600/30 hover:text-gray-400 hover:translate-y-[-1px] font-medium',
+          'bg-white/[0.02] text-white/30 border border-white/[0.06] hover:border-white/[0.10] hover:bg-white/[0.06] hover:text-white/50 hover:translate-y-[-1px] font-medium',
 
         // === SOLID PROMINENCE (Timeline active state - solid fill, shadow glow) ===
 
@@ -67,23 +67,23 @@ const buttonVariants = cva(
 
         // Solid System Colors (neutral filled)
         'solid-system-primary':
-          'bg-gray-700 text-white shadow-hud-base hover:bg-gray-600 hover:shadow-hud-raised hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+          'bg-os-ink-800 text-white hover:bg-os-ink-700 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         'solid-system-secondary':
-          'bg-gray-800 text-gray-200 shadow-hud-base hover:bg-gray-700 hover:shadow-hud-raised hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+          'bg-os-ink-900 text-white/80 hover:bg-os-ink-800 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         'solid-system-tertiary':
-          'bg-gray-900 text-gray-300 shadow-hud-base hover:bg-gray-800 hover:shadow-hud-raised hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+          'bg-os-ink-950 text-white/60 hover:bg-os-ink-900 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         // === UTILITY VARIANTS (special purposes) ===
 
         // Ghost - Minimal UI chrome (no angled corners)
         ghost:
-          'bg-transparent border border-transparent text-gray-300 hover:border-primary-500/40 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px]',
+          'bg-transparent border border-transparent text-white/60 hover:bg-white/[0.08] hover:text-white hover:translate-y-[-1px]',
 
         // Ghost Danger - Close buttons (no angled corners)
         'ghost-danger':
-          'bg-transparent border border-transparent text-gray-300 hover:border-secondary-500/60 hover:bg-secondary-500/20 hover:text-secondary-300',
+          'bg-transparent border border-transparent text-white/60 hover:bg-red-500/20 hover:text-red-300',
 
         // Outline - Just borders
         outline:
@@ -91,11 +91,11 @@ const buttonVariants = cva(
 
         // Taskbar - Special taskbar buttons (no angled corners)
         taskbar:
-          'hover:bg-primary-500/10 text-white data-[active=true]:bg-primary-500/15 data-[active=true]:border-t-2 data-[active=true]:border-primary-500 data-[active=true]:translate-y-[-2px] data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/30 relative',
+          'text-white/50 hover:text-white hover:bg-white/[0.08] relative rounded transition-colors duration-150',
 
         // Menu Item - Context menu items (no angled corners)
         'menu-item':
-          'w-full justify-start hover:bg-primary-500/10 hover:border-l-2 hover:border-primary-500 text-gray-200 rounded-none',
+          'w-full justify-start hover:bg-white/[0.08] text-white/80 rounded-none',
 
         // === PRODUCT MONO / OS INK VARIANTS ===
 
@@ -116,13 +116,13 @@ const buttonVariants = cva(
           'bg-transparent text-os-text-muted hover:bg-black/[0.05] hover:text-os-text-strong font-medium',
 
         // === LEGACY ALIASES (backward compatibility) ===
-        primary: 'bg-gray-900/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] data-[active=true]:bg-primary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
-        secondary: 'bg-gray-900/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] data-[active=true]:bg-secondary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
-        tertiary: 'bg-gray-900/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] data-[active=true]:bg-tertiary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-tertiary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
-        danger: 'bg-gray-900/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] data-[active=true]:bg-secondary-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
-        success: 'bg-gray-900/50 text-accent-400/70 border border-accent-500/30 hover:border-accent-500/60 hover:bg-accent-500/10 hover:text-accent-400 hover:translate-y-[-1px] data-[active=true]:bg-accent-500 data-[active=true]:text-gray-950 data-[active=true]:shadow-lg data-[active=true]:shadow-accent-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
-        menuItem: 'w-full justify-start hover:bg-primary-500/10 hover:border-l-2 hover:border-primary-500 text-gray-200 rounded-none transition-all duration-100',
-        ghostDanger: 'bg-transparent border border-transparent text-gray-300 hover:border-secondary-500/60 hover:bg-secondary-500/20 hover:text-secondary-300',
+        primary: 'bg-white/[0.06] text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] data-[active=true]:bg-primary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        secondary: 'bg-white/[0.06] text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] data-[active=true]:bg-secondary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        tertiary: 'bg-white/[0.06] text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] data-[active=true]:bg-tertiary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-tertiary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        danger: 'bg-white/[0.06] text-red-400/70 border border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-400 hover:translate-y-[-1px] data-[active=true]:bg-red-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        success: 'bg-white/[0.06] text-accent-400/70 border border-accent-500/30 hover:border-accent-500/60 hover:bg-accent-500/10 hover:text-accent-400 hover:translate-y-[-1px] data-[active=true]:bg-accent-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        menuItem: 'w-full justify-start hover:bg-white/[0.08] text-white/80 rounded-none transition-all duration-100',
+        ghostDanger: 'bg-transparent border border-transparent text-white/60 hover:bg-red-500/20 hover:text-red-300',
       },
 
       size: {
@@ -130,7 +130,7 @@ const buttonVariants = cva(
         icon: 'w-8 h-8 rounded',
 
         // Larger icon buttons (taskbar)
-        iconLg: 'w-10 h-10 rounded',
+        iconLg: 'w-10 h-10 rounded-[10px]',
 
         // Text button sizes
         sm: 'px-3 py-1.5 text-sm rounded-md',
@@ -174,27 +174,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
 
-    // Variants that get angled corners (Star Citizen HUD style)
-    const hasAngledCorners = variant && [
-      // New prominence-based variants
-      'soft-brand-primary', 'soft-brand-secondary', 'soft-brand-tertiary',
-      'solid-brand-primary', 'solid-brand-secondary', 'solid-brand-tertiary',
-      'outline',
-      // Legacy variants (backward compatibility)
-      'primary', 'secondary', 'tertiary', 'danger', 'success'
-    ].includes(variant)
-
-    const clipPathStyle = hasAngledCorners
-      ? {
-          clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
-          ...style,
-        }
-      : style
-
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
-        style={clipPathStyle}
+        style={style}
         ref={ref}
         {...props}
       />

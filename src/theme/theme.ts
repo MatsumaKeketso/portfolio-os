@@ -284,13 +284,13 @@ export const theme = {
           active: 'bg-white/20 border-b-2 border-blue-500',
         },
         primary: {
-          base: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white',
-          hover: 'from-blue-700 to-purple-700',
-          shadow: 'shadow-md hover:shadow-glow-blue',
+          base: 'bg-primary-600 text-white',
+          hover: 'bg-primary-700',
+          shadow: 'shadow-md',
         },
         secondary: {
-          base: 'bg-gray-700 text-white border border-gray-600',
-          hover: 'bg-gray-600 border-gray-500',
+          base: 'bg-os-ink-800 text-white border border-white/[0.08]',
+          hover: 'bg-os-ink-700 border-white/[0.12]',
         },
         danger: {
           base: 'bg-red-600 text-white',
@@ -303,8 +303,8 @@ export const theme = {
           shadow: 'shadow-md hover:shadow-glow-green',
         },
         menuItem: {
-          base: 'w-full justify-start text-gray-700 dark:text-gray-200',
-          hover: 'bg-blue-50 dark:bg-blue-600',
+          base: 'w-full justify-start text-white/60',
+          hover: 'bg-white/[0.08]',
         },
       },
 
@@ -326,20 +326,20 @@ export const theme = {
 
       variants: {
         glass: {
-          base: 'bg-gray-700/50 border border-gray-600/50 text-white backdrop-blur-sm',
-          focus: 'border-blue-500 ring-1 ring-blue-500',
+          base: 'bg-white/[0.06] border border-white/[0.08] text-white',
+          focus: 'border-primary-500 ring-1 ring-primary-500',
         },
         solid: {
-          base: 'bg-gray-700 border border-gray-600 text-white',
-          focus: 'border-blue-500 ring-1 ring-blue-500',
+          base: 'bg-os-ink-800 border border-white/[0.08] text-white',
+          focus: 'border-primary-500 ring-1 ring-primary-500',
         },
         light: {
-          base: 'bg-white border border-gray-200 text-gray-900',
-          focus: 'border-blue-500 ring-1 ring-blue-500',
+          base: 'bg-white border border-white/[0.12] text-gray-900',
+          focus: 'border-primary-500 ring-1 ring-primary-500',
         },
         search: {
-          base: 'bg-gray-700/50 border border-gray-600/50 text-white pl-10 backdrop-blur-sm',
-          focus: 'border-blue-500 ring-1 ring-blue-500',
+          base: 'bg-white/[0.06] border border-white/[0.08] text-white pl-10',
+          focus: 'border-primary-500 ring-1 ring-primary-500',
         },
       },
 
@@ -359,24 +359,24 @@ export const theme = {
 
       variants: {
         window: {
-          base: 'bg-gray-900/95 backdrop-blur-xl border border-gray-700/50',
-          shadow: 'shadow-window',
+          base: 'bg-os-ink-950 border border-white/[0.08]',
+          shadow: 'shadow-os-window',
         },
         modal: {
-          base: 'bg-gray-800/95 backdrop-blur-2xl border border-gray-700/50',
-          shadow: 'shadow-2xl',
+          base: 'bg-os-ink-950 border border-white/[0.08]',
+          shadow: 'shadow-os-window',
         },
         icon: {
-          base: 'bg-gray-900/95 backdrop-blur-lg border border-white/20',
-          shadow: 'shadow-glass',
+          base: 'bg-os-ink-900 border border-white/[0.08]',
+          shadow: '',
         },
         menu: {
-          base: 'bg-white dark:bg-gray-800/95 border border-gray-200 dark:border-gray-700 backdrop-blur-md',
-          shadow: 'shadow-xl',
+          base: 'bg-os-ink-950 border border-white/[0.08]',
+          shadow: 'shadow-os-floating',
         },
         elevated: {
-          base: 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
-          shadow: 'shadow-elevated',
+          base: 'bg-os-ink-900 border border-white/[0.08]',
+          shadow: 'shadow-os-window',
         },
       },
 
@@ -398,22 +398,22 @@ export const theme = {
     Window: {
       chrome: {
         height: '2.5rem', // 40px
-        background: 'bg-gray-800/80',
-        border: 'border-b border-gray-700/50',
+        background: 'bg-os-ink-900',
+        border: 'border-b border-white/[0.08]',
       },
 
       body: {
-        background: 'bg-white',
+        background: 'bg-os-ink-950',
       },
 
       border: {
-        color: 'border-gray-700/50',
+        color: 'border-white/[0.08]',
         width: '1px',
       },
 
-      shadow: 'shadow-2xl',
+      shadow: 'shadow-os-window',
       borderRadius: 'rounded-lg',
-      backdrop: 'backdrop-blur-xl',
+      backdrop: '',
 
       glow: {
         enabled: true,
@@ -424,18 +424,18 @@ export const theme = {
 
     Taskbar: {
       height: '3rem', // 48px
-      background: 'bg-gray-900/95',
-      backdrop: 'backdrop-blur-xl',
-      border: 'border-t border-gray-700/50',
+      background: 'bg-os-ink-950',
+      backdrop: '',
+      border: 'border-t border-white/[0.08]',
       zIndex: 10000,
     },
 
     DesktopIcon: {
       size: '5.625rem', // 90px
       gap: '1rem',
-      background: 'bg-gray-900/95',
-      backdrop: 'backdrop-blur-lg',
-      border: 'border border-white/20',
+      background: 'bg-os-ink-900',
+      backdrop: '',
+      border: 'border border-white/[0.08]',
       borderRadius: 'rounded-lg',
       shadow: 'shadow-glass',
       padding: 'p-2',

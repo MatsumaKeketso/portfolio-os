@@ -1,6 +1,6 @@
 # Look And Feel Update Spec
 
-> Build target: evolve PortfolioOS into Keketso OS, a refined portfolio operating system built by Generative Studio. The update should make the OS itself feel like the portfolio, not a desktop-themed site with many portfolio apps.
+> Build target: evolve GenOS into GenOS, a refined portfolio operating system built by Generative Studio. The update should make the OS itself feel like the portfolio, not a desktop-themed site with many portfolio apps.
 
 ## Scope
 
@@ -31,7 +31,7 @@ Related docs:
 
 When a visitor opens the site, they should understand:
 
-1. They are inside **Keketso OS**.
+1. They are inside **GenOS**.
 2. The OS is Keketso's portfolio.
 3. Generative Studio built the system.
 4. Projects are launched as apps.
@@ -52,9 +52,9 @@ The experience should feel compact, precise, alive, and system-driven. Complexit
 
 ### Desired Changes
 
-- Rename the user-facing system concept to `Keketso OS`.
+- Rename the user-facing system concept to `GenOS`.
 - Use `Built by Generative Studio` as a recurring but subtle builder credit.
-- Keep `PortfolioOS` as the repo/project name if needed, but the interface should present as Keketso OS.
+- Keep `GenOS` as the repo/project name if needed, but the interface should present as GenOS.
 
 ### Surfaces To Update
 
@@ -69,7 +69,7 @@ The experience should feel compact, precise, alive, and system-driven. Complexit
 
 Use:
 
-- `Keketso OS`
+- `GenOS`
 - `A portfolio operating system by Keketso`
 - `Built by Generative Studio`
 - `A Generative Studio system concept`
@@ -484,7 +484,7 @@ Candidate file:
 Target:
 
 - Compact black panel.
-- Header: Keketso OS.
+- Header: GenOS.
 - App groups: System, Work, Personal, Admin.
 - Footer: Built by Generative Studio.
 - Rows include icon, title, short description.
@@ -524,7 +524,7 @@ Candidate file:
 
 ### Desired Behavior
 
-Align the frontend behavior with familiar desktop operating system patterns before adding custom Keketso OS flourishes. The OS should support real shell behaviors: desktop, taskbar, windows, side-nav locations, file operations, app registration, context-aware menus, shortcuts, and system utilities.
+Align the frontend behavior with familiar desktop operating system patterns before adding custom GenOS flourishes. The OS should support real shell behaviors: desktop, taskbar, windows, side-nav locations, file operations, app registration, context-aware menus, shortcuts, and system utilities.
 
 Use [OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md) as the detailed behavior reference.
 
@@ -624,7 +624,7 @@ Start Menu and desktop should surface featured project apps naturally.
 
 Use a dotted halftone hover treatment on important image previews. The reference effect turns a normal image into a structured field of black dots, with a second layer of small accent symbols/dots over parts of the image. It feels technical, graphic, and system-like without becoming loud.
 
-This should become a reusable visual pattern for Keketso OS.
+This should become a reusable visual pattern for GenOS.
 
 ### Where To Use It
 
@@ -797,7 +797,7 @@ Use for:
 - System updates.
 - Upload status history.
 - Project announcements.
-- Generative Studio/Keketso OS messages.
+- Generative Studio/GenOS messages.
 - Visitor Gallery moderation alerts.
 
 Required anatomy:
@@ -1010,7 +1010,7 @@ Recommended sequence:
 2. Define theme-to-config-to-surface architecture.
 3. Define context-aware OS behavior and menu registry.
 4. Restyle taskbar, start menu, and windows.
-5. Rename user-facing system identity to Keketso OS.
+5. Rename user-facing system identity to GenOS.
 6. Consolidate Resume, Skills, and Contact into CV tabs.
 7. Remove/deprioritize standalone Portfolio, Skills, and Contact defaults.
 8. Add the halftone image hover component/pattern.
@@ -1025,7 +1025,7 @@ For codebase-specific sequencing, follow [INCREMENTAL_REFINEMENT_PLAN.md](./INCR
 
 ## Final Acceptance Checklist
 
-- The default UI reads as Keketso OS, not a generic portfolio desktop.
+- The default UI reads as GenOS, not a generic portfolio desktop.
 - Generative Studio appears as builder in system-level surfaces.
 - The OS itself acts as the portfolio.
 - Project apps are the main portfolio publishing mechanism.

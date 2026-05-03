@@ -20,18 +20,18 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
   );
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 p-4 min-w-[320px] max-w-md ${className}`}>
+    <div className={`bg-os-ink-950 rounded-lg shadow-os-floating border border-white/[0.08] p-4 min-w-[320px] max-w-md ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Upload className="w-5 h-5 text-blue-500" />
-          <h3 className="font-semibold text-gray-900">
+          <Upload className="w-5 h-5 text-primary-400" />
+          <h3 className="font-semibold text-white">
             {allCompleted ? 'Upload Complete' : 'Uploading Files'}
           </h3>
         </div>
         {allCompleted && onClose && (
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-white/40 hover:text-white/60 transition-colors"
             aria-label="Close"
           >
             <XCircle className="w-5 h-5" />
@@ -53,17 +53,17 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
                 {upload.status === 'error' && (
                   <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                 )}
-                <span className="text-sm text-gray-700 truncate" title={upload.fileName}>
+                <span className="text-sm text-white/60 truncate" title={upload.fileName}>
                   {upload.fileName}
                 </span>
               </div>
-              <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+              <span className="text-xs text-white/40 ml-2 flex-shrink-0">
                 {upload.progress}%
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div className="w-full bg-white/[0.12] rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   upload.status === 'error'
@@ -78,15 +78,15 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
 
             {/* Error message */}
             {upload.error && (
-              <p className="text-xs text-red-600 mt-1">{upload.error}</p>
+              <p className="text-xs text-red-300 mt-1">{upload.error}</p>
             )}
           </div>
         ))}
       </div>
 
       {allCompleted && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <p className="text-xs text-gray-600">
+        <div className="mt-3 pt-3 border-t border-white/[0.08]">
+          <p className="text-xs text-white/40">
             {uploads.filter((u) => u.status === 'success').length} of {uploads.length} files uploaded successfully
           </p>
         </div>

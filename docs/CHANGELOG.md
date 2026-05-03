@@ -1,4 +1,4 @@
-# PortfolioOS Changelog
+# GenOS Changelog
 
 ---
 
@@ -42,7 +42,7 @@
 
 ## 📋 What's New in This Update
 
-This document captures significant enhancements made to PortfolioOS since the initial release. The project has evolved from a basic desktop simulator to a fully-featured, customizable portfolio platform with authentication, theming, and professional-grade user experience.
+This document captures significant enhancements made to GenOS since the initial release. The project has evolved from a basic desktop simulator to a fully-featured, customizable portfolio platform with authentication, theming, and professional-grade user experience.
 
 ### 🎯 Major New Features
 - ✅ **Authentication System** - Admin login with session management
@@ -61,7 +61,7 @@ This document captures significant enhancements made to PortfolioOS since the in
 ## 🔐 Authentication System
 
 ### Overview
-PortfolioOS now includes a secure authentication system to protect admin features and customization settings.
+GenOS now includes a secure authentication system to protect admin features and customization settings.
 
 ### Implementation (`authStore.ts`)
 
@@ -78,7 +78,7 @@ Environment Variable: VITE_ADMIN_PASSWORD
 ```
 
 **Session Management**:
-- Sessions stored in `sessionStorage` under key `portfolioOS_auth_session`
+- Sessions stored in `sessionStorage` under key `GenOS_auth_session`
 - Automatic expiration after 24 hours
 - Session validation on page load
 
@@ -288,7 +288,7 @@ interface SystemPreferences {
 }
 ```
 
-**Persistence**: `localStorage` key `portfolioOS_systemPreferences`
+**Persistence**: `localStorage` key `GenOS_systemPreferences`
 
 ### Taskbar Customization
 
@@ -387,8 +387,8 @@ interface SystemPreferences {
 ### Data Migration
 
 **Automatic migration from old About app**:
-- Detects `portfolioOS_about` in localStorage
-- Migrates to new `portfolioOS_userProfile` format
+- Detects `GenOS_about` in localStorage
+- Migrates to new `GenOS_userProfile` format
 - Preserves existing data
 
 ---
@@ -638,7 +638,7 @@ interface DesktopBackground {
 - `setSelectedBackground(id)` - Apply background
 - `getSelectedBackground()` - Get current background
 
-**Persistence**: `localStorage` key `portfolioOS_backgrounds`
+**Persistence**: `localStorage` key `GenOS_backgrounds`
 
 **Default Backgrounds**:
 - Multiple gradient presets
@@ -671,15 +671,15 @@ interface DesktopBackground {
 ### LocalStorage Keys
 
 **New Keys**:
-- `portfolioOS_auth_session` - Session data (sessionStorage)
-- `portfolioOS_theme` - Theme settings
-- `portfolioOS_userProfile` - User profile data
-- `portfolioOS_systemPreferences` - System settings
-- `portfolioOS_backgrounds` - Custom backgrounds
+- `GenOS_auth_session` - Session data (sessionStorage)
+- `GenOS_theme` - Theme settings
+- `GenOS_userProfile` - User profile data
+- `GenOS_systemPreferences` - System settings
+- `GenOS_backgrounds` - Custom backgrounds
 
 **Existing Keys**:
-- `portfolioOS_apps` - Application configuration
-- `portfolioOS_files` - Virtual file system
+- `GenOS_apps` - Application configuration
+- `GenOS_files` - Virtual file system
 
 ### TypeScript Enhancements
 
@@ -750,7 +750,7 @@ interface DesktopBackground {
 | **Design System** | ⚠️ Basic | ✅ Gradients, animations |
 | **Apps** | 9 apps | 14+ apps |
 | **Customization** | ❌ None | ✅ Extensive |
-| **Data Storage** | ❌ LocalStorage (Base64) | ✅ Supabase DB + Storage |
+| **Data Storage** | ❌ LocalStorage (Base64) | ✅ Firebase Firestore + Storage |
 
 ---
 
@@ -769,7 +769,7 @@ interface DesktopBackground {
 
 ### Planned
 - [ ] Multi-language support
-- [ ] Cloud sync (Supabase integration)
+- [x] Cloud sync (Firebase Firestore + Storage — completed v2.1.0)
 - [ ] Real-time collaboration
 - [ ] Plugin system for custom apps
 - [ ] Mobile responsive design
@@ -785,7 +785,7 @@ interface DesktopBackground {
 ### Current Limitations
 
 1. **Storage Constraints**:
-   - LocalStorage 5-10MB limit (Mitigated for media via Supabase Storage)
+   - LocalStorage 5-10MB limit (Mitigated for media via Firebase Storage)
    - Profile images limited by storage
 
 2. **Authentication**:
@@ -831,7 +831,7 @@ interface DesktopBackground {
 - Old About app data → New UserProfile format
 - Apps configuration preserved
 - Files preserved
-- **Manual**: Run `storage-setup.sql` in Supabase to enable media support.
+- **Manual**: Configure Firebase project and add `VITE_FIREBASE_*` environment variables.
 
 **Manual Steps**:
 1. **Review Privacy Settings**: Email/phone visibility now controlled
