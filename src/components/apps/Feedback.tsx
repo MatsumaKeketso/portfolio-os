@@ -69,6 +69,8 @@ export function Feedback() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as FeedbackItem[];
       setRecentFeedback(items);
+    }, () => {
+      setRecentFeedback([]);
     });
     return () => unsubscribe();
   }, []);

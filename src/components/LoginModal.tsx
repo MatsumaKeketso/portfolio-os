@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
+import { ADMIN_EMAIL, useAuthStore } from '../store/authStore';
 import { Button } from './ui/button';
 
 interface LoginModalProps {
@@ -11,21 +11,28 @@ interface LoginModalProps {
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('admin@genos.dev');
+  const [email, setEmail] = useState('');
+  const [mode, setMode] = useState<'guest' | 'superuser'>('guest');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
 
-    if (!email.trim() || !password.trim()) {
+    const loginEmail = mode === 'superuser' ? ADMIN_EMAIL : email;
+
+    if (!loginEmail.trim() || !password.trim()) {
       setError('Please enter both email and password');
       return;
     }
 
-    const { success, error: loginError } = await login(password, email);
+    setIsSubmitting(true);
+    const { success, error: loginError } = await login(password, loginEmail);
+    setIsSubmitting(false);
 
     if (success) {
       setPassword('');
@@ -38,6 +45,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const handleClose = () => {
+    if (isSubmitting) return;
     setPassword('');
     setError('');
     onClose();
@@ -69,8 +77,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <Icons.Lock className="w-4 h-4 text-white/60" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-white">Admin Login</h2>
-                <p className="text-white/40 text-xs">Enter credentials to access admin features</p>
+                <h2 className="text-sm font-semibold text-white">Sign In</h2>
+                <p className="text-white/40 text-xs">Guests can explore. Superuser can manage the system.</p>
               </div>
             </div>
             <Button variant="ink-ghost" size="icon" onClick={handleClose} type="button">
@@ -79,7 +87,26 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
 
           {/* Form */}
-          <div className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-1 rounded bg-background-chrome-raised p-1 border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => { setMode('guest'); setError(''); }}
+                disabled={isSubmitting}
+                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-white/[0.12] text-white' : 'text-white/45 hover:text-white/75'}`}
+              >
+                Guest
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('superuser'); setError(''); }}
+                disabled={isSubmitting}
+                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'superuser' ? 'bg-white/[0.12] text-white' : 'text-white/45 hover:text-white/75'}`}
+              >
+                Superuser
+              </button>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-xs font-medium text-white/60 mb-1.5">
                 Email
@@ -87,12 +114,18 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <input
                 id="email"
                 type="email"
-                value={email}
+                value={mode === 'superuser' ? ADMIN_EMAIL : email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
-                placeholder="admin@genos.dev"
+                placeholder={mode === 'superuser' ? ADMIN_EMAIL : 'you@example.com'}
+                disabled={mode === 'superuser' || isSubmitting}
                 autoFocus
               />
+              <p className="mt-1.5 text-[11px] text-white/35">
+                {mode === 'superuser'
+                  ? `${ADMIN_EMAIL} has full owner access.`
+                  : 'New guest emails create a limited guest account automatically.'}
+              </p>
             </div>
 
             <div>
@@ -105,14 +138,16 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
                   className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
-                  placeholder="Enter admin password"
+                  placeholder={mode === 'superuser' ? 'Enter superuser password' : 'Enter or create guest password'}
                 />
                 <Button
                   variant="ink-ghost"
                   size="icon"
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isSubmitting}
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7"
                 >
                   {showPassword ? <Icons.EyeOff className="w-3.5 h-3.5" /> : <Icons.Eye className="w-3.5 h-3.5" />}
@@ -132,21 +167,29 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 variant="ink"
                 size="sm"
                 className="flex-1 flex items-center justify-center gap-2"
-                onClick={handleSubmit}
+                disabled={isSubmitting}
               >
-                <Icons.LogIn className="w-3.5 h-3.5" />
-                Login
+                {isSubmitting ? (
+                  <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Icons.LogIn className="w-3.5 h-3.5" />
+                )}
+                {isSubmitting
+                  ? 'Signing in...'
+                  : mode === 'superuser'
+                    ? 'Sign in as superuser'
+                    : 'Continue as guest'}
               </Button>
-              <Button type="button" variant="ink-ghost" size="sm" onClick={handleClose} className="flex-1">
+              <Button type="button" variant="ink-ghost" size="sm" onClick={handleClose} disabled={isSubmitting} className="flex-1">
                 Cancel
               </Button>
             </div>
-          </div>
+          </form>
 
           {/* Footer */}
           <div className="px-6 pb-4 flex items-center gap-2 text-xs text-white/30">
             <Icons.Shield className="w-3.5 h-3.5" />
-            <p>Admin features are protected to prevent unauthorized modifications</p>
+            <p>Only {ADMIN_EMAIL} can modify system content and admin settings.</p>
           </div>
         </motion.div>
       </motion.div>

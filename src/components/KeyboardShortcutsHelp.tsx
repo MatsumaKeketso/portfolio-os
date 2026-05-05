@@ -30,6 +30,7 @@ export function KeyboardShortcutsHelp() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    const handleOpenShortcuts = () => setIsOpen(true);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const target = e.target as HTMLElement;
@@ -40,25 +41,18 @@ export function KeyboardShortcutsHelp() {
       if (e.key === 'Escape' && isOpen) setIsOpen(false);
     };
 
+    window.addEventListener('genos:open-shortcuts', handleOpenShortcuts);
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('genos:open-shortcuts', handleOpenShortcuts);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen]);
 
   const categories = Array.from(new Set(shortcuts.map(s => s.category)));
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-16 right-4 z-[10001] w-10 h-10 rounded-full bg-os-ink-800 border border-white/[0.12] hover:bg-os-ink-700 text-white/60 hover:text-white shadow-os-card flex items-center justify-center transition-all group"
-        title="Keyboard Shortcuts (Press ?)"
-      >
-        <Icons.Keyboard className="w-4 h-4" />
-        <span className="absolute -top-9 right-0 bg-os-ink-900 border border-white/[0.08] text-white/70 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Press ? for shortcuts
-        </span>
-      </button>
-
       <AnimatePresence>
         {isOpen && (
           <motion.div

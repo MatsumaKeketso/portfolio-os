@@ -38,6 +38,8 @@ export function Desktop() {
   const {
     setStartMenuOpen,
     toggleAdminMode,
+    setAdminMode,
+    isAdminMode,
     getSelectedBackground,
     backgrounds,
     selectedBackgroundId,
@@ -49,7 +51,7 @@ export function Desktop() {
     fetchBackgrounds,
   } = useDesktopStore();
   const fileStore = useFileStore();
-  const { isAuthenticated, checkSession } = useAuthStore();
+  const { isAuthenticated, isAdmin, checkSession } = useAuthStore();
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const selectedBackground = getSelectedBackground();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -82,6 +84,18 @@ export function Desktop() {
     fetchTheme();
   }, [checkSession, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, fetchTheme]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchProfile();
+    fetchFileSystem();
+    fetchApps();
+    fetchBackgrounds();
+  }, [isAuthenticated, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds]);
+
+  useEffect(() => {
+    if (!isAdmin) setAdminMode(false);
+  }, [isAdmin, setAdminMode]);
+
   /* Global Error Handling */
   const { error: userError } = useUserStore();
   const { addNotification } = useNotificationStore();
@@ -104,8 +118,15 @@ export function Desktop() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
         e.preventDefault();
-        if (isAuthenticated) {
+        if (isAdmin) {
           toggleAdminMode();
+        } else if (isAuthenticated) {
+          addNotification({
+            type: 'info',
+            title: 'Guest session',
+            message: 'Only admin@os.com can open the Admin Panel.',
+            duration: 4000,
+          });
         } else {
           setShowLoginModal(true);
         }
@@ -119,7 +140,7 @@ export function Desktop() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isAuthenticated, toggleAdminMode, setStartMenuOpen]);
+  }, [isAuthenticated, isAdmin, toggleAdminMode, setStartMenuOpen, addNotification]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -226,12 +247,19 @@ export function Desktop() {
     },
     {
       id: 'admin',
-      label: isAuthenticated ? 'Admin Panel' : 'Admin Login',
+      label: isAdmin ? 'Admin Panel' : isAuthenticated ? 'Guest Session' : 'Sign In',
       icon: Icons.Settings,
       group: 'system',
       action: () => {
-        if (isAuthenticated) toggleAdminMode();
-        else setShowLoginModal(true);
+        if (isAdmin) toggleAdminMode();
+        else if (isAuthenticated) {
+          addNotification({
+            type: 'info',
+            title: 'Guest session',
+            message: 'Only admin@os.com can open the Admin Panel.',
+            duration: 4000,
+          });
+        } else setShowLoginModal(true);
       },
     },
   ];
@@ -239,7 +267,7 @@ export function Desktop() {
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
-      setIsDraggingOver(true);
+      setIsDraggingOver(isAdmin);
     };
 
     const handleDragLeave = (e: DragEvent) => {
@@ -255,6 +283,16 @@ export function Desktop() {
 
       const files = e.dataTransfer?.files;
       if (!files) return;
+
+      if (!isAdmin) {
+        addNotification({
+          type: 'warning',
+          title: 'Desktop upload blocked',
+          message: 'Visitors can upload images only inside Visitor Gallery.',
+          duration: 5000,
+        });
+        return;
+      }
 
       const fileArray = Array.from(files);
       setUploadProgress([]);
@@ -273,6 +311,7 @@ export function Desktop() {
         if (fileType === 'image' || fileType === 'video') {
           try {
             const result = await uploadFile(file, {
+              folder: 'desktop-uploads',
               maxSizeMB: 100,
               allowedTypes: ['image/*', 'video/*'],
               onProgress: (progress) => {
@@ -337,21 +376,33 @@ export function Desktop() {
       document.removeEventListener('dragleave', handleDragLeave);
       document.removeEventListener('drop', handleDrop);
     };
-  }, [fileStore]);
+  }, [fileStore, isAdmin, addNotification]);
 
   const isGradient = selectedBackground?.url?.startsWith('linear-gradient') || false;
 
   return (
     <div
       className="fixed inset-0 overflow-hidden desktop-drop-zone"
-      style={{
-        background: isGradient ? selectedBackground?.url : '#1e3a8a',
-        backgroundImage: !isGradient && selectedBackground?.url ? `url(${selectedBackground.url})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
       onContextMenu={handleDesktopContextMenu}
     >
+      <div className="absolute inset-0 overflow-hidden bg-[#1e3a8a]">
+        {selectedBackground?.url && (
+          isGradient ? (
+            <div
+              className="absolute inset-0"
+              style={{ background: selectedBackground.url }}
+            />
+          ) : (
+            <img
+              src={selectedBackground.url}
+              alt=""
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+          )
+        )}
+      </div>
+
       {isDraggingOver && (
         <div className="absolute inset-0 bg-primary-500/20 border-1 border-primary-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
           <div className="text-white text-2xl font-bold drop-shadow-lg">Drop files to upload</div>
@@ -386,7 +437,17 @@ export function Desktop() {
         </div>
 
 
-        {isAuthenticated && <AdminPanel />}
+        {isAdmin && isAdminMode && (
+          <div
+            className="fixed left-3 right-3 top-3 bottom-[76px] z-[9000] pointer-events-auto overflow-hidden rounded-2xl border border-stroke-primary bg-background-chrome shadow-os-window"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.stopPropagation()}
+          >
+            <AdminPanel />
+          </div>
+        )}
 
         <KeyboardShortcutsHelp />
 

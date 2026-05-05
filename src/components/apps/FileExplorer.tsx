@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, type ComponentType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useFileStore } from '../../store/fileStore';
@@ -56,7 +56,7 @@ const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
 export function FileExplorer() {
   const fileStore = useFileStore();
   const { openWindow } = useDesktopStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const { addNotification } = useNotificationStore();
 
   const [showNewDialog, setShowNewDialog] = useState<'folder' | 'file' | null>(null);
@@ -76,6 +76,15 @@ export function FileExplorer() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  const sortOptions: Array<{ value: typeof sortBy; label: string; icon: keyof typeof Icons }> = [
+    { value: 'name', label: 'Name', icon: 'Type' },
+    { value: 'date', label: 'Date Modified', icon: 'CalendarDays' },
+    { value: 'size', label: 'Size', icon: 'HardDrive' },
+    { value: 'type', label: 'Type', icon: 'FileType' },
+  ];
 
   // ---------------------------------------------------------------------------
   // Permissions — derived from current path + auth state
@@ -87,8 +96,8 @@ export function FileExplorer() {
   );
 
   const permissions = useMemo(
-    () => getPermissions(locationContext, isAuthenticated),
-    [locationContext, isAuthenticated],
+    () => getPermissions(locationContext, isAdmin),
+    [locationContext, isAdmin],
   );
 
   const currentFiles = fileStore.getCurrentFolderFiles();
@@ -268,7 +277,7 @@ export function FileExplorer() {
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
               : ['image/*', 'video/*'],
-            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : undefined,
+            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : 'file-explorer',
             generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
               setUploadProgress((prev) => {
@@ -311,7 +320,7 @@ export function FileExplorer() {
           dataUrl: urlOrContent,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
-          isVisitorOwned: !isAuthenticated,
+          isVisitorOwned: !isAdmin,
         });
       }
     }
@@ -426,7 +435,7 @@ export function FileExplorer() {
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
               : ['image/*', 'video/*'],
-            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : undefined,
+            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : 'file-explorer',
             generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
               setUploadProgress((prev) => {
@@ -460,7 +469,7 @@ export function FileExplorer() {
           dataUrl: urlOrContent,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
-          isVisitorOwned: !isAuthenticated,
+          isVisitorOwned: !isAdmin,
         });
       }
     }
@@ -472,7 +481,7 @@ export function FileExplorer() {
 
   const startRename = (fileId: string) => {
     const file = fileStore.getFileById(fileId);
-    if (file && fileIsWritable(file, isAuthenticated)) {
+    if (file && fileIsWritable(file, isAdmin)) {
       setRenamingFileId(fileId);
       setRenameValue(file.name);
     }
@@ -501,7 +510,7 @@ export function FileExplorer() {
     const selectedCount = fileStore.selectedFileIds.length;
     const hasClipboard = fileStore.clipboard.fileIds.length > 0;
     const selectedFiles = fileStore.selectedFileIds.map((id) => fileStore.getFileById(id)).filter(Boolean) as FileItem[];
-    const allWritable = selectedFiles.every((f) => fileIsWritable(f, isAuthenticated));
+    const allWritable = selectedFiles.every((f) => fileIsWritable(f, isAdmin));
 
     const items: ContextMenuItemDef[] = [];
 
@@ -613,6 +622,17 @@ export function FileExplorer() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [fileStore.selectedFileIds, renamingFileId, permissions]);
 
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (!sortMenuRef.current?.contains(e.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [showSortMenu]);
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -677,7 +697,7 @@ export function FileExplorer() {
       {/* Toolbar */}
       <div className="border-b border-white/[0.08] p-2 flex items-center gap-2">
         {/* View Mode */}
-        <div className="flex items-center gap-1 bg-white/[0.06] rounded p-1">
+        <div className="flex items-center gap-1 bg-white/[0.06] rounded-lg p-1">
           <button
             onClick={() => setViewMode('grid')}
             className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
@@ -695,18 +715,60 @@ export function FileExplorer() {
         <div className="h-6 w-px bg-white/[0.08] mx-1" />
 
         {/* Sort */}
-        <div className="flex items-center gap-1">
-          <Icons.ArrowUpDown className="w-3.5 h-3.5 text-white/40" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-2 py-1 text-xs bg-white/[0.06] text-white rounded border border-white/[0.08] focus:outline-none focus:border-primary-500"
+        <div ref={sortMenuRef} className="relative flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setShowSortMenu((value) => !value)}
+            className={cn(
+              'min-w-[142px] w-fit rounded-lg border border-white/[0.08] bg-white/[0.06]',
+              'pl-3 pr-2 py-1.5 text-xs text-white/70 transition-all',
+              'flex items-center justify-between gap-3 hover:bg-white/[0.09] hover:text-white',
+              showSortMenu && 'border-primary-500/45 bg-white/[0.10] text-white'
+            )}
           >
-            <option value="name">Name</option>
-            <option value="date">Date Modified</option>
-            <option value="size">Size</option>
-            <option value="type">Type</option>
-          </select>
+            <span className="flex items-center gap-2 min-w-0">
+              <Icons.ArrowUpDown className="w-3.5 h-3.5 text-white/40 shrink-0" />
+              <span className="truncate">{sortOptions.find((option) => option.value === sortBy)?.label}</span>
+            </span>
+            <Icons.ChevronDown className={cn('w-3.5 h-3.5 text-white/35 shrink-0 transition-transform', showSortMenu && 'rotate-180')} />
+          </button>
+          <AnimatePresence>
+            {showSortMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                transition={{ duration: 0.12 }}
+                className="absolute left-0 top-[calc(100%+6px)] z-[10002] min-w-[172px] w-max rounded-xl border border-white/[0.10] bg-background-chrome shadow-os-window p-1.5"
+              >
+                {sortOptions.map((option) => {
+                  const Icon = Icons[option.icon] as ComponentType<{ className?: string }>;
+                  const isSelected = sortBy === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(option.value);
+                        setShowSortMenu(false);
+                      }}
+                      className={cn(
+                        'w-full rounded-lg px-3 py-2 text-left text-xs transition-colors',
+                        'grid grid-cols-[18px_1fr_16px] items-center gap-2.5',
+                        isSelected
+                          ? 'bg-primary-500/16 text-white'
+                          : 'text-white/55 hover:bg-white/[0.07] hover:text-white/85'
+                      )}
+                    >
+                      <Icon className={cn('w-3.5 h-3.5', isSelected ? 'text-primary-300' : 'text-white/35')} />
+                      <span className="whitespace-nowrap pr-2">{option.label}</span>
+                      {isSelected && <Icons.Check className="w-3.5 h-3.5 text-primary-300" />}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
           <button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
             className="p-1 hover:bg-white/[0.08] rounded text-white transition-colors"
@@ -719,7 +781,7 @@ export function FileExplorer() {
         {viewMode === 'grid' && (
           <>
             <div className="h-6 w-px bg-white/[0.08] mx-1" />
-            <div className="flex items-center gap-1 bg-white/[0.06] rounded p-1">
+            <div className="flex items-center gap-1 bg-white/[0.06] rounded-lg p-1">
               {(['small', 'medium', 'large'] as const).map((s) => (
                 <button
                   key={s}
@@ -808,7 +870,7 @@ export function FileExplorer() {
                   {locationContext === 'visitorGallery'
                     ? 'Visitor Gallery: folders and images only.'
                     : locationContext === 'system'
-                      ? isAuthenticated ? 'System folder: full access.' : 'System folder: read-only.'
+                      ? isAdmin ? 'System folder: full access.' : 'System folder: read-only.'
                       : 'Open location for full access.'}
                 </p>
               </div>

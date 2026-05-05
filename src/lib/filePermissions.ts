@@ -71,13 +71,13 @@ export function getPermissions(
 
   // root or general — visitors can create and upload freely
   return {
-    canCreateFolder: true,
-    canCreateFile: true,
-    canUpload: true,
+    canCreateFolder: isAdmin,
+    canCreateFile: isAdmin,
+    canUpload: isAdmin,
     allowedUploadTypes: 'image/*,video/*',
-    canDelete: true,
-    canRename: true,
-    canMove: true,
+    canDelete: isAdmin,
+    canRename: isAdmin,
+    canMove: isAdmin,
   };
 }
 
@@ -87,6 +87,7 @@ export function getPermissions(
 
 /** Returns true if the file can be deleted/renamed given its own flags. */
 export function fileIsWritable(file: FileItem, isAdmin: boolean): boolean {
+  if (!isAdmin) return false;
   if (file.isProtected) return isAdmin;
   return true;
 }

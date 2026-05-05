@@ -52,6 +52,7 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
     try {
       // Upload files to Supabase
       const results = await uploadFiles(files, {
+        folder: 'backgrounds',
         maxSizeMB: 5,
         allowedTypes: ['image/*'],
         onProgress: (progress) => {

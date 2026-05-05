@@ -195,7 +195,7 @@ Get these values from the [Firebase Console](https://console.firebase.google.com
 In the Firebase Console:
 
 1. **Firestore Database** - Create a database in production mode
-2. **Authentication** - Enable Email/Password provider, create `admin@genos.dev` user
+2. **Authentication** - Enable Email/Password provider, create `admin@os.com` user
 3. **Storage** - Create a default storage bucket
 
 All data lives in the `os-site_content` Firestore collection with documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`.
@@ -227,7 +227,7 @@ npm run preview
 ### Authentication
 
 Default credentials for admin access:
-- **Email:** `admin@genos.dev`
+- **Email:** `admin@os.com`
 - **Password:** Set during Firebase Auth setup (use the console to create the user)
 
 After login, press `Ctrl + Shift + A` to access admin panel.

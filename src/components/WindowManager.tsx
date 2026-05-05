@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import { useState, lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+import { ExternalLink, Github, Loader2 } from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { Window } from './Window';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -28,6 +28,37 @@ const Contact = lazy(() => import('./apps/Contact').then(m => ({ default: m.Cont
 function IFrameContent({ url, title }: { url: string; title: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const host = (() => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return '';
+    }
+  })();
+  const isBlockedEmbedHost = host === 'github.com' || host.endsWith('.github.com');
+
+  if (isBlockedEmbedHost) {
+    return (
+      <div className="w-full h-full bg-os-ink-950 text-white flex items-center justify-center p-8">
+        <div className="max-w-md rounded-2xl border border-white/[0.10] bg-white/[0.04] p-6 text-center shadow-os-card">
+          <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.10] flex items-center justify-center">
+            <Github className="w-7 h-7 text-white/75" />
+          </div>
+          <h2 className="text-lg font-semibold text-white mb-2">{title}</h2>
+          <p className="text-sm text-white/45 leading-relaxed mb-5">
+            GitHub blocks being rendered inside embedded website frames. Open it externally to keep the OS stable.
+          </p>
+          <button
+            onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-os-ink-950 transition-all hover:bg-primary-400 hover:-translate-y-0.5"
+          >
+            Open GitHub
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full bg-white relative">

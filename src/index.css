@@ -60,12 +60,12 @@
     --color-bg-chrome-raised: var(--primitive-gray-1300);
     --color-bg-floating: var(--primitive-gray-1300);
 
-    /* Brand backgrounds */
-    --color-bg-brand-solid:        #1d4ed8;  /* primitive.blue.1000 */
-    --color-bg-brand-solid-hover:  #1e40af;  /* primitive.blue.1300 */
-    --color-bg-brand-solid-focus:  #2563eb;  /* primitive.blue.800  */
-    --color-bg-brand-subtle:       #dbeafe;  /* primitive.blue.100  */
-    --color-bg-brand-subtle-hover: #bfdbfe;  /* primitive.blue.200  */
+    /* Brand backgrounds — Generative Studio red */
+    --color-bg-brand-solid:        #dc2626;  /* primitive.red.600   */
+    --color-bg-brand-solid-hover:  #b91c1c;  /* primitive.red.1000  */
+    --color-bg-brand-solid-focus:  #ef4444;  /* primitive.red.500   */
+    --color-bg-brand-subtle:       #fef2f2;  /* primitive.red.50    */
+    --color-bg-brand-subtle-hover: #fee2e2;  /* primitive.red.100   */
 
     /* Accent backgrounds (Orion Lime) */
     --color-bg-accent:        #bef264;  /* primitive.lime.300  */
@@ -93,9 +93,9 @@
     --color-fg-on-primary:   #ffffff;  /* white on brand/dark solid   */
     --color-fg-on-secondary: #111111;  /* primitive.gray.1700 on soft */
 
-    /* Brand foreground */
-    --color-fg-brand:       #1d4ed8;  /* primitive.blue.1000 */
-    --color-fg-brand-hover: #1e40af;  /* primitive.blue.800  */
+    /* Brand foreground — Generative Studio red */
+    --color-fg-brand:       #dc2626;  /* primitive.red.600   */
+    --color-fg-brand-hover: #b91c1c;  /* primitive.red.1000  */
 
     /* Feedback foreground */
     --color-fg-success: #16a34a;  /* primitive.green.600  */
@@ -106,8 +106,8 @@
     /* Stroke / border */
     --color-stroke-primary:   #e8e8e5;  /* aligns with os-line-light   */
     --color-stroke-secondary: #ebebeb;  /* primitive.gray.200          */
-    --color-stroke-focus:     #1d4ed8;  /* primitive.blue.1000         */
-    --color-stroke-brand:     #2563eb;  /* primitive.blue.600          */
+    --color-stroke-focus:     #dc2626;  /* primitive.red.600           */
+    --color-stroke-brand:     #ef4444;  /* primitive.red.500           */
 
     /* Feedback stroke */
     --color-stroke-success: #16a34a;  /* primitive.green.600  */
@@ -125,9 +125,9 @@
     --color-bg-elevated:  #1f1f1f;  /* primitive.gray.1000-range */
     --color-bg-overlay:   rgba(0, 0, 0, 0.72);
 
-    /* Brand overrides */
-    --color-bg-brand-subtle:       #1f2937;  /* primitive.gray.1300 */
-    --color-bg-brand-subtle-hover: #374151;  /* primitive.gray.1000 */
+    /* Brand overrides — Generative Studio red dark mode */
+    --color-bg-brand-subtle:       #450a0a;  /* primitive.red.1700  */
+    --color-bg-brand-subtle-hover: #7f1d1d;  /* primitive.red.1300  */
 
     /* Accent backgrounds (Orion Lime) */
     --color-bg-accent:        #bef264;  /* primitive.lime.300  */

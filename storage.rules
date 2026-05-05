@@ -1,19 +1,31 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-
-    // Admin-uploaded assets (backgrounds, milestone images)
-    match /{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.resource.size < 10 * 1024 * 1024;
+    function isSuperuser() {
+      return request.auth != null
+             && request.auth.token.email == 'admin@os.com';
     }
 
-    // Visitor Gallery — image-only, size-limited, no auth required
+    // Visitor Gallery: image-only, size-limited, no auth required.
     match /visitor-gallery/{allPaths=**} {
       allow read: if true;
       allow write: if request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // App preview media: owner-curated screenshots and short videos.
+    match /app-media/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSuperuser()
+                   && request.resource.size < 25 * 1024 * 1024
+                   && request.resource.contentType.matches('(image|video)/.*');
+    }
+
+    // Public owner-curated assets. Visitors can read; only superuser can write.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isSuperuser()
+                   && request.resource.size < 10 * 1024 * 1024;
     }
   }
 }

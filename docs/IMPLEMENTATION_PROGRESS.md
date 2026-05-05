@@ -277,6 +277,7 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Cross-Cutting Risks
 
+- Critical production blocker: uploaded content is not persisting after refresh. This appears to affect images/media broadly, not only one feature. The next implementation pass must audit File Explorer uploads, Visitor Gallery uploads, background uploads, milestone images, Admin Panel media uploads, CV/download assets, persistent storage writes, metadata writes, reload behavior, and Firebase permissions.
 - Docs have been updated for Firebase; `LOOK_AND_FEEL_UPDATE_SPEC.md` still references `supabase-setup.sql` as a candidate file (historical).
 - Several old gradient/glow styles remain in modals/dialogs and File Explorer.
 - The project is mid-transition: shared primitives exist, but not every surface uses them yet.
@@ -284,10 +285,12 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Recommended Next Work Order
 
-1. ~~Finish Section 4 by adding real App Info and Admin deep-link behavior.~~ ✓ Done 2026-05-05
-2. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces and populating CV content from owner's real CV.
-3. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
-4. ~~Build AdminPanel → Visitor Gallery moderation tab (currently placeholder).~~ ✓ Done 2026-05-05
+1. Fix upload persistence across all upload/media flows. This is the current production-readiness blocker.
+2. Verify uploaded public media and downloadable owner-curated assets survive refresh and are readable by visitors where intended.
+3. ~~Finish Section 4 by adding real App Info and Admin deep-link behavior.~~ ✓ Done 2026-05-05
+4. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces and populating CV content from owner's real CV.
+5. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
+6. ~~Build AdminPanel → Visitor Gallery moderation tab (currently placeholder).~~ ✓ Done 2026-05-05
 
 ---
 
@@ -297,7 +300,7 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 - **Window surface performance** — Replaced `bg-black/20 backdrop-blur-xl` with `bg-[#141414]` (solid) in `Window.tsx` for all `glass` surfaceMode windows. Drag lag eliminated.
 - **Admin/user permission boundary** — Added `canWrite()` guard (`auth.currentUser !== null`) to all Firestore write operations in `userStore.ts` and `desktopStore.ts`. Standard visitors no longer trigger permission errors on app load or when opening Settings.
-- **`isAdmin` flag added to authStore** — `authStore` now exposes `isAdmin: boolean`, derived from `user.email === ADMIN_EMAIL` (configurable via `VITE_ADMIN_EMAIL` env var, defaults to `admin@genos.dev`). Used by UI to conditionally show admin-only controls.
+- **`isAdmin` flag added to authStore** — `authStore` now exposes `isAdmin: boolean`, derived from `user.email === ADMIN_EMAIL` (configurable via `VITE_ADMIN_EMAIL` env var, defaults to `admin@os.com`). Used by UI to conditionally show admin-only controls.
 - **File Explorer sidebar color** — Removed bright cyan gradient border wrapper from sidebar. Replaced with `border-white/[0.08]` treatment. Removed glow shadow from active indicator.
 - **Firebase Security Rules** — Added `firestore.rules` and `storage.rules` to project root. Updated `firebase.json` to reference them. Rules: Firestore `os-site_content` = public read / auth write; `os-feedback` = public create (pending only) / auth read+write. Storage = public read / auth write (admin assets); visitor-gallery = public write (image-only, 5MB max).
 - **Feedback app** — `src/components/apps/Feedback.tsx` built and registered. AdminPanel feedback moderation tab wired to `os-feedback` Firestore collection.
@@ -313,9 +316,66 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - **Edit in Admin deep-link** — `adminEditTargetAppId` state in desktopStore; StartMenu sets it before opening AdminPanel; AdminPanel switches to Apps tab and highlights target row with primary ring for 2.5s.
 - **App Info notification** — App Info context menu item is now enabled; shows OS notification with app name, description, and default window size.
 
+### Also Actioned (2026-05-05, persistence mitigation)
+
+- **Upload metadata local recovery** — `fileStore`, `desktopStore`, and `userStore` now write immediate local backups for filesystem metadata, custom backgrounds/selected background, and profile/milestone data. This prevents uploaded metadata from disappearing on refresh when Firebase writes are delayed, skipped, or temporarily blocked.
+- **Merge-on-load recovery** — File system, backgrounds, and profile data now merge local backups with Firestore data on load. If an authenticated owner session exists, locally recovered items can be pushed back toward Firestore.
+- **Post-login refetch** — `Desktop.tsx` now refetches profile, file system, apps, and backgrounds after authentication is established so recovered owner metadata has a chance to sync after login.
+- **Structured Storage folders** — Upload flows now use explicit Storage folders: `file-explorer`, `desktop-uploads`, `backgrounds`, `milestones`, and existing `visitor-gallery`, instead of mixing owner media into unnamed root paths.
+
+### Also Actioned (2026-05-05, sign-in workflow)
+
+- **Role model clarified** — `admin@os.com` is now the superuser account. Any other signed-in email is treated as a guest.
+- **Guest sign-in workflow** — Login modal now has Guest and Superuser modes. Guest mode signs into an existing guest account or creates a limited guest account for a new non-admin email.
+- **Admin boundary corrected** — Admin Panel, protected Settings/Profile editing, File Explorer protected writes, Start Menu admin edit actions, and legacy edit buttons now check `isAdmin` instead of treating any authenticated user as admin.
+- **Rules tightened** — Firestore `os-site_content` writes and feedback moderation now require `admin@os.com`. Storage owner-asset writes now require `admin@os.com`; Visitor Gallery remains public image-only upload.
+
+### Also Actioned (2026-05-05, desktop icon labels)
+
+- **Desktop icon label sizing** — Small and medium desktop icon labels now use single-line truncation to avoid cropped text. Large desktop icons retain two-line labels for readability. Large icon cells were slightly increased to prevent label clipping.
+
+### Also Actioned (2026-05-05, visitor upload boundary and start asset)
+
+- **Visitor upload boundary** — Non-admin users can no longer upload through the desktop/global drag-and-drop surface. Attempted desktop drops show a warning that visitors must use Visitor Gallery.
+- **File Explorer write boundary** — Root/general File Explorer locations are now superuser-write only. Visitor Gallery remains the public zone for visitor folder creation and image upload.
+- **Start button asset** — Taskbar start button now uses `src/assets/png-color-symbol.png` instead of the square grid icon, with token-backed styling instead of the previous hardcoded blue/cyan gradient.
+
+### Also Actioned (2026-05-05, desktop preview media)
+
+- **Start button surface correction** — Start button now keeps a white/token canvas background while using the red/colored Generative Studio symbol. It no longer uses the dark inner icon surface.
+- **App media field added** — `App` now supports a plain `media` array for owner-curated screenshots and videos.
+- **Admin app media upload** — AdminPanel app create/edit form now allows image/video uploads to `app-media/` and stores uploaded media metadata on the app record.
+- **Desktop hover preview standardized** — Desktop icon hover preview no longer uses the full-screen dark overlay. It now renders a compact OS chrome preview card with app media, app type, description, pinned status, and URL.
+- **Storage rule for app media** — `storage.rules` now allows public reads for `app-media/` and restricts writes to the superuser with a 25MB image/video limit.
+
+### Also Actioned (2026-05-05, CV seed workflow)
+
+- **Attached CV extracted** — Text was extracted from `KEKETSO MATSUMA'S Full Stack Developer & UIUX Designer.pdf` and mapped into the existing `UserProfile` shape.
+- **CV seed object added** — `src/data/cvProfileSeed.ts` now contains a typed profile seed covering personal summary, work experience, education, certifications, and skills.
+- **Profile seed action added** — `userStore` now exposes `seedCVProfile()`, which writes directly to Firebase first. The visible CV/profile state updates only after Firestore accepts the write. It preserves current milestones, preferences, and profile photo.
+- **Superuser CV button added** — CV app header now shows an admin-only `Populate CV` button. Clicking it confirms, publishes to Firebase, and displays a success/error banner with the real write result.
+- **CV Projects tab removed** — The CV app no longer shows a Projects tab because projects are represented as desktop/application experiences.
+- **Remote profile is authoritative** — `fetchProfile()` now uses the Firebase profile document whenever it exists and mirrors it locally. Local profile data is fallback only when Firebase has no profile document or the remote fetch fails.
+
+### Also Actioned (2026-05-05, desktop hover preview correction)
+
+- **Presentation overlay restored** — Desktop icon hover previews are back to a full-screen presentation overlay instead of a compact card.
+- **Media added to existing behavior** — App screenshots/videos now appear inside the restored presentation overlay as a large preview area with optional thumbnails, instead of replacing the original overlay behavior.
+
+### Also Actioned (2026-05-05, Admin Panel styling pass)
+
+- **Admin Panel token cleanup** — `AdminPanel.tsx` no longer uses the old raw `bg-white/[...]`, `border-white/[...]`, `text-white/[...]`, `primary-500`, or hardcoded category color utility patterns. Surfaces now use semantic `background-*`, `foreground-*`, and `stroke-*` tokens.
+- **Shared app shell cleanup** — `AppShell.tsx` primitives now use semantic chrome/control/stroke tokens instead of the old black/white alpha glass classes. Comments were updated so the code no longer describes a backdrop-blur glass base.
+- **Admin dashboard/list surface refresh** — Overview stats, quick actions, app list rows, background cards, upload controls, feedback states, and gallery moderation controls were moved onto the same token language as the rest of the OS.
+- **Admin Panel click-through fixed** — Desktop now mounts Admin Panel inside a fixed high z-index pointer-owning shell only while Admin Mode is open. This prevents desktop icons and windows from receiving clicks through the Admin Panel sidebar/content.
+- **Dark chrome contrast corrected** — Admin Panel and shared app shell controls now use explicit dark OS chrome/inset tokens (`os-ink`, `os-line`, `os-text-inverse`) instead of light-mode control tokens that caused pale/white patches on dark surfaces.
+
 ### Still Pending (from handoff)
 
+- **Upload persistence browser verification** — Typecheck passes, and metadata recovery is implemented, but the full production path still needs browser testing: upload, refresh, confirm item remains, sign out/in, confirm Firestore/Storage records, and verify visitor visibility for public assets.
+- **Upload persistence production blocker** — Owner reports uploaded images/media disappear after refresh. This is mitigated but not closed until the full Firebase and public-read path is verified in browser.
 - **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh.
+- **Auth workflow production verification** — Enable Firebase Email/Password auth, confirm `admin@os.com` exists, deploy updated Firestore/Storage rules, then test superuser login, guest creation/login, Admin Panel access denial for guests, and guest-safe Visitor Gallery upload.
 - **About app editing** — Constrained inline editing for Generative Studio details, email, and Kagetsu links. Open question: correct email and Generative Studio website URL.
 - **Taskbar/start icon configuration** — Currently hardcoded. Needs a clear admin/settings path to update it.
 - **CV content** — Needs populating from owner's real CV once provided.
@@ -323,7 +383,7 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ### Open Questions (unresolved from handoff)
 
-- What is the correct admin email address? (`admin@genos.dev` assumed — set `VITE_ADMIN_EMAIL` if different)
+- What is the correct admin email address? (`admin@os.com` assumed — set `VITE_ADMIN_EMAIL` if different)
 - What is the Generative Studio website URL?
 - Is `Kagetsu` the correct public label and how does it relate to Keketso in About?
 - What GitHub URL should be shown for Kagetsu?

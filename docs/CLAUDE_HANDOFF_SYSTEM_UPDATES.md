@@ -30,6 +30,73 @@ Users should experience:
 
 ## Functional Behavior
 
+### 0. Upload Persistence Production Blocker
+
+Status: critical unresolved issue.
+
+Uploaded content is not persisting.
+
+Observed behavior:
+
+- The owner uploads images/media inside the system.
+- The uploaded items appear temporarily.
+- After refreshing the site, uploaded items disappear.
+- The project should already contain a lot of uploaded media based on prior usage, but the media is not available after reload.
+
+This is a production-readiness blocker.
+
+The system should not be considered production ready until uploads persist reliably.
+
+Required behavior:
+
+- Uploaded images/media must be saved to persistent storage.
+- Persistent file metadata must be saved to the database.
+- Uploaded items must reload after refresh.
+- Uploaded items must remain available across sessions.
+- Owner/admin uploads intended for public viewing must appear for visitors.
+- Owner/admin uploads intended as downloadable assets must remain downloadable.
+- Failed uploads must show an error rather than appearing successful and then disappearing.
+
+The owner has files that should become part of what visitors see when they visit the website. The system must support this owner-curated public media and download surface.
+
+Investigate all upload flows, not only background uploads:
+
+- File Explorer uploads.
+- Visitor Gallery uploads.
+- Background uploads.
+- Milestone image uploads.
+- Any Admin Panel media uploads.
+- Any CV/downloadable asset uploads.
+- Any public media/download surfaces.
+
+Do not treat this as a UI-only bug. Verify the full persistence path:
+
+1. File is uploaded to Firebase Storage or the approved persistent storage location.
+2. Download URL or storage path is recorded.
+3. Firestore or the relevant persistent database stores metadata.
+4. Store initialization reloads that metadata.
+5. UI renders the persisted records after refresh.
+6. Public/visitor permissions allow reading approved public assets.
+7. Admin/private permissions do not block owner access.
+
+If the current implementation only stores uploaded files in local component state or a non-persisted Zustand store, replace or extend that flow with persistent storage.
+
+Actioned mitigation on 2026-05-05:
+
+- File system, background, selected background, and profile/milestone metadata now write local backups immediately.
+- These stores merge local backups with Firestore data on load.
+- After login, the app refetches profile, file system, apps, and backgrounds so recovered owner data can sync back to Firebase.
+- Uploads now use explicit Storage folders for `file-explorer`, `desktop-uploads`, `backgrounds`, `milestones`, and `visitor-gallery`.
+
+Still required:
+
+- Browser-test the full persistence path.
+- Confirm Firestore records are created.
+- Confirm Storage files exist in the expected folders.
+- Confirm refresh restores uploaded items.
+- Confirm public/visitor pages can read approved public assets.
+- Close this blocker only after the production path is verified, not only after typecheck.
+
 ### 1. About App
 
 Status: mostly complete, content editing needed.
@@ -68,6 +135,12 @@ Keep the current CV tabs unless implementation requires small adjustments:
 
 Use the provided CV as the source of truth once available.
 
+Current CV source:
+
+- `C:/Users/keket/Desktop/GenerativeStudio/KEKETSO MATSUMA'S Full Stack Developer & UIUX Designer.pdf`
+
+Extract the relevant information from this PDF and populate the CV app with it. Do not require the owner to manually re-enter the same CV information through Admin Panel.
+
 ### 3. File System And Sitemap
 
 Status: file system is good, sitemap/sidebar visual treatment needs refinement.
@@ -102,6 +175,15 @@ Acceptable approaches:
 
 Avoid broad `backdrop-blur-xl` usage on app window bodies.
 
+Related visual regression to investigate:
+
+- Window title/header drag areas currently read as transparent or visually absent in the running app.
+- The login form/panel also reads as transparent or visually absent.
+- This creates confusion when surfaces overlap because users cannot clearly tell which element is on top.
+- Fix this in the same surface/window pass rather than as an isolated patch.
+- The solution must use design tokens, not arbitrary hex classes.
+- Do not assume changing a class in `Window.tsx` or `LoginModal.tsx` alone is enough; verify in the browser because previous token-level changes did not visibly resolve the issue.
+
 ### 5. Settings And Admin Panel Boundary
 
 Status: confusing but partially understood.
@@ -117,7 +199,7 @@ Keep the Admin Panel as its own management space. Do not merge it into Settings 
 
 ### 6. Background Uploads And Persistence
 
-Status: broken or incomplete.
+Status: broken or incomplete. Part of the broader upload persistence production blocker.
 
 Background uploads are not persisting to Firestore.
 
@@ -152,6 +234,36 @@ Add or expose a clear admin/settings path to update the taskbar/start icon.
 
 Do not hardcode a new icon without also documenting where it is configured.
 
+New asset direction:
+
+- The owner added an asset folder with three logo variants: black, red, and white.
+- Locate these assets before implementation.
+- Use the appropriate logo for the taskbar/start icon and brand surfaces.
+- If the exact asset paths are unclear, document the paths once found instead of inventing names.
+
+The current start button border and active states are still visually blue and do not fully follow theme changes. Fix this so the start button uses the same brand/theme token path as the rest of the system.
+
+### 7A. Brand Theme Direction
+
+Status: new direction.
+
+Use Generative Studio as the default theme.
+
+The default theme should use red as the primary brand color.
+
+For now, limit active theming to one main brand color so the system feels coherent.
+
+Keep the structure flexible enough to support multiple color variants later, but do not expose or depend on a broad multi-theme experience until the default brand system is stable.
+
+Required behavior:
+
+- Default theme preset is `Generative Studio`.
+- Generative Studio theme uses red brand colors.
+- Blue should no longer appear as the active/default system accent unless it belongs to a deliberate secondary state.
+- Start button, active states, primary buttons, focus states, and selected items must all source from the same semantic brand token path.
+- Theme preset naming may include other presets later, but Generative Studio must be the default.
+- Do not use direct hex values in components. Add or reuse primitive tokens, then map them through semantic brand tokens.
+
 ### 8. Milestones
 
 Status: needs mobile-friendly editing improvements.
@@ -173,7 +285,7 @@ The milestone experience must be mobile-friendly.
 
 ### 9. Admin/User Permissions
 
-Status: blurry boundary causing errors.
+Status: partially actioned on 2026-05-05.
 
 Opening Settings currently produces a missing or insufficient permissions error.
 
@@ -189,6 +301,26 @@ The superuser account belongs to the project owner.
 Admin-only reads and writes should only run when the signed-in user is confirmed as admin.
 
 Standard users should not trigger permission errors from admin-only listeners or writes.
+
+Actioned workflow:
+
+- `admin@os.com` is the superuser account.
+- Any other email signs in as a guest.
+- New guest emails create a limited Firebase email/password account automatically.
+- Existing guest emails must use their existing password.
+- Guests can explore and participate only through guest-safe flows.
+- Guests cannot open Admin Panel.
+- Guests cannot edit owner profile, portfolio, resume, skills, contact, settings, protected File Explorer areas, or system content.
+- Superuser-only UI now checks `isAdmin`, not only `isAuthenticated`.
+- Firestore rules now allow public reads but restrict `os-site_content` writes and feedback moderation to `admin@os.com`.
+- Storage rules now allow public reads, visitor-gallery image uploads, and restrict owner-curated asset writes to `admin@os.com`.
+
+Operational requirements:
+
+- Firebase Email/Password authentication must be enabled.
+- The `admin@os.com` account must exist in Firebase Auth with the correct password.
+- Updated `firestore.rules` and `storage.rules` must be deployed before production verification.
+- If `VITE_ADMIN_EMAIL` is changed, rules must be updated too; current rules intentionally use `admin@os.com` because that is the confirmed superuser email.
 
 ## Rules & Constraints
 

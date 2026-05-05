@@ -1,9 +1,45 @@
 import { create } from 'zustand';
 import { FileItem, FileSystemState, VISITOR_GALLERY_ID } from '../types';
-import { db, storage } from '../lib/firebase';
+import { auth, db, storage } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { getFilePathFromUrl } from '../lib/uploadUtils';
+
+const FILESYSTEM_BACKUP_KEY = 'portfolioOS_filesystem';
+const SUPERUSER_EMAIL = 'admin@os.com';
+const canWrite = () => auth.currentUser?.email?.toLowerCase() === SUPERUSER_EMAIL;
+
+const loadLocalFileBackup = (): FileItem[] | null => {
+  try {
+    const stored = localStorage.getItem(FILESYSTEM_BACKUP_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as { data?: FileItem[] };
+    return Array.isArray(parsed.data) ? parsed.data : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveLocalFileBackup = (files: FileItem[]) => {
+  try {
+    localStorage.setItem(FILESYSTEM_BACKUP_KEY, JSON.stringify({
+      data: files,
+      updated_at: new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.error('Failed to save local filesystem backup:', err);
+  }
+};
+
+const mergeFilesById = (...fileSets: Array<FileItem[] | null | undefined>): FileItem[] => {
+  const byId = new Map<string, FileItem>();
+  for (const files of fileSets) {
+    for (const file of files ?? []) {
+      byId.set(file.id, { ...byId.get(file.id), ...file });
+    }
+  }
+  return Array.from(byId.values());
+};
 
 // Helper functions
 const generateUniqueName = (files: FileItem[], baseName: string, parentId: string | null): string => {
@@ -206,8 +242,11 @@ export const useFileStore = create<FileStoreState>((set, get) => {
   let saveTimeout: ReturnType<typeof setTimeout>;
 
   const saveToFirestore = (files: FileItem[]): void => {
+    saveLocalFileBackup(files);
+    if (!canWrite()) return;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
+      if (!canWrite()) return;
       try {
         await setDoc(doc(db, 'os-site_content', 'filesystem'), {
           data: files,
@@ -233,28 +272,36 @@ export const useFileStore = create<FileStoreState>((set, get) => {
     fetchFileSystem: async () => {
       try {
         set({ isLoading: true, error: null });
+        const localFiles = loadLocalFileBackup();
         const docSnap = await getDoc(doc(db, 'os-site_content', 'filesystem'));
         if (docSnap.exists() && docSnap.data().data) {
           const loadedFiles = docSnap.data().data as FileItem[];
           // Merge in any new system folders that don't exist yet
           const systemFolders = defaultFiles.filter((f) => f.isProtected);
-          const merged = [...loadedFiles];
-          let needsSave = false;
+          const merged = mergeFilesById(systemFolders, loadedFiles, localFiles);
+          let needsSave = (localFiles?.some((file) => !loadedFiles.find((remote) => remote.id === file.id)) ?? false);
           for (const folder of systemFolders) {
             if (!merged.find((f) => f.id === folder.id)) {
               merged.push(folder);
               needsSave = true;
             }
           }
+          saveLocalFileBackup(merged);
           if (needsSave) saveToFirestore(merged);
           set({ files: merged, isLoading: false });
         } else {
-          saveToFirestore(defaultFiles);
-          set({ isLoading: false });
+          const merged = mergeFilesById(defaultFiles, localFiles);
+          saveToFirestore(merged);
+          set({ files: merged, isLoading: false });
         }
       } catch (err: any) {
         console.error('Error fetching filesystem:', err);
-        set({ error: 'Failed to load files: ' + err.message, isLoading: false });
+        const localFiles = loadLocalFileBackup();
+        if (localFiles) {
+          set({ files: mergeFilesById(defaultFiles, localFiles), error: null, isLoading: false });
+        } else {
+          set({ error: 'Failed to load files: ' + err.message, isLoading: false });
+        }
       }
     },
 

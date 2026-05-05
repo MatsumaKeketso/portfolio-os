@@ -1,20 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // os-site_content — public read, authenticated write (admin only)
-    match /os-site_content/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    function isSuperuser() {
+      return request.auth != null
+             && request.auth.token.email == 'admin@os.com';
     }
 
-    // os-feedback — public write (submissions), authenticated read (admin moderation)
+    // os-site_content: public read, superuser write.
+    match /os-site_content/{document} {
+      allow read: if true;
+      allow write: if isSuperuser();
+    }
+
+    // os-feedback: public create, superuser moderation.
     match /os-feedback/{document} {
       allow create: if request.resource.data.keys().hasOnly(['name', 'message', 'status', 'timestamp'])
                     && request.resource.data.name is string
                     && request.resource.data.message is string
-                    && request.resource.data.status == 'pending';
-      allow read, update, delete: if request.auth != null;
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.timestamp == request.time;
+      allow read: if isSuperuser()
+                  || resource.data.status == 'approved';
+      allow update, delete: if isSuperuser();
     }
   }
 }

@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { db, auth } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { cvProfileSeed } from '../data/cvProfileSeed';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-const canWrite = () => auth.currentUser !== null;
+const SUPERUSER_EMAIL = 'admin@os.com';
+const canWrite = () => auth.currentUser?.email?.toLowerCase() === SUPERUSER_EMAIL;
+const PROFILE_BACKUP_KEY = 'portfolioOS_profile';
 
 // User Profile Data Schema
 export interface UserProfile {
@@ -173,6 +176,28 @@ const defaultProfile: UserProfile = {
   }
 };
 
+const loadLocalProfile = (): UserProfile | null => {
+  try {
+    const stored = localStorage.getItem(PROFILE_BACKUP_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as { data?: UserProfile };
+    return parsed.data ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const saveLocalProfile = (profile: UserProfile) => {
+  try {
+    localStorage.setItem(PROFILE_BACKUP_KEY, JSON.stringify({
+      data: profile,
+      updated_at: new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.error('Failed to save local profile backup:', err);
+  }
+};
+
 // Helper to debounce database updates
 
 
@@ -235,6 +260,7 @@ interface UserStore {
   getMilestonesByMonth: (year: number, month: number) => UserProfile['milestones'];
 
   // Utility actions
+  seedCVProfile: () => Promise<{ success: boolean; error?: string }>;
   resetProfile: () => void;
   exportProfile: () => void;
   importProfile: (profileData: UserProfile) => void;
@@ -245,6 +271,7 @@ export const useUserStore = create<UserStore>((set, get) => {
   // Helper to debounce database updates
   let saveTimeout: ReturnType<typeof setTimeout>;
   const saveToFirestore = async (profile: UserProfile) => {
+    saveLocalProfile(profile);
     if (!canWrite()) return;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
@@ -270,19 +297,26 @@ export const useUserStore = create<UserStore>((set, get) => {
     fetchProfile: async () => {
       try {
         set({ isLoading: true, error: null });
+        const localProfile = loadLocalProfile();
         const docSnap = await getDoc(doc(db, 'os-site_content', 'profile'));
         if (docSnap.exists() && docSnap.data().data) {
-          set({ profile: { ...defaultProfile, ...docSnap.data().data as UserProfile }, isLoading: false });
+          const remoteProfile = { ...defaultProfile, ...docSnap.data().data as UserProfile };
+          saveLocalProfile(remoteProfile);
+          set({ profile: remoteProfile, isLoading: false });
         } else {
-          saveToFirestore(defaultProfile);
-          set({ isLoading: false });
+          const profile = localProfile ? { ...defaultProfile, ...localProfile } : defaultProfile;
+          saveToFirestore(profile);
+          set({ profile, isLoading: false });
         }
 
       } catch (err: any) {
         console.error('Error fetching profile:', err);
-        // Fallback to local storage if available for offline support?
-        // Or just default
-        set({ error: err.message, isLoading: false });
+        const localProfile = loadLocalProfile();
+        if (localProfile) {
+          set({ profile: { ...defaultProfile, ...localProfile }, error: null, isLoading: false });
+        } else {
+          set({ error: err.message, isLoading: false });
+        }
       }
     },
 
@@ -661,6 +695,53 @@ export const useUserStore = create<UserStore>((set, get) => {
         const date = new Date(m.date);
         return date.getFullYear() === year && date.getMonth() === month;
       }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    },
+
+    seedCVProfile: async () => {
+      const state = get();
+      const seededProfile: UserProfile = {
+        ...state.profile,
+        personal: {
+          ...cvProfileSeed.personal,
+          photo: state.profile.personal.photo,
+        },
+        social: cvProfileSeed.social,
+        resume: cvProfileSeed.resume,
+        skills: cvProfileSeed.skills,
+        projects: cvProfileSeed.projects,
+        preferences: {
+          ...state.profile.preferences,
+          accentColor: state.profile.preferences.accentColor || cvProfileSeed.preferences.accentColor,
+        },
+        milestones: state.profile.milestones,
+        metadata: {
+          ...state.profile.metadata,
+          lastModified: Date.now(),
+          version: state.profile.metadata.version || cvProfileSeed.metadata.version,
+        },
+      };
+
+      if (!canWrite()) {
+        const email = auth.currentUser?.email ?? 'no signed-in user';
+        const error = `CV profile was not published. Signed-in user is ${email}, but superuser must be ${SUPERUSER_EMAIL}.`;
+        set({ error });
+        return { success: false, error };
+      }
+
+      try {
+        await setDoc(doc(db, 'os-site_content', 'profile'), {
+          data: seededProfile,
+          updated_at: new Date().toISOString(),
+        });
+        saveLocalProfile(seededProfile);
+        set({ profile: seededProfile, error: null });
+        return { success: true };
+      } catch (e: any) {
+        const error = `Failed to publish CV profile to Firebase: ${e.message}`;
+        console.error(error, e);
+        set({ error });
+        return { success: false, error };
+      }
     },
 
     resetProfile: () => {

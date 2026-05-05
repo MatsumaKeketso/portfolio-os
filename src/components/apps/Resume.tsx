@@ -10,7 +10,7 @@ type TemplateType = 'classic' | 'modern' | 'minimalist';
 export function Resume() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
   const { profile } = useUserStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -459,7 +459,7 @@ export function Resume() {
                 </select>
               </div>
 
-              {isAuthenticated && (
+              {isAdmin && (
                 <Button variant="secondary" size="sm" onClick={openAboutApp}>
                   <Icons.Edit className="w-4 h-4 mr-2" />
                   Edit Resume

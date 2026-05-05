@@ -11,7 +11,7 @@ type TabType = 'overview' | 'experience' | 'projects' | 'skills' | 'contact';
 export function About() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const {
     profile,
     isLoading,
@@ -196,7 +196,7 @@ export function About() {
       {/* Header with Edit Controls */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
         <h1 className="text-2xl font-bold text-white">About Me</h1>
-        {isAuthenticated && (
+        {isAdmin && (
           <div className="flex gap-2">
             {!isEditing ? (
               <Button variant="primary" size="sm" onClick={() => setIsEditing(true)}>

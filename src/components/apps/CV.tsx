@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { AppShell, AppToolbar, AppContent } from '../ui/AppShell';
 
-type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'contact' | 'files';
+type Tab = 'profile' | 'experience' | 'skills' | 'contact' | 'files';
 
 const TABS: { id: Tab; label: string; icon: keyof typeof Icons }[] = [
   { id: 'profile', label: 'Profile', icon: 'User' },
   { id: 'experience', label: 'Experience', icon: 'Briefcase' },
   { id: 'skills', label: 'Skills', icon: 'Zap' },
-  { id: 'projects', label: 'Projects', icon: 'FolderOpen' },
   { id: 'contact', label: 'Contact', icon: 'Mail' },
   { id: 'files', label: 'Files', icon: 'Paperclip' },
 ];
@@ -29,8 +29,26 @@ const statusColor: Record<string, string> = {
 
 export function CV() {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
-  const { profile } = useUserStore();
-  const { personal, social, resume, skills, projects, preferences } = profile;
+  const [seedStatus, setSeedStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const { profile, seedCVProfile } = useUserStore();
+  const { isAdmin } = useAuthStore();
+  const { personal, social, resume, skills, preferences } = profile;
+  const needsSeed = !resume.experience?.length || !skills.categories?.length;
+
+  const handleSeedProfile = async () => {
+    const shouldSeed = window.confirm('Publish the attached CV information to Firebase? The CV app will update only after Firebase accepts the write.');
+    if (!shouldSeed) return;
+    setIsSeeding(true);
+    setSeedStatus(null);
+    const result = await seedCVProfile();
+    setIsSeeding(false);
+    if (result.success) {
+      setSeedStatus({ type: 'success', message: 'CV profile published to Firebase.' });
+    } else {
+      setSeedStatus({ type: 'error', message: result.error || 'Firebase rejected the CV profile write.' });
+    }
+  };
 
   return (
     <AppShell>
@@ -40,14 +58,40 @@ export function CV() {
           <h1 className="text-base font-semibold text-white/90">{personal.name || 'Your Name'}</h1>
           <p className="text-xs text-white/40">{personal.title || 'Title'} · {personal.location || 'Location'}</p>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-white/[0.08] rounded-md text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-colors"
-        >
-          <Icons.Download className="w-3.5 h-3.5" />
-          Export
-        </button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={handleSeedProfile}
+              disabled={isSeeding}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-md transition-colors ${
+                needsSeed
+                  ? 'border-primary-500/30 bg-primary-500/10 text-primary-300 hover:bg-primary-500/15'
+                  : 'border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:text-white/80'
+              }`}
+            >
+              {isSeeding ? <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icons.Database className="w-3.5 h-3.5" />}
+              {isSeeding ? 'Publishing' : 'Populate CV'}
+            </button>
+          )}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-white/[0.08] rounded-md text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-colors"
+          >
+            <Icons.Download className="w-3.5 h-3.5" />
+            Export
+          </button>
+        </div>
       </div>
+
+      {seedStatus && (
+        <div className={`border-b px-6 py-2 text-xs ${
+          seedStatus.type === 'success'
+            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+            : 'border-red-500/20 bg-red-500/10 text-red-300'
+        }`}>
+          {seedStatus.message}
+        </div>
+      )}
 
       {/* Tabs */}
       <AppToolbar className="gap-0 px-2 overflow-x-auto">
@@ -75,7 +119,6 @@ export function CV() {
         {activeTab === 'profile' && <ProfileTab personal={personal} summary={resume.summary} />}
         {activeTab === 'experience' && <ExperienceTab resume={resume} />}
         {activeTab === 'skills' && <SkillsTab categories={skills.categories} />}
-        {activeTab === 'projects' && <ProjectsTab projects={projects} />}
         {activeTab === 'contact' && <ContactTab personal={personal} social={social} preferences={preferences} />}
         {activeTab === 'files' && <FilesTab name={personal.name} />}
       </AppContent>
@@ -234,7 +277,7 @@ function SkillsTab({ categories }: { categories: any[] }) {
   );
 }
 
-function ProjectsTab({ projects }: { projects: any[] }) {
+export function ProjectsTab({ projects }: { projects: any[] }) {
   if (!projects?.length) return <div className="p-6"><Empty message="No projects yet. Add them through Settings → Profile or the Admin Panel." /></div>;
 
   return (

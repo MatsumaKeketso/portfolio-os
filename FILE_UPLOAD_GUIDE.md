@@ -23,7 +23,7 @@ GenOS uses Firebase to provide a secure and integrated file management experienc
 
 1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
 2. Enable **Authentication** and create an admin user:
-   - Email: `admin@genos.dev`
+   - Email: `admin@os.com`
    - Password: [Your Secure Password]
 3. Enable **Cloud Firestore** and **Cloud Storage**.
 

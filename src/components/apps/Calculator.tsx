@@ -163,7 +163,7 @@ export function Calculator() {
         onClick={onClick}
         variant={variantMap[variant] || 'soft-system-secondary'}
         size="calculator"
-        className={`${className} ${span ? 'col-span-2' : ''}`}
+        className={`${className} ${span ? 'col-span-2' : ''} h-full min-h-0 select-none`}
       >
         {children}
       </Button>
@@ -171,11 +171,11 @@ export function Calculator() {
   };
 
   return (
-    <div className="w-full h-full bg-black/50 flex">
+    <div className="w-full h-full bg-background-chrome flex text-os-text-inverse select-none">
       {/* History Sidebar */}
       {showHistory && (
-        <div className="w-64 border-r border-white/[0.08] bg-black/30 flex flex-col">
-          <div className="p-3 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="w-64 border-r border-os-line-dark bg-os-ink-950 flex flex-col">
+          <div className="p-3 border-b border-os-line-dark flex items-center justify-between">
             <h3 className="text-white font-semibold flex items-center gap-2">
               <Icons.History className="w-4 h-4" />
               History
@@ -216,9 +216,9 @@ export function Calculator() {
       )}
 
       {/* Main Calculator */}
-      <div className="flex-1 p-4 flex flex-col">
+      <div className="flex-1 p-4 flex flex-col min-h-0">
         {/* Display */}
-        <div className="bg-black/30 rounded p-4 text-right border border-white/[0.08] mb-3">
+        <div className="bg-os-ink-950 rounded-lg p-4 text-right border border-os-line-dark mb-3 shadow-inner">
           <div className="text-white/40 text-sm mb-1 h-5">
             {previousValue !== null && operation && `${previousValue} ${operation}`}
           </div>
@@ -251,7 +251,7 @@ export function Calculator() {
         </div>
 
         {/* Calculator buttons */}
-        <div className="flex-1 grid grid-cols-4 gap-2 content-start">
+        <div className="flex-1 min-h-0 grid grid-cols-4 gap-2 auto-rows-fr">
           {/* Memory row */}
           {isScientific && (
             <>
@@ -279,28 +279,28 @@ export function Calculator() {
 
           {/* Standard calculator */}
           <CalcButton onClick={handleClear} variant="clear">C</CalcButton>
-          <Button onClick={() => handleOperation('÷')} variant="primary">÷</Button>
-          <Button onClick={() => handleOperation('×')} variant="primary">×</Button>
-          <Button onClick={() => handleOperation('-')} variant="primary">−</Button>
+          <CalcButton onClick={() => handleOperation('÷')} variant="operation">÷</CalcButton>
+          <CalcButton onClick={() => handleOperation('×')} variant="operation">×</CalcButton>
+          <CalcButton onClick={() => handleOperation('-')} variant="operation">−</CalcButton>
 
-          <Button onClick={() => handleNumber('7')}>7</Button>
-          <Button onClick={() => handleNumber('8')}>8</Button>
-          <Button onClick={() => handleNumber('9')}>9</Button>
-          <Button onClick={() => handleOperation('+')} variant="primary">+</Button>
+          <CalcButton onClick={() => handleNumber('7')}>7</CalcButton>
+          <CalcButton onClick={() => handleNumber('8')}>8</CalcButton>
+          <CalcButton onClick={() => handleNumber('9')}>9</CalcButton>
+          <CalcButton onClick={() => handleOperation('+')} variant="operation">+</CalcButton>
 
-          <Button onClick={() => handleNumber('4')}>4</Button>
-          <Button onClick={() => handleNumber('5')}>5</Button>
-          <Button onClick={() => handleNumber('6')}>6</Button>
-          <Button onClick={() => handleNumber('(')} variant="primary">(</Button>
+          <CalcButton onClick={() => handleNumber('4')}>4</CalcButton>
+          <CalcButton onClick={() => handleNumber('5')}>5</CalcButton>
+          <CalcButton onClick={() => handleNumber('6')}>6</CalcButton>
+          <CalcButton onClick={() => handleNumber('(')} variant="operation">(</CalcButton>
 
-          <Button onClick={() => handleNumber('1')}>1</Button>
-          <Button onClick={() => handleNumber('2')}>2</Button>
-          <Button onClick={() => handleNumber('3')}>3</Button>
-          <Button onClick={() => handleNumber(')')} variant="primary">)</Button>
+          <CalcButton onClick={() => handleNumber('1')}>1</CalcButton>
+          <CalcButton onClick={() => handleNumber('2')}>2</CalcButton>
+          <CalcButton onClick={() => handleNumber('3')}>3</CalcButton>
+          <CalcButton onClick={() => handleNumber(')')} variant="operation">)</CalcButton>
 
           <CalcButton onClick={() => handleNumber('0')} span>0</CalcButton>
-          <Button onClick={handleDecimal}>.</Button>
-          <Button variant="solid-brand-primary" onClick={handleEquals} >=</Button>
+          <CalcButton onClick={handleDecimal}>.</CalcButton>
+          <CalcButton variant="equals" onClick={handleEquals} >=</CalcButton>
         </div>
       </div>
     </div>

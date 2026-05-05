@@ -4,9 +4,8 @@ import { cn } from '../../lib/utils'
 /**
  * AppShell — layout primitives for every app window.
  *
- * The window body already provides `bg-black/20 backdrop-blur-xl` (glass base).
- * These components add structure on top of it. Use them instead of raw divs
- * with hardcoded background tokens so the visual system stays consistent.
+ * App windows should use semantic OS tokens instead of raw alpha colors.
+ * These components add shared structure for dark chrome system apps.
  *
  * Typical single-pane app:
  * ```tsx
@@ -53,7 +52,7 @@ export const AppToolbar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
       ref={ref}
       className={cn(
         'flex items-center gap-2 px-3 py-2 shrink-0',
-        'bg-white/[0.06] border-b border-white/[0.08]',
+        'bg-os-ink-900 border-b border-os-line-dark',
         className
       )}
       {...props}
@@ -87,7 +86,7 @@ export const AppSidebar = React.forwardRef<HTMLDivElement, AppSidebarProps>(
       ref={ref}
       className={cn(
         'flex flex-col shrink-0 overflow-y-auto',
-        'bg-black/50 border-r border-white/[0.08]',
+        'bg-os-ink-950 border-r border-os-line-dark',
         width,
         className
       )}
@@ -139,7 +138,7 @@ export const AppCard = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('bg-black/30 border border-white/[0.08] rounded-lg', className)}
+      className={cn('bg-os-ink-900 border border-os-line-dark rounded-lg', className)}
       {...props}
     />
   )
@@ -152,7 +151,7 @@ AppCard.displayName = 'AppCard'
 // ---------------------------------------------------------------------------
 
 export const appInputClass =
-  'bg-white/[0.08] border border-white/[0.08] text-white placeholder:text-white/25 rounded focus:outline-none focus:border-white/[0.20] transition-colors'
+  'bg-os-ink-800 border border-os-line-dark text-os-text-inverse placeholder:text-os-text-inverse/25 rounded focus:outline-none focus:border-stroke-brand transition-colors'
 
 // ---------------------------------------------------------------------------
 // AppDivider — thin 1px separator between sections
@@ -160,7 +159,7 @@ export const appInputClass =
 
 export const AppDivider = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('h-px bg-white/[0.08] shrink-0', className)} {...props} />
+    <div ref={ref} className={cn('h-px bg-os-line-dark shrink-0', className)} {...props} />
   )
 )
 AppDivider.displayName = 'AppDivider'
@@ -179,7 +178,7 @@ export const AppModal = React.forwardRef<HTMLDivElement, AppModalProps>(
       ref={ref}
       className={cn(
         'absolute inset-0 z-50 flex items-center justify-center',
-        'bg-black/50',
+        'bg-background-overlay',
         className
       )}
       onClick={onClose}
@@ -187,7 +186,7 @@ export const AppModal = React.forwardRef<HTMLDivElement, AppModalProps>(
     >
       <div
         className={cn(
-          'bg-black/80 backdrop-blur-md border border-white/[0.08] rounded-lg shadow-2xl',
+          'bg-background-floating border border-os-line-dark rounded-lg shadow-2xl',
           panelClassName
         )}
         onClick={e => e.stopPropagation()}
@@ -201,7 +200,7 @@ AppModal.displayName = 'AppModal'
 
 // ---------------------------------------------------------------------------
 // AppStickyHeader — sticky column header (e.g. list view table head)
-// bg: black/40 backdrop-blur-sm so it stays readable when rows scroll under it
+// bg: chrome so it stays readable when rows scroll under it
 // ---------------------------------------------------------------------------
 
 export const AppStickyHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -210,8 +209,8 @@ export const AppStickyHeader = React.forwardRef<HTMLDivElement, React.HTMLAttrib
       ref={ref}
       className={cn(
         'sticky top-0 z-10',
-        'bg-black/40 backdrop-blur-sm border-b border-white/[0.08]',
-        'text-xs font-semibold text-white/40 select-none',
+        'bg-os-ink-950 border-b border-os-line-dark',
+        'text-xs font-semibold text-os-text-inverse/40 select-none',
         className
       )}
       {...props}

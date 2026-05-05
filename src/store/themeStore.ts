@@ -29,12 +29,12 @@ interface ThemeState {
   applyThemeToDom: (theme: ThemeSettings) => void;
 }
 
-const defaultTheme: ThemeSettings = {
+const generativeStudioTheme: ThemeSettings = {
   colors: {
     primary: '#ef4444',
-    secondary: '#3b82f6',
-    tertiary: '#8b5cf6',
-    accent: '#f59e0b',
+    secondary: '#dc2626',
+    tertiary: '#f97316',
+    accent: '#fbbf24',
   },
   borderRadius: 'lg',
   spacing: 'normal',
@@ -42,7 +42,7 @@ const defaultTheme: ThemeSettings = {
 };
 
 const presets = [
-  { name: 'Default', theme: defaultTheme },
+  { name: 'Generative Studio', theme: generativeStudioTheme },
   {
     name: 'Ocean Blue',
     theme: {
@@ -101,12 +101,6 @@ const presets = [
   },
 ];
 
-const starCitizenTheme: ThemeSettings = {
-  colors: { primary: '#00d9ff', secondary: '#0066ff', tertiary: '#00e5cc', accent: '#00ffff' },
-  borderRadius: 'lg',
-  spacing: 'normal',
-  iconStyle: 'rounded',
-};
 
 const fetchThemeFromFirestore = async (): Promise<ThemeSettings> => {
   try {
@@ -114,10 +108,10 @@ const fetchThemeFromFirestore = async (): Promise<ThemeSettings> => {
     if (docSnap.exists() && docSnap.data().data) {
       return docSnap.data().data as ThemeSettings;
     }
-    return starCitizenTheme;
+    return generativeStudioTheme;
   } catch (err: any) {
     console.error('Error fetching theme:', err);
-    return starCitizenTheme;
+    return generativeStudioTheme;
   }
 };
 
@@ -169,11 +163,11 @@ const applyThemeToDom = (theme: ThemeSettings): void => {
   root.setAttribute('data-border-radius', theme.borderRadius);
   root.setAttribute('data-spacing', theme.spacing);
 
-  // OS base tokens — static, set once per theme application
-  root.style.setProperty('--os-ink-950', '#111111');
-  root.style.setProperty('--os-ink-900', '#151515');
-  root.style.setProperty('--os-ink-800', '#1f1f1f');
-  root.style.setProperty('--os-ink-700', '#2a2a2a');
+  // OS base tokens — space-separated RGB channels required by rgb(var(--token) / alpha) Tailwind syntax
+  root.style.setProperty('--os-ink-950', '17 17 17');
+  root.style.setProperty('--os-ink-900', '21 21 21');
+  root.style.setProperty('--os-ink-800', '31 31 31');
+  root.style.setProperty('--os-ink-700', '42 42 42');
   root.style.setProperty('--os-canvas', '#ffffff');
   root.style.setProperty('--os-canvas-warm', '#f7f7f5');
   root.style.setProperty('--os-canvas-raised', '#fbfbfa');
@@ -189,11 +183,11 @@ const applyThemeToDom = (theme: ThemeSettings): void => {
 
 export const useThemeStore = create<ThemeState>(() => {
   if (typeof window !== 'undefined') {
-    applyThemeToDom(starCitizenTheme);
+    applyThemeToDom(generativeStudioTheme);
   }
 
   return {
-    theme: starCitizenTheme,
+    theme: generativeStudioTheme,
     presets,
 
     fetchTheme: async () => {

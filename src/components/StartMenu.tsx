@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import generativeStudioLogo from '../assets/png-white-symbol.png';
 import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
@@ -80,11 +81,12 @@ interface StartMenuProps {
 export function StartMenu({ anchor }: StartMenuProps = {}) {
   const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp, setAdminEditTarget } =
     useDesktopStore();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, isAdmin, role, user, logout } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomization, setShowCustomization] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [appMenu, setAppMenu] = useState<{ app: App; x: number; y: number } | null>(null);
 
   const getIcon = (iconName: string) => {
@@ -108,6 +110,12 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
     e.preventDefault();
     e.stopPropagation();
     setAppMenu({ app, x: e.clientX, y: e.clientY });
+  };
+
+  const confirmLogout = async () => {
+    await logout();
+    setShowLogoutConfirm(false);
+    setStartMenuOpen(false);
   };
 
   const getAppMenuDefs = (app: App): ContextMenuItemDef[] => [
@@ -149,7 +157,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
         });
       },
     },
-    ...(isAuthenticated && isAdminMode
+    ...(isAdmin && isAdminMode
       ? [{
           id: 'edit-admin',
           label: 'Edit in Admin',
@@ -228,9 +236,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-[18px] h-[18px] bg-white/[0.08] rounded flex items-center justify-center">
-                    <Icons.Grid3x3 className="w-2.5 h-2.5 text-white" />
-                  </div>
+                  <img src={generativeStudioLogo} alt="" className="w-[18px] h-[18px] object-contain" />
                   <span className="text-[12px] font-semibold text-white tracking-wide">
                     GenOS
                   </span>
@@ -318,20 +324,33 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
 
               {/* Footer */}
               <SystemRowDivider context="chrome" className="mx-0 my-0" />
-              <div className="flex items-center justify-between px-3 py-2">
+              <div className="relative flex items-center justify-between px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-white/[0.08] flex items-center justify-center flex-shrink-0">
-                    <Icons.User className="w-3 h-3 text-white/50" />
+                  <div className={`relative w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border transition-colors ${
+                    isAdmin
+                      ? 'bg-primary-500/15 border-primary-500/35'
+                      : isAuthenticated
+                        ? 'bg-emerald-500/12 border-emerald-500/30'
+                        : 'bg-white/[0.08] border-transparent'
+                  }`}>
+                    <Icons.User className={`w-3 h-3 ${
+                      isAdmin ? 'text-primary-300' : isAuthenticated ? 'text-emerald-300' : 'text-white/50'
+                    }`} />
+                    {isAuthenticated && (
+                      <span className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-[#151515] ${
+                        isAdmin ? 'bg-primary-400' : 'bg-emerald-400'
+                      }`} />
+                    )}
                   </div>
                   <div className="leading-tight">
                     <div className="text-[11px] text-white/70">
-                      {isAuthenticated ? 'Keketso' : 'Visitor'}
+                      {isAdmin ? 'Keketso' : isAuthenticated ? user?.email || 'Guest' : 'Visitor'}
                     </div>
-                    {isAuthenticated && isAdminMode ? (
-                      <div className="text-[10px] text-emerald-400">Admin mode on</div>
+                    {isAdmin && isAdminMode ? (
+                      <div className="text-[10px] text-emerald-400">Superuser mode on</div>
                     ) : (
                       <div className="text-[10px] text-white/25">
-                        {isAuthenticated ? 'Authenticated' : 'View only'}
+                        {role === 'guest' ? 'Guest session' : isAdmin ? 'Superuser' : 'View only'}
                       </div>
                     )}
                   </div>
@@ -346,7 +365,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                   </button>
                   {isAuthenticated ? (
                     <button
-                      onClick={() => { logout(); setStartMenuOpen(false); }}
+                      onClick={() => setShowLogoutConfirm(true)}
                       title="Logout"
                       className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-red-500/[0.12] hover:text-red-400 transition-colors"
                     >
@@ -355,13 +374,57 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                   ) : (
                     <button
                       onClick={() => setShowLoginModal(true)}
-                      title="Admin Login"
+                      title="Sign In"
                       className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-white/[0.07] hover:text-white/70 transition-colors"
                     >
                       <Icons.LogIn className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
+                <AnimatePresence>
+                  {showLogoutConfirm && (
+                    <>
+                      <button
+                        className="fixed inset-0 z-[10000] cursor-default"
+                        aria-label="Cancel sign out"
+                        onClick={() => setShowLogoutConfirm(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                        transition={{ duration: 0.14 }}
+                        className="absolute right-2 bottom-11 z-[10001] w-64 rounded-lg border border-white/[0.10] bg-background-chrome shadow-os-window p-3"
+                      >
+                        <div className="flex gap-3">
+                          <div className="mt-0.5 w-6 h-6 rounded-full bg-primary-500/15 border border-primary-500/25 flex items-center justify-center shrink-0">
+                            <Icons.HelpCircle className="w-3.5 h-3.5 text-primary-300" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-white/85">Sign out?</div>
+                            <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                              Your current OS session will close. Public content remains visible.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex justify-end gap-2">
+                          <button
+                            onClick={() => setShowLogoutConfirm(false)}
+                            className="rounded px-2.5 py-1.5 text-xs text-white/55 hover:bg-white/[0.07] hover:text-white/80 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={confirmLogout}
+                            className="rounded bg-primary-500 px-2.5 py-1.5 text-xs font-semibold text-os-ink-950 hover:bg-primary-400 transition-colors"
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Studio credit */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { useAuthStore } from '../store/authStore';
 import { App } from '../types';
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
@@ -12,6 +13,7 @@ import { NotificationPanel } from './NotificationPanel';
 import { useNotificationStore } from '../store/notificationStore';
 import { StartMenu } from './StartMenu';
 import { cn } from '../lib/utils';
+import generativeStudioLogo from '../assets/png-color-symbol.png';
 
 const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
   sortAndSeparate(defs).map((item) => ({
@@ -51,16 +53,19 @@ export function Taskbar() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showSystemTray, setShowSystemTray] = useState(false);
   const [volume, setVolume] = useState(75);
   const notificationCount = useNotificationStore((s) => s.notifications.length);
   const [startMenuAnchor, setStartMenuAnchor] = useState<PopupAnchor | null>(null);
   const [calendarAnchor, setCalendarAnchor] = useState<PopupAnchor | null>(null);
   const [volumeAnchor, setVolumeAnchor] = useState<PopupAnchor | null>(null);
+  const { isAuthenticated, isAdmin } = useAuthStore();
 
   const startBtnRef = useRef<HTMLButtonElement>(null);
   const volumeBtnRef = useRef<HTMLButtonElement>(null);
   const clockBtnRef = useRef<HTMLButtonElement>(null);
   const notifBtnRef = useRef<HTMLButtonElement>(null);
+  const trayBtnRef = useRef<HTMLButtonElement>(null);
 
   const computeAnchor = (el: HTMLElement): PopupAnchor => {
     const rect = el.getBoundingClientRect();
@@ -216,13 +221,20 @@ export function Taskbar() {
             variant="ghost"
             size="iconLg"
             className={cn(
-              "transition-all duration-500 p-[1px] bg-gradient-to-br from-[#00d9ff] via-[#0066ff] to-[#00d9ff] rounded-[11px] shadow-[0_0_15px_rgba(0,217,255,0.3)]",
-              "hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] hover:scale-[1.05]"
+              "transition-all duration-200 p-[1px] rounded-[11px] bg-os-canvas border border-os-line-light shadow-sm",
+              "hover:bg-os-canvas-raised hover:scale-[1.04] hover:border-stroke-brand",
+              isStartMenuOpen && "border-stroke-brand bg-os-canvas-raised"
             )}
             data-active={isStartMenuOpen}
           >
-            <div className="bg-white text-black rounded-[10px] w-full h-full flex items-center justify-center">
-              <Icons.Grid3x3 className="w-5 h-5" />
+            <div className="bg-os-canvas rounded-[10px] w-full h-full flex items-center justify-center">
+              <img src={generativeStudioLogo} alt="Generative Studio" className="w-5 h-5 object-contain" />
+              {isAuthenticated && (
+                <span className={cn(
+                  "absolute right-1.5 bottom-1.5 w-2 h-2 rounded-full border border-os-canvas",
+                  isAdmin ? "bg-primary-500" : "bg-emerald-500"
+                )} />
+              )}
             </div>
           </Button>
         </div>
@@ -318,6 +330,7 @@ export function Taskbar() {
             setShowNotifications(v => !v);
             setShowCalendar(false);
             setShowVolume(false);
+            setShowSystemTray(false);
           }}
           className="relative p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
           title="Notifications"
@@ -338,6 +351,7 @@ export function Taskbar() {
             setShowVolume(v => !v);
             setShowCalendar(false);
             setShowNotifications(false);
+            setShowSystemTray(false);
           }}
           className="p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
           title="Volume"
@@ -357,6 +371,7 @@ export function Taskbar() {
             setShowCalendar(v => !v);
             setShowVolume(false);
             setShowNotifications(false);
+            setShowSystemTray(false);
           }}
           className={cn(
             "rounded-[10px] px-2 py-1.5 transition-all duration-200",
@@ -371,6 +386,27 @@ export function Taskbar() {
           <div className="text-[10px] opacity-50 tabular-nums leading-tight">
             {time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </div>
+        </button>
+        {/* System tray */}
+        <button
+          ref={trayBtnRef}
+          onClick={() => {
+            if (trayBtnRef.current) setCalendarAnchor(computeAnchor(trayBtnRef.current));
+            setShowSystemTray(v => !v);
+            setShowCalendar(false);
+            setShowVolume(false);
+            setShowNotifications(false);
+          }}
+          className={cn(
+            "p-2 rounded-[10px] transition-colors group",
+            showSystemTray ? "bg-white/[0.10]" : "hover:bg-white/[0.08]"
+          )}
+          title="System tray"
+        >
+          <Icons.ChevronUp className={cn(
+            'w-3.5 h-3.5 transition-colors',
+            showSystemTray ? 'text-white/70' : 'text-white/40 group-hover:text-white/70'
+          )} />
         </button>
       </div>
     </div>
@@ -419,6 +455,65 @@ export function Taskbar() {
     <AnimatePresence>
       {showNotifications && calendarAnchor && (
         <NotificationPanel anchor={calendarAnchor} onClose={() => setShowNotifications(false)} />
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {showSystemTray && calendarAnchor && (
+        <>
+          <button
+            className="fixed inset-0 z-[10008] cursor-default"
+            aria-label="Close system tray"
+            onClick={() => setShowSystemTray(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            transition={{ duration: 0.14 }}
+            className="fixed z-[10009] w-72 rounded-2xl border border-white/[0.10] bg-background-chrome/95 shadow-os-window backdrop-blur-xl p-2"
+            style={{
+              bottom: calendarAnchor.bottom,
+              left: Math.min(Math.max(calendarAnchor.centerX - 144, 12), window.innerWidth - 300),
+            }}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Bluetooth', detail: 'Not connected', icon: Icons.Bluetooth },
+                { label: 'Brightness', detail: 'Adaptive', icon: Icons.SunMedium },
+                { label: 'NVIDIA', detail: 'GPU idle', icon: Icons.Cpu },
+                { label: 'Steam', detail: 'Offline', icon: Icons.Gamepad2 },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-3 transition-all hover:bg-white/[0.08] hover:border-white/[0.14] hover:-translate-y-0.5"
+                  >
+                    <Icon className="w-4 h-4 text-white/60 mb-3" />
+                    <div className="text-xs font-medium text-white/80">{item.label}</div>
+                    <div className="text-[10px] text-white/35">{item.detail}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => {
+                window.dispatchEvent(new Event('genos:open-shortcuts'));
+                setShowSystemTray(false);
+              }}
+              className="mt-2 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-3 text-left transition-all hover:bg-white/[0.08] hover:border-white/[0.14] flex items-center gap-3"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary-500/15 border border-primary-500/25 flex items-center justify-center">
+                <Icons.Keyboard className="w-4 h-4 text-primary-300" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-white/85">Keyboard shortcuts</div>
+                <div className="text-[10px] text-white/35">Press ? or open the guide</div>
+              </div>
+            </button>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
 

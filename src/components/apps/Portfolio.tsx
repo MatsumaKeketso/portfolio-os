@@ -18,7 +18,7 @@ export function Portfolio() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const { profile } = useUserStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -237,7 +237,7 @@ export function Portfolio() {
             </p>
           </div>
 
-          {isAuthenticated && (
+          {isAdmin && (
             <Button variant="secondary" size="sm" onClick={openAboutApp}>
               <Icons.Edit className="w-4 h-4 mr-2" />
               Edit Projects

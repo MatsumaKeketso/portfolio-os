@@ -11,7 +11,7 @@ export function Skills() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProficiency, setFilterProficiency] = useState<string>('all');
   const { profile } = useUserStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const { openWindow, apps } = useDesktopStore();
 
   const openAboutApp = () => {
@@ -103,7 +103,7 @@ export function Skills() {
             </p>
           </div>
 
-          {isAuthenticated && (
+          {isAdmin && (
             <Button variant="secondary" size="sm" onClick={openAboutApp}>
               <Icons.Edit className="w-4 h-4 mr-2" />
               Edit Skills

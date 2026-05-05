@@ -18,9 +18,9 @@ interface DesktopIconsProps {
 export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIconsProps) {
   // Dynamic sizes based on iconSize prop
   const SIZES = {
-    small: { grid: 70, width: 60, height: 70, icon: 8, text: 'text-[10px]' },
-    medium: { grid: 90, width: 80, height: 90, icon: 10, text: 'text-xs' },
-    large: { grid: 110, width: 100, height: 110, icon: 12, text: 'text-sm' },
+    small: { grid: 70, width: 60, height: 70, icon: 8, text: 'text-[10px]', label: 'truncate leading-tight' },
+    medium: { grid: 90, width: 80, height: 90, icon: 10, text: 'text-[11px]', label: 'truncate leading-tight' },
+    large: { grid: 114, width: 104, height: 114, icon: 12, text: 'text-xs', label: 'line-clamp-2 leading-snug' },
   };
 
   const GRID_SIZE = SIZES[iconSize].grid;
@@ -222,63 +222,13 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     setHoverPosition(null);
   };
 
-  // Smart positioning for text content next to icon
-  const getSmartContentPosition = (iconPos: { x: number; y: number }) => {
-    const CONTENT_WIDTH = 600;
-    const CONTENT_HEIGHT = 400; // Approximate height of content
-    const CONTENT_MARGIN = 24;
-    const SCREEN_PADDING = 16;
-
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    let contentX = iconPos.x + ICON_WIDTH + CONTENT_MARGIN; // Default: right of icon
-    let contentY = iconPos.y;
-
-    // Horizontal positioning
-    const spaceOnRight = viewportWidth - (iconPos.x + ICON_WIDTH);
-
-    if (spaceOnRight < CONTENT_WIDTH + CONTENT_MARGIN + SCREEN_PADDING) {
-      // Not enough space on right, try left
-      const spaceOnLeft = iconPos.x;
-      if (spaceOnLeft > CONTENT_WIDTH + CONTENT_MARGIN + SCREEN_PADDING) {
-        contentX = iconPos.x - CONTENT_WIDTH - CONTENT_MARGIN;
-      } else {
-        // Not enough space on either side, center it
-        contentX = Math.max(SCREEN_PADDING, Math.min(
-          viewportWidth - CONTENT_WIDTH - SCREEN_PADDING,
-          iconPos.x + ICON_WIDTH / 2 - CONTENT_WIDTH / 2
-        ));
-      }
-    }
-
-    // Vertical positioning - ensure content doesn't overflow bottom or top
-    const spaceBelow = viewportHeight - iconPos.y;
-
-    if (spaceBelow < CONTENT_HEIGHT + SCREEN_PADDING) {
-      // Not enough space below, try to align to bottom of viewport
-      // 48 avoids section showing behind taskbar 
-      // const taskbarHeight = theme.components.Taskbar.height;
-      const taskbarHeight = 48;
-      contentY = Math.max(SCREEN_PADDING, (viewportHeight - CONTENT_HEIGHT - SCREEN_PADDING) - taskbarHeight);
-    }
-
-    // If content would overflow the top, clamp it
-    if (contentY < SCREEN_PADDING) {
-      contentY = SCREEN_PADDING;
-    }
-
-    return { x: contentX, y: contentY };
-  };
-
-
-
   return (
     <div ref={containerRef} className="absolute inset-0 p-4 select-none">
-      {/* Netflix-Style Full-Screen Preview - Behind Desktop Icons */}
+      {/* Desktop icon preview */}
       <AnimatePresence>
         {hoveredApp && hoverPosition && (() => {
-          const smartPos = getSmartContentPosition(hoverPosition);
+          const previewMedia = hoveredApp.media?.[0];
+          const mediaItems = hoveredApp.media || [];
           return (
             <motion.div
               initial={{ opacity: 0 }}
@@ -288,74 +238,119 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               className="fixed inset-0 pointer-events-none"
               style={{ zIndex: 5 }}
             >
-              {/* Gradient Background with Theme Colors */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-tertiary-500/20 to-secondary-500/20" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/18 via-background-chrome/28 to-secondary-500/18" />
+              <div className="absolute inset-0 bg-black/58" />
+              <div className="absolute inset-y-0 left-0 w-[68vw] bg-gradient-to-r from-background-chrome/96 via-background-chrome/78 to-transparent backdrop-blur-2xl [mask-image:linear-gradient(to_right,black_0%,black_68%,transparent_100%)]" />
+              <div className="absolute inset-y-0 left-0 w-[54vw] bg-gradient-to-r from-black/50 via-black/18 to-transparent" />
 
-              {/* Dark Overlay */}
-              <div className="absolute inset-0 bg-black/70" />
-
-              {/* Content Area - Positioned Next to Icon */}
-              <div
-                className="absolute"
-                style={{
-                  left: `${smartPos.x}px`,
-                  top: `${smartPos.y}px`,
-                  maxWidth: '600px'
-                }}
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute left-[8vw] right-[8vw] top-[10vh] grid max-h-[78vh] grid-cols-[minmax(320px,0.95fr)_minmax(380px,1.05fr)] gap-8"
               >
-                <div className="space-y-6 p-8">
-                  {/* App Icon with Glow */}
-                  <div className="relative inline-block">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/40 to-tertiary-500/40" />
-                    {renderIcon(hoveredApp, "relative w-20 h-20 text-white drop-shadow-2xl")}
+                <div className="relative space-y-6 self-center p-2">
+                  <div className="relative inline-flex h-24 w-24 items-center justify-center">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500/30 to-secondary-500/20 blur-xl" />
+                    <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-white/[0.10] bg-white/[0.06]">
+                      {renderIcon(hoveredApp, "w-12 h-12 text-white drop-shadow-2xl")}
+                    </div>
                   </div>
 
-                  {/* App Name - Large Netflix Style */}
-                  <h1 className="text-6xl font-bold text-white tracking-tight leading-tight">
-                    {hoveredApp.name}
-                  </h1>
-
-                  {/* App Type as Tagline */}
-                  <p className="text-xl text-primary-400 font-medium">
-                    {hoveredApp.type === 'component'
-                      ? 'Built-in Application'
-                      : hoveredApp.type === 'iframe'
-                        ? 'Web Application'
-                        : 'Static Application'}
-                  </p>
-
-                  {/* Description - Supports Long Text */}
-                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                    <p className="text-base text-white/60 leading-relaxed">
-                      {hoveredApp.description || 'No description available'}
+                  <div className="space-y-3">
+                    <h1 className="max-w-3xl text-6xl font-bold leading-tight tracking-normal text-white">
+                      {hoveredApp.name}
+                    </h1>
+                    <p className="text-xl font-medium text-primary-300">
+                      {hoveredApp.type === 'component'
+                        ? 'Built-in Application'
+                        : hoveredApp.type === 'iframe'
+                          ? 'Web Application'
+                          : 'Static Application'}
+                    </p>
+                    <p className="max-w-2xl text-base leading-relaxed text-white/62">
+                      {hoveredApp.description || 'No description available.'}
                     </p>
                   </div>
 
-                  {/* Additional Info */}
-                  <div className="flex flex-wrap gap-3 pt-2">
+                  <div className="flex flex-wrap gap-3 pt-1">
                     {hoveredApp.pinnedToTaskbar && (
-                      <span className="px-3 py-1.5 bg-primary-500/20 text-primary-300 border border-primary-500/40 rounded-full text-sm font-medium flex items-center gap-2">
+                      <span className="flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/15 px-3 py-1.5 text-sm font-medium text-primary-200">
                         <Icons.Pin className="w-4 h-4" />
                         Pinned to Taskbar
                       </span>
                     )}
                     {hoveredApp.pinnedToDesktop && (
-                      <span className="px-3 py-1.5 bg-tertiary-500/20 text-tertiary-300 border border-tertiary-500/40 rounded-full text-sm font-medium flex items-center gap-2">
+                      <span className="flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 text-sm font-medium text-white/65">
                         <Icons.Monitor className="w-4 h-4" />
                         Pinned to Desktop
                       </span>
                     )}
+                    {mediaItems.length > 0 && (
+                      <span className="flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 text-sm font-medium text-white/65">
+                        <Icons.Images className="w-4 h-4" />
+                        {mediaItems.length} media {mediaItems.length === 1 ? 'item' : 'items'}
+                      </span>
+                    )}
                   </div>
 
-                  {/* URL if available */}
                   {hoveredApp.url && (
-                    <div className="flex items-center gap-2 text-white/40 text-sm pt-2">
-                      <Icons.Link className="w-4 h-4 text-secondary-400" />
-                      <span className="truncate max-w-lg">{hoveredApp.url}</span>
+                    <div className="flex max-w-xl items-center gap-2 text-sm text-white/42">
+                      <Icons.Link className="w-4 h-4 shrink-0 text-primary-300" />
+                      <span className="truncate">{hoveredApp.url}</span>
                     </div>
                   )}
                 </div>
-              </div>
+
+                <div className="self-center overflow-hidden rounded-2xl border border-white/[0.10] bg-background-chrome shadow-2xl shadow-black/60">
+                  <div className="relative aspect-video bg-background-chrome-raised">
+                    {previewMedia ? (
+                      previewMedia.type === 'video' ? (
+                        <video src={previewMedia.url} muted autoPlay loop playsInline className="h-full w-full object-cover" />
+                      ) : (
+                        <img src={previewMedia.url} alt={previewMedia.name || hoveredApp.name} className="h-full w-full object-cover" />
+                      )
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <div className="flex h-28 w-28 items-center justify-center rounded-3xl border border-white/[0.08] bg-white/[0.05]">
+                          {renderIcon(hoveredApp, "w-14 h-14 text-white/70")}
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background-chrome to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white/90">{previewMedia?.name || hoveredApp.name}</p>
+                        <p className="text-xs text-white/40">{previewMedia ? `${previewMedia.type} preview` : 'Application preview'}</p>
+                      </div>
+                      {previewMedia && (
+                        <span className="flex items-center gap-1.5 rounded-md border border-white/[0.10] bg-background-chrome/80 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white/60">
+                          {previewMedia.type === 'video' ? <Icons.Video className="w-3 h-3" /> : <Icons.Image className="w-3 h-3" />}
+                          {previewMedia.type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {mediaItems.length > 1 && (
+                    <div className="grid grid-cols-4 gap-2 border-t border-white/[0.06] p-3">
+                      {mediaItems.slice(0, 4).map((item) => (
+                        <div key={item.id} className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                          {item.type === 'video' ? (
+                            <video src={item.url} muted playsInline className="aspect-video w-full object-cover" />
+                          ) : (
+                            <img src={item.url} alt={item.name || hoveredApp.name} className="aspect-video w-full object-cover" />
+                          )}
+                          <div className="absolute left-1.5 top-1.5 rounded bg-black/60 p-1 text-white/80">
+                            {item.type === 'video' ? <Icons.Video className="w-3 h-3" /> : <Icons.Image className="w-3 h-3" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           )
         })()}
@@ -424,7 +419,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                 {renderIcon(app, "w-full h-full")}
               </div>
             </div>
-            <span className={`${SIZES[iconSize].text} text-center line-clamp-2 px-1 transition-all ${isHovered ? 'font-bold' : ''} ${
+            <span className={`${SIZES[iconSize].text} ${SIZES[iconSize].label} block w-full text-center px-1 transition-all ${isHovered ? 'font-bold' : ''} ${
               contrastMode === 'light' ? 'text-gray-950 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'text-white drop-shadow-lg'
             }`}>
               {app.name}

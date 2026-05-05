@@ -21,6 +21,12 @@ export interface App {
     github?: string;
     demo?: string;
   };
+  media?: Array<{
+    id: string;
+    url: string;
+    type: 'image' | 'video';
+    name?: string;
+  }>;
   // Window surface contract — controls body background and chrome style
   surfaceMode?: 'content' | 'utilityDark' | 'immersive' | 'iframe' | 'glass';
   // Window behaviour hints

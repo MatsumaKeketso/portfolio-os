@@ -239,7 +239,43 @@ const defaultApps: App[] = [
   },
 ];
 
-const canWrite = () => auth.currentUser !== null;
+const SUPERUSER_EMAIL = 'admin@os.com';
+const canWrite = () => auth.currentUser?.email?.toLowerCase() === SUPERUSER_EMAIL;
+const BACKGROUNDS_BACKUP_KEY = 'portfolioOS_backgrounds';
+const SELECTED_BACKGROUND_BACKUP_KEY = 'portfolioOS_selectedBackground';
+
+const loadLocalBackgrounds = (): DesktopBackground[] => {
+  try {
+    const stored = localStorage.getItem(BACKGROUNDS_BACKUP_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored) as { data?: DesktopBackground[] };
+    return Array.isArray(parsed.data) ? parsed.data : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalBackgrounds = (backgrounds: DesktopBackground[]) => {
+  try {
+    const customBackgrounds = backgrounds.filter(b => !b.id.startsWith('default-'));
+    localStorage.setItem(BACKGROUNDS_BACKUP_KEY, JSON.stringify({
+      data: customBackgrounds,
+      updated_at: new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.error('Failed to save local backgrounds backup:', err);
+  }
+};
+
+const mergeBackgrounds = (...backgroundSets: Array<DesktopBackground[] | null | undefined>): DesktopBackground[] => {
+  const byId = new Map<string, DesktopBackground>();
+  for (const backgrounds of backgroundSets) {
+    for (const background of backgrounds ?? []) {
+      byId.set(background.id, { ...byId.get(background.id), ...background });
+    }
+  }
+  return Array.from(byId.values());
+};
 
 let appsTimeout: ReturnType<typeof setTimeout>;
 const saveAppsToFirestore = (apps: App[]): void => {
@@ -281,6 +317,7 @@ const fetchAppsFromFirestore = async (): Promise<App[]> => {
 
 let backgroundsTimeout: ReturnType<typeof setTimeout>;
 const saveBackgroundsToFirestore = (backgrounds: DesktopBackground[]): void => {
+  saveLocalBackgrounds(backgrounds);
   if (!canWrite()) return;
   clearTimeout(backgroundsTimeout);
   backgroundsTimeout = setTimeout(async () => {
@@ -298,16 +335,25 @@ const saveBackgroundsToFirestore = (backgrounds: DesktopBackground[]): void => {
 };
 
 const fetchBackgroundsFromFirestore = async (): Promise<DesktopBackground[]> => {
+  const localBackgrounds = loadLocalBackgrounds();
   try {
     const docSnap = await getDoc(doc(db, 'os-site_content', 'backgrounds'));
     if (docSnap.exists() && docSnap.data().data) {
       const customBackgrounds = docSnap.data().data as DesktopBackground[];
-      return [...defaultBackgrounds, ...customBackgrounds];
+      const merged = mergeBackgrounds(defaultBackgrounds, customBackgrounds, localBackgrounds);
+      if (localBackgrounds.some((local) => !customBackgrounds.find((remote) => remote.id === local.id))) {
+        saveBackgroundsToFirestore(merged);
+      } else {
+        saveLocalBackgrounds(merged);
+      }
+      return merged;
     }
-    return defaultBackgrounds;
+    const merged = mergeBackgrounds(defaultBackgrounds, localBackgrounds);
+    saveBackgroundsToFirestore(merged);
+    return merged;
   } catch (err: any) {
     console.error('Error fetching backgrounds:', err);
-    return defaultBackgrounds;
+    return mergeBackgrounds(defaultBackgrounds, localBackgrounds);
   }
 };
 
@@ -412,6 +458,7 @@ const defaultBackgrounds: DesktopBackground[] = [
 ];
 
 const saveSelectedBackgroundToFirestore = async (backgroundId: string): Promise<void> => {
+  localStorage.setItem(SELECTED_BACKGROUND_BACKUP_KEY, backgroundId);
   if (!canWrite()) return;
   try {
     await setDoc(doc(db, 'os-site_content', 'selectedBackground'), {
@@ -424,15 +471,18 @@ const saveSelectedBackgroundToFirestore = async (backgroundId: string): Promise<
 };
 
 const fetchSelectedBackgroundFromFirestore = async (): Promise<string> => {
+  const localSelected = localStorage.getItem(SELECTED_BACKGROUND_BACKUP_KEY);
   try {
     const docSnap = await getDoc(doc(db, 'os-site_content', 'selectedBackground'));
     if (docSnap.exists() && docSnap.data().data?.backgroundId) {
-      return docSnap.data().data.backgroundId;
+      const backgroundId = docSnap.data().data.backgroundId;
+      localStorage.setItem(SELECTED_BACKGROUND_BACKUP_KEY, backgroundId);
+      return backgroundId;
     }
-    return 'default-quantum';
+    return localSelected || 'default-quantum';
   } catch (err: any) {
     console.error('Error fetching selected background:', err);
-    return 'default-quantum';
+    return localSelected || 'default-quantum';
   }
 };
 

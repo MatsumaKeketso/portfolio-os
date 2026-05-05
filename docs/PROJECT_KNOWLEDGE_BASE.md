@@ -46,6 +46,8 @@ The system is organized around these documented areas:
 - Editable owner/system information.
 - Background management.
 - Milestone management.
+- Brand theme and logo assets.
+- Upload persistence and public media/download surfaces.
 
 New documentation should identify affected systems before proposing or implementing changes.
 
@@ -109,6 +111,55 @@ Some documents currently describe planned behavior and implemented behavior in t
 
 The file `docs/DESIGN_SYSTEM.ms` appears to contain Markdown content but does not use a `.md` extension. This should be reviewed before renaming, because it may be referenced externally.
 
+Surface fixes must be verified visually in the running app. A class-level token change can pass typecheck while failing to change the visible result if the affected surface is layered, overridden, transparent by composition, or controlled by another component.
+
+Current visual issue to preserve for implementation:
+
+- Window drag/header areas appear transparent.
+- Login form/panel appears transparent.
+- Overlapping surfaces are visually confusing.
+- This should be resolved by the implementation agent as part of the system-wide surface/window work.
+
+Current production blocker:
+
+- Uploaded content does not persist after refresh.
+- Images/media uploaded inside the system disappear.
+- The owner expects many uploaded media items to already exist based on prior uploads, but they are not available after reload.
+- The project cannot be considered production ready until upload persistence is reliable.
+- This affects the ability to show owner-curated public media to visitors.
+- This affects the ability to provide relevant downloadable items that should remain available on the website.
+
+Upload persistence must be verified across the full path:
+
+- Persistent storage write.
+- Persistent metadata write.
+- Store reload after refresh.
+- UI rendering after reload.
+- Public read permissions for approved visitor-facing assets.
+- Admin/owner permissions for private or editable assets.
+
+Current CV source for implementation:
+
+- `C:/Users/keket/Desktop/GenerativeStudio/KEKETSO MATSUMA'S Full Stack Developer & UIUX Designer.pdf`
+
+The CV app should be populated from this PDF so the owner does not need to manually re-enter the same information in Admin Panel.
+
+Current brand direction:
+
+- Generative Studio should be the default theme.
+- The default theme should use red as the primary brand color.
+- The system should support a structure for future color variants, but active theming should be limited to one main brand color for now.
+- Blue should not remain the default active accent for start button borders, active states, primary buttons, focus states, or selected items.
+- Brand colors must flow through primitive and semantic tokens before reaching components.
+
+Current user system direction:
+
+- `admin@os.com` is the confirmed superuser account.
+- Any other signed-in email is a guest.
+- Guest accounts are limited and must not receive owner/admin permissions.
+- Superuser-only UI and writes must check the superuser role, not generic authentication.
+- Firebase rules must protect owner/system writes with the same superuser boundary.
+
 ## Open Questions
 
 - Is `GenOS` the confirmed public project name, or only the current package/documentation label?
@@ -117,11 +168,19 @@ The file `docs/DESIGN_SYSTEM.ms` appears to contain Markdown content but does no
 - What is the correct email address for the About app?
 - What is the Generative Studio website URL?
 - Where should constrained About app editable content be stored?
-- What is the confirmed superuser/admin account identity?
-- Should admin status be based on Firebase custom claims, a Firestore profile field, an allowlisted UID, or config?
+- What password should be used for the confirmed `admin@os.com` superuser account?
+- Should the superuser rule stay email-based long term, or move to Firebase custom claims later?
 - What taskbar/start icon should replace the current square grid icon?
+- Where exactly are the black, red, and white logo asset files located?
+- Which logo variant should be used for the start/taskbar icon in light, dark, and active states?
 - What milestone tags should appear in the selectable dropdown?
 - What image size limits should apply to milestones and backgrounds?
+- Which component or surface layer is actually responsible for the transparent window header and login panel behavior in the running app?
+- Which upload flows currently persist only to local state or a non-persisted store?
+- Which uploaded assets should be public visitor-facing media?
+- Which uploaded assets should be downloadable by visitors?
+- What is the canonical database collection/schema for persisted uploaded files?
+- What Firebase Storage paths should be used for backgrounds, File Explorer media, milestones, CV/download assets, and Visitor Gallery uploads?
 - What is the exact storage limit for visitor folders and image uploads?
 - Should visitor-created folders be public immediately, or require moderation?
 - Should feedback be named generically as “Feedback” until a product label is approved?
