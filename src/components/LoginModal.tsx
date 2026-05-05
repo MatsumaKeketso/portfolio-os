@@ -60,12 +60,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md bg-os-ink-950 rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
+          className="w-full max-w-md bg-background-chrome rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
         >
           {/* Header */}
           <div className="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-os-ink-800 rounded flex items-center justify-center border border-white/[0.08]">
+              <div className="w-8 h-8 bg-background-chrome-raised rounded flex items-center justify-center border border-white/[0.08]">
                 <Icons.Lock className="w-4 h-4 text-white/60" />
               </div>
               <div>
@@ -89,7 +89,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-os-ink-800 text-white placeholder-white/30 px-3 py-2 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
                 placeholder="admin@genos.dev"
                 autoFocus
               />
@@ -105,7 +105,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-os-ink-800 text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                  className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
                   placeholder="Enter admin password"
                 />
                 <Button

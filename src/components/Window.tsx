@@ -241,7 +241,7 @@ export function Window({ window, children }: WindowProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 16 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute flex flex-col rounded-lg overflow-hidden"
+      className="absolute flex flex-col rounded-lg overflow-hidden bg-background-chrome shadow-os-window"
       style={{
         ...windowStyle,
         zIndex: window.zIndex,
@@ -251,7 +251,7 @@ export function Window({ window, children }: WindowProps) {
     >
       <div
         ref={windowRef}
-        className="flex-1 flex flex-col overflow-hidden"
+        className="flex-1 flex flex-col overflow-hidden bg-background-chrome"
         style={{ border: '1px solid rgba(255,255,255,0.08)' }}
       >
         {/* Title bar — always dark OS chrome */}
@@ -260,7 +260,7 @@ export function Window({ window, children }: WindowProps) {
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
           onContextMenu={handleTitleBarContextMenu}
-          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-os-ink-950"
+          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-background-chrome"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
         >
           <div className="flex items-center gap-2 min-w-0">
