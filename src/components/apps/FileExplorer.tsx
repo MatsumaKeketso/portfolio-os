@@ -14,7 +14,6 @@ import { UploadProgressToast } from '../UploadProgress';
 import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
 import { getLocationContext, getPermissions, fileIsWritable } from '../../lib/filePermissions';
 import { ContextMenuItemDef, sortAndSeparate } from '../../lib/contextMenuRegistry';
-import { AuroraBackground } from '../aceternity/backgrounds/aurora-background';
 import { cn } from '../../lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -586,10 +585,7 @@ export function FileExplorer() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="w-full h-full bg-background-chrome/95 backdrop-blur-md flex flex-col border-b border-white/[0.08] overflow-hidden relative">
-      <AuroraBackground className="absolute inset-0 opacity-[0.2] pointer-events-none" colors={['#00d9ff', '#0066ff', '#00d9ff']} />
-      
-      <div className="relative z-10 flex flex-col h-full w-full">
+    <div className="w-full h-full bg-background-chrome flex flex-col border-b border-white/[0.08] overflow-hidden">
       {/* Navigation Bar */}
       <div className="border-b border-white/[0.08] p-3 flex items-center gap-2 flex-wrap">
         <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-white/[0.08] rounded text-white transition-colors" title="Back">
@@ -1052,7 +1048,6 @@ export function FileExplorer() {
       </AnimatePresence>
 
       <UploadProgressToast uploads={uploadProgress} onClose={() => setUploadProgress([])} />
-      </div>
     </div>
   );
 }

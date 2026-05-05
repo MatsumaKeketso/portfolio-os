@@ -768,7 +768,7 @@ export function AdminPanel() {
       {/* URL Preview modal */}
       {previewURL && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-[15001] flex items-center justify-center p-4" onClick={() => setPreviewURL(null)}>
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} onClick={(e) => e.stopPropagation()} className="w-full max-w-6xl h-[85vh] flex flex-col bg-[#141414]/95 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} onClick={(e) => e.stopPropagation()} className="w-full max-w-6xl h-[85vh] flex flex-col bg-background-chrome/95 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
               <div>
                 <p className="text-sm font-medium text-white/80">Preview</p>

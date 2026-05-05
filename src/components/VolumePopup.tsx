@@ -43,7 +43,7 @@ export function VolumePopup({ anchor, volume, onChange, onClose }: VolumePopupPr
       exit={{ opacity: 0, y: 8, scale: 0.96 }}
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
       style={{ position: 'fixed', bottom: anchor.bottom, left, width }}
-      className="bg-[#141414]/95 backdrop-blur-md border border-white/[0.08] rounded-2xl shadow-xl shadow-black/50 py-4 z-[10001] flex flex-col items-center gap-3"
+      className="bg-background-chrome/95 backdrop-blur-md border border-white/[0.08] rounded-2xl shadow-xl shadow-black/50 py-4 z-[10001] flex flex-col items-center gap-3"
     >
       <span className="text-white/50 text-[11px] font-medium tabular-nums">
         {volume}

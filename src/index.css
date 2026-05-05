@@ -17,11 +17,24 @@
     --border-radius: 0.75rem;
     --spacing-scale: 1;
 
+    /* Primitive color channels. Semantic tokens must source from these. */
+    --primitive-gray-50: 250 250 250;
+    --primitive-gray-100: 245 245 243;
+    --primitive-gray-200: 235 235 235;
+    --primitive-gray-300: 214 214 214;
+    --primitive-gray-400: 184 184 184;
+    --primitive-gray-600: 115 115 115;
+    --primitive-gray-800: 69 69 69;
+    --primitive-gray-1000: 44 44 44;
+    --primitive-gray-1300: 26 26 26;
+    --primitive-gray-1700: 17 17 17;
+    --primitive-gray-2100: 8 8 8;
+
     /* OS Design Tokens — Product Mono base palette (static, not theme-variable) */
-    --os-ink-950: #111111;
-    --os-ink-900: #151515;
-    --os-ink-800: #1f1f1f;
-    --os-ink-700: #2a2a2a;
+    --os-ink-950: var(--primitive-gray-1700);
+    --os-ink-900: var(--primitive-gray-1700);
+    --os-ink-800: var(--primitive-gray-1300);
+    --os-ink-700: var(--primitive-gray-1000);
     --os-canvas: #ffffff;
     --os-canvas-warm: #f7f7f5;
     --os-canvas-raised: #fbfbfa;
@@ -43,6 +56,9 @@
     --color-bg-tertiary:  #ebebeb;   /* primitive.gray.200  */
     --color-bg-elevated:  #ffffff;   /* pure white for cards */
     --color-bg-overlay:   rgba(0, 0, 0, 0.48);
+    --color-bg-chrome: var(--primitive-gray-1700);
+    --color-bg-chrome-raised: var(--primitive-gray-1300);
+    --color-bg-floating: var(--primitive-gray-1300);
 
     /* Brand backgrounds */
     --color-bg-brand-solid:        #1d4ed8;  /* primitive.blue.1000 */

@@ -193,7 +193,7 @@ export function Taskbar() {
     // large: p-2 (8px) → inner radius 8px
     const paddingClass = { small: 'p-1', medium: 'p-1.5', large: 'p-2' }[taskbarSize];
 
-    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-[#141414]/80 border border-white/[0.08] shadow-xl shadow-black/50`;
+    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-background-chrome/80 border border-white/[0.08] shadow-xl shadow-black/50`;
   };
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
 

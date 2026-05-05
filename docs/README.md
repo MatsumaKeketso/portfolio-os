@@ -6,6 +6,17 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
 
 ### Core Documentation
 
+- **[PROJECT_KNOWLEDGE_BASE.md](./PROJECT_KNOWLEDGE_BASE.md)** - Current documentation source of truth
+  - Defines the web-based operating system portfolio intent
+  - Records terminology constraints and unresolved naming decisions
+  - Sets the required documentation structure for future system and feature docs
+  - Identifies core systems, constraints, dependencies, edge cases, and open questions
+
+- **[CLAUDE_HANDOFF_SYSTEM_UPDATES.md](./CLAUDE_HANDOFF_SYSTEM_UPDATES.md)** - Current implementation handoff for Claude
+  - Captures latest owner feedback as system-wide implementation tasks
+  - Covers About app editing, CV content, background persistence, window performance, Admin Panel, milestones, taskbar icon configuration, and permissions
+  - Defines risks, dependencies, open questions, and recommended work order
+
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete system architecture and technical overview
   - Original comprehensive documentation (formerly READMEAI.md)
   - Project structure and component breakdown
@@ -96,16 +107,18 @@ The following documentation files are kept in the project root for easy access:
 3. Review [CHANGELOG.md](./CHANGELOG.md) for latest features
 
 ### For Developers
-1. Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
-2. Read [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) for product architecture
-3. Read [OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md) for OS-like interaction behavior
-4. Check [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) for current actioned vs pending work
-5. Use [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md) for codebase-aware sequencing
-6. Use [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md) for the implementation plan
-7. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
-8. Follow [LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md) for the target OS visual language
-9. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
-10. Review component examples in source code
+1. Read [PROJECT_KNOWLEDGE_BASE.md](./PROJECT_KNOWLEDGE_BASE.md) for documentation rules, current intent, and unresolved decisions
+2. Read [CLAUDE_HANDOFF_SYSTEM_UPDATES.md](./CLAUDE_HANDOFF_SYSTEM_UPDATES.md) for the current implementation handoff
+3. Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
+4. Read [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) for product architecture
+5. Read [OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md) for OS-like interaction behavior
+6. Check [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) for current actioned vs pending work
+7. Use [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md) for codebase-aware sequencing
+8. Use [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md) for the implementation plan
+9. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
+10. Follow [LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md) for the target OS visual language
+11. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
+12. Review component examples in source code
 
 ### For Contributors
 1. Review [../README.md](../README.md) Contributing section
@@ -129,7 +142,9 @@ portfolio-os/
 │   ├── LOOK_AND_FEEL_UPDATE_SPEC.md # New OS experience implementation spec
 │   ├── OS_BEHAVIOR_MODEL.md   # Web OS behavior model
 │   ├── PRODUCT_DIRECTION.md   # Product architecture
-│   └── ADMINPANEL_AUDIT.md    # Admin panel audit
+│   ├── ADMINPANEL_AUDIT.md    # Admin panel audit
+│   ├── CLAUDE_HANDOFF_SYSTEM_UPDATES.md # Current Claude implementation handoff
+│   └── PROJECT_KNOWLEDGE_BASE.md # Documentation source of truth
 ├── firebase.json              # Firebase deploy config
 └── .firebaserc                # Firebase project aliases
 ```

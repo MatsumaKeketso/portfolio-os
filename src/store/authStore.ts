@@ -57,4 +57,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     await signOut(auth);
     set({ isAuthenticated: false, isAdmin: false, user: null });
   },
-});
+}));

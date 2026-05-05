@@ -105,7 +105,7 @@ export function Weather() {
     },
   ];
 
-  const [cities, setCities] = useState<City[]>(defaultCities);
+  const [cities] = useState<City[]>(defaultCities);
   const [selectedCityId, setSelectedCityId] = useState('jhb');
   const [unit, setUnit] = useState<'C' | 'F'>('C');
   const [showHourly, setShowHourly] = useState(true);
@@ -132,22 +132,6 @@ export function Weather() {
         return <Icons.Moon className={`${iconClass} text-blue-200`} />;
       default:
         return <Icons.CloudSun className={`${iconClass} text-accent`} />;
-    }
-  };
-
-  const getUVLevel = (uvIndex: number): { level: string; color: string } => {
-    if (uvIndex <= 2) return { level: 'Low', color: 'text-foreground-success' };
-    if (uvIndex <= 5) return { level: 'Moderate', color: 'text-accent' };
-    if (uvIndex <= 7) return { level: 'High', color: 'text-orange-400' };
-    return { level: 'Very High', color: 'text-foreground-error' };
-  };
-
-  const removeCity = (cityId: string) => {
-    if (cities.length === 1) return;
-    const newCities = cities.filter(c => c.id !== cityId);
-    setCities(newCities);
-    if (selectedCityId === cityId) {
-      setSelectedCityId(newCities[0].id);
     }
   };
 
@@ -195,8 +179,6 @@ export function Weather() {
       </div>
     );
   };
-
-  const uvLevel = getUVLevel(currentWeather.uvIndex);
 
   return (
     <div className="w-full h-full bg-background-primary text-foreground-primary flex flex-col overflow-hidden font-sans">
@@ -408,7 +390,7 @@ export function Weather() {
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           height: 4px;
           width: 4px;

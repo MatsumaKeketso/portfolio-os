@@ -100,10 +100,10 @@ export default {
         // OS Design Tokens — Product Mono base palette (static, not theme-variable)
         os: {
           ink: {
-            950: '#111111',  // Main chrome
-            900: '#151515',  // Menus, title bars
-            800: '#1f1f1f',  // Hover tiles, raised chrome
-            700: '#2a2a2a',  // Inputs on dark chrome
+            950: 'rgb(var(--os-ink-950) / <alpha-value>)',  // Main chrome
+            900: 'rgb(var(--os-ink-900) / <alpha-value>)',  // Menus, title bars
+            800: 'rgb(var(--os-ink-800) / <alpha-value>)',  // Hover tiles, raised chrome
+            700: 'rgb(var(--os-ink-700) / <alpha-value>)',  // Inputs on dark chrome
           },
           canvas: {
             DEFAULT: '#ffffff',  // Main app body
@@ -218,6 +218,9 @@ export default {
           tertiary: 'var(--color-bg-tertiary)',
           elevated: 'var(--color-bg-elevated)',
           overlay: 'var(--color-bg-overlay)',
+          chrome: 'rgb(var(--color-bg-chrome) / <alpha-value>)',
+          'chrome-raised': 'rgb(var(--color-bg-chrome-raised) / <alpha-value>)',
+          floating: 'rgb(var(--color-bg-floating) / <alpha-value>)',
           brand: {
             solid: { DEFAULT: 'var(--color-bg-brand-solid)', hover: 'var(--color-bg-brand-solid-hover)' },
             subtle: { DEFAULT: 'var(--color-bg-brand-subtle)', hover: 'var(--color-bg-brand-subtle-hover)' },

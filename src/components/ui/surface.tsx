@@ -3,7 +3,6 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 import { BackgroundBeams } from '../aceternity/backgrounds/background-beams'
 import { AuroraBackground } from '../aceternity/backgrounds/aurora-background'
-import { useDesktopStore } from '../../store/desktopStore'
 
 /**
  * Surface system — unified OS surface primitives.
@@ -58,7 +57,7 @@ const surfaceVariants = cva(
 
         // Inset control area on light content: inputs, inner rows
         'inset-light':
-          'bg-white border border-[#deded8] text-os-text-strong',
+          'bg-os-canvas border border-os-line-light text-os-text-strong',
 
         // Image/media surface — use MediaSurface compound for halftone
         media:
