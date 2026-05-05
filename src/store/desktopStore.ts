@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { App, WindowState, FileItem } from '../types';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface DesktopBackground {
@@ -237,10 +237,14 @@ const defaultApps: App[] = [
   },
 ];
 
+const canWrite = () => auth.currentUser !== null;
+
 let appsTimeout: ReturnType<typeof setTimeout>;
 const saveAppsToFirestore = (apps: App[]): void => {
+  if (!canWrite()) return;
   clearTimeout(appsTimeout);
   appsTimeout = setTimeout(async () => {
+    if (!canWrite()) return;
     try {
       await setDoc(doc(db, 'os-site_content', 'apps'), {
         data: apps,
@@ -275,8 +279,10 @@ const fetchAppsFromFirestore = async (): Promise<App[]> => {
 
 let backgroundsTimeout: ReturnType<typeof setTimeout>;
 const saveBackgroundsToFirestore = (backgrounds: DesktopBackground[]): void => {
+  if (!canWrite()) return;
   clearTimeout(backgroundsTimeout);
   backgroundsTimeout = setTimeout(async () => {
+    if (!canWrite()) return;
     try {
       const customBackgrounds = backgrounds.filter(b => !b.id.startsWith('default-'));
       await setDoc(doc(db, 'os-site_content', 'backgrounds'), {
@@ -404,6 +410,7 @@ const defaultBackgrounds: DesktopBackground[] = [
 ];
 
 const saveSelectedBackgroundToFirestore = async (backgroundId: string): Promise<void> => {
+  if (!canWrite()) return;
   try {
     await setDoc(doc(db, 'os-site_content', 'selectedBackground'), {
       data: { backgroundId },

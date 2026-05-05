@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Helper to generate unique IDs
-const generateId = () => `${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const canWrite = () => auth.currentUser !== null;
 
 // User Profile Data Schema
 export interface UserProfile {
@@ -245,8 +245,10 @@ export const useUserStore = create<UserStore>((set, get) => {
   // Helper to debounce database updates
   let saveTimeout: ReturnType<typeof setTimeout>;
   const saveToFirestore = async (profile: UserProfile) => {
+    if (!canWrite()) return;
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
+      if (!canWrite()) return;
       try {
         await setDoc(doc(db, 'os-site_content', 'profile'), {
           data: profile,

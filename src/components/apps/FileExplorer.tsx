@@ -161,22 +161,6 @@ export function FileExplorer() {
 
   const displayFiles = filteredAndSortedFiles();
 
-  const getIconSizeClasses = () => {
-    switch (iconSize) {
-      case 'small': return 'w-8 h-8';
-      case 'medium': return 'w-12 h-12';
-      case 'large': return 'w-16 h-16';
-    }
-  };
-
-  const getGridColumns = () => {
-    switch (iconSize) {
-      case 'small': return 'grid-cols-6';
-      case 'medium': return 'grid-cols-4';
-      case 'large': return 'grid-cols-3';
-    }
-  };
-
   // ---------------------------------------------------------------------------
   // Create / upload handlers
   // ---------------------------------------------------------------------------
@@ -602,7 +586,7 @@ export function FileExplorer() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="w-full h-full bg-[#111111]/95 backdrop-blur-md flex flex-col border-b border-white/[0.08] overflow-hidden relative">
+    <div className="w-full h-full bg-background-chrome/95 backdrop-blur-md flex flex-col border-b border-white/[0.08] overflow-hidden relative">
       <AuroraBackground className="absolute inset-0 opacity-[0.2] pointer-events-none" colors={['#00d9ff', '#0066ff', '#00d9ff']} />
       
       <div className="relative z-10 flex flex-col h-full w-full">
@@ -756,9 +740,9 @@ export function FileExplorer() {
       {/* Main area: sidebar + content */}
       <div className="flex-1 flex overflow-hidden p-2 gap-2">
 
-        {/* Sidebar Floating Container with Beam Border */}
-        <div className="w-[188px] flex-shrink-0 p-[1px] bg-gradient-to-br from-[#00d9ff] via-[#0066ff] to-[#00d9ff] rounded-xl shadow-2xl overflow-hidden">
-          <div className="flex-1 h-full w-full bg-black/50 rounded-[11px] flex flex-col overflow-hidden relative">
+        {/* Sidebar */}
+        <div className="w-[188px] flex-shrink-0 rounded-xl overflow-hidden border border-white/[0.08]">
+          <div className="flex-1 h-full w-full bg-black/50 flex flex-col overflow-hidden relative">
             <div className="flex-1 overflow-y-auto flex flex-col">
               <SystemRowGroup context="chrome" className="pt-3">Locations</SystemRowGroup>
               {SIDEBAR_LOCATIONS.map((loc) => {
@@ -769,7 +753,7 @@ export function FileExplorer() {
                     {isActive && (
                       <motion.div
                         layoutId="explorer-sidebar-active"
-                        className="absolute left-0 top-1 bottom-1 w-[3px] bg-primary-400 rounded-r-full shadow-[0_0_12px_rgba(0,217,255,0.8)] z-10"
+                        className="absolute left-0 top-1 bottom-1 w-[3px] bg-primary-400 rounded-r-full z-10"
                         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                       />
                     )}

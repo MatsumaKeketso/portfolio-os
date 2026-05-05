@@ -229,10 +229,10 @@ export function Window({ window, children }: WindowProps) {
   // Window body background based on surface mode
   const bodyBg = {
     content: 'bg-os-canvas',
-    utilityDark: 'bg-[#111111]',
+    utilityDark: 'bg-background-chrome',
     immersive: 'bg-black',
     iframe: 'bg-white',
-    glass: 'bg-black/20 backdrop-blur-xl',
+    glass: 'bg-background-chrome',
   }[surfaceMode];
 
   return (

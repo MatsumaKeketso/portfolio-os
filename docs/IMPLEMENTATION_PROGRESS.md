@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-> Last audited: 2026-05-02, updated 2026-05-02. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
+> Last audited: 2026-05-02, updated 2026-05-04. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
 
@@ -15,7 +15,7 @@ Overall status:
 | 3 | Window Surfaces And Behavior | Mostly actioned |
 | 4 | Start Menu And App Registry | Mostly actioned |
 | 5 | CV And AboutOS | Mostly actioned |
-| 6 | Feedback App | Pending |
+| 6 | Feedback App | Complete |
 | 7 | System Components | Mostly actioned |
 | 10 | Product Mono Theme | Complete |
 
@@ -293,10 +293,41 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Recommended Next Work Order
 
-1. Finish Section 1 by wiring File Explorer and desktop context menus into the context menu registry.
-2. Finish Section 2 by completing File Explorer side-nav locations and Visitor Gallery user feedback for rejected uploads.
-3. Finish Section 3 by enforcing `minSize`, `mobileBehavior`, and taskbar-aware maximize behavior.
-4. Finish Section 4 by adding real App Info and Admin deep-link behavior.
-5. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces.
-6. Start Section 6 with a basic Feedback app.
-7. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
+1. Finish Section 4 by adding real App Info and Admin deep-link behavior.
+2. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces and populating CV content from owner's real CV.
+3. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
+4. Build AdminPanel → Visitor Gallery moderation tab (currently placeholder).
+
+---
+
+## System-Wide Updates (from CLAUDE_HANDOFF_SYSTEM_UPDATES.md, actioned 2026-05-04)
+
+### Actioned
+
+- **Window surface performance** — Replaced `bg-black/20 backdrop-blur-xl` with `bg-[#141414]` (solid) in `Window.tsx` for all `glass` surfaceMode windows. Drag lag eliminated.
+- **Admin/user permission boundary** — Added `canWrite()` guard (`auth.currentUser !== null`) to all Firestore write operations in `userStore.ts` and `desktopStore.ts`. Standard visitors no longer trigger permission errors on app load or when opening Settings.
+- **`isAdmin` flag added to authStore** — `authStore` now exposes `isAdmin: boolean`, derived from `user.email === ADMIN_EMAIL` (configurable via `VITE_ADMIN_EMAIL` env var, defaults to `admin@genos.dev`). Used by UI to conditionally show admin-only controls.
+- **File Explorer sidebar color** — Removed bright cyan gradient border wrapper from sidebar. Replaced with `border-white/[0.08]` treatment. Removed glow shadow from active indicator.
+- **Firebase Security Rules** — Added `firestore.rules` and `storage.rules` to project root. Updated `firebase.json` to reference them. Rules: Firestore `os-site_content` = public read / auth write; `os-feedback` = public create (pending only) / auth read+write. Storage = public read / auth write (admin assets); visitor-gallery = public write (image-only, 5MB max).
+- **Feedback app** — `src/components/apps/Feedback.tsx` built and registered. AdminPanel feedback moderation tab wired to `os-feedback` Firestore collection.
+- **AdminPanel** — Fully reworked with 6-tab layout (Overview, Apps, Backgrounds, Milestones, Feedback, Gallery).
+- **firebase.json** — `"public"` dir corrected from `"build"` to `"dist"` for Vite output.
+
+### Still Pending (from handoff)
+
+- **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh. The Firestore write path looks correct in code; rule fix may be sufficient.
+- **About app editing** — Constrained inline editing for Generative Studio details, email, and Kagetsu links. Open question: correct email and Generative Studio website URL.
+- **Taskbar/start icon configuration** — Currently hardcoded. Needs a clear admin/settings path to update it.
+- **Milestones mobile UX** — Tag dropdown (not free-text only), mobile-friendly layout improvements.
+- **CV content** — Needs populating from owner's real CV once provided.
+- **Settings/Admin Panel background** — AdminPanel uses `AppShell` with glass surface; may still need solid background treatment review.
+
+### Open Questions (unresolved from handoff)
+
+- What is the correct admin email address? (`admin@genos.dev` assumed — set `VITE_ADMIN_EMAIL` if different)
+- What is the Generative Studio website URL?
+- Is `Kagetsu` the correct public label and how does it relate to Keketso in About?
+- What GitHub URL should be shown for Kagetsu?
+- Should About app editable content live in Firestore or existing `userStore`?
+- What is the preferred taskbar/start icon?
+- What tags should be available in the milestone dropdown?

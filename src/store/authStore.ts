@@ -9,6 +9,7 @@ import {
 
 interface AuthState {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   user: User | null;
   isLoading: boolean;
   login: (password: string, email?: string) => Promise<{ success: boolean; error?: string }>;
@@ -16,19 +17,23 @@ interface AuthState {
   checkSession: () => Promise<void>;
 }
 
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@genos.dev';
+
+export const isAdminUser = (user: User | null): boolean =>
+  !!user && user.email === ADMIN_EMAIL;
+
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
+  isAdmin: false,
   user: null,
   isLoading: true,
 
   checkSession: async () => {
     set({ isLoading: true });
-    // onAuthStateChanged fires immediately with the persisted auth state,
-    // then continues listening for sign-in / sign-out events.
     return new Promise<void>((resolve) => {
       let resolved = false;
       onAuthStateChanged(auth, (user) => {
-        set({ isAuthenticated: !!user, user, isLoading: false });
+        set({ isAuthenticated: !!user, isAdmin: isAdminUser(user), user, isLoading: false });
         if (!resolved) {
           resolved = true;
           resolve();
@@ -37,10 +42,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  login: async (password: string, email: string = 'admin@genos.dev') => {
+  login: async (password: string, email: string = ADMIN_EMAIL) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      set({ isAuthenticated: true, user });
+      set({ isAuthenticated: true, isAdmin: isAdminUser(user), user });
       return { success: true };
     } catch (error: any) {
       console.error('Login failed:', error.message);
@@ -50,6 +55,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await signOut(auth);
-    set({ isAuthenticated: false, user: null });
+    set({ isAuthenticated: false, isAdmin: false, user: null });
   },
-}));
+});
