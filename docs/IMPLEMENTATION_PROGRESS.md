@@ -21,45 +21,30 @@ Overall status:
 
 ## Section 1: Context Menu System
 
-Status: **Partially actioned**
+Status: **Mostly complete**
 
 What is actioned:
 
 - `src/components/ContextMenu.tsx` exists and renders the active context menu.
-- `src/lib/contextMenuRegistry.ts` exists with:
-  - `ContextId`
-  - `ContextMenuItemDef`
-  - `ContextMenuRequest`
-  - `ContextPermission`
-  - `resolveMenuItems`
-  - `sortAndSeparate`
-- Desktop right-click menu exists in `src/components/Desktop.tsx`.
-- File Explorer right-click menu exists in `src/components/apps/FileExplorer.tsx`.
-- File Explorer menu item construction now uses `ContextMenuItemDef` and `sortAndSeparate` from `contextMenuRegistry.ts`.
-- Start Menu app right-click menu exists in `src/components/StartMenu.tsx`.
-- Desktop and Start Menu app menus now use `ContextMenuItemDef[]` + `sortAndSeparate` from the registry.
-- Window title bar right-click menu added to `src/components/Window.tsx` (Restore/Minimize/Maximize/Close).
-- Context menu styling has moved closer to Product Mono with compact dark menu rows and danger states.
+- `src/lib/contextMenuRegistry.ts` exists with `ContextMenuItemDef`, `sortAndSeparate`, `resolveMenuItems`, `ContextPermission`.
+- Desktop right-click menu uses `ContextMenuItemDef[]` + `sortAndSeparate` (view/sort in `organize` group; desktop controls in `system` group).
+- File Explorer right-click menu uses `ContextMenuItemDef` and `sortAndSeparate`.
+- Start Menu app right-click menu uses `ContextMenuItemDef[]` + `sortAndSeparate` (open in `primary`, pin/unpin in `organize`, app info + admin edit in `system`).
+- Window title bar right-click shows: Restore (if maximized), Minimize, Maximize (if not maximized), Close with Alt+F4 shortcut.
+- Taskbar app buttons right-click: Open/Restore/Minimize (based on window state), Pin/Unpin from Taskbar, Close window.
+- Taskbar background right-click: Show Desktop, Task Manager, Taskbar Settings.
+- Pinned app button context menu resolves window state correctly (minimized windows show Restore).
+- Unpinned running app buttons also have right-click context menu.
+- Context menu styling aligned with Product Mono: compact dark rows, danger states.
 
 Still pending:
-
-- Desktop right-click menu now uses `ContextMenuItemDef[]` + `sortAndSeparate` from the registry (view/sort items in `organize` group; desktop controls in `system` group).
-- Start Menu app right-click menu now uses `ContextMenuItemDef[]` + `sortAndSeparate` (open in `primary`, pin/unpin in `organize`, app info + admin edit in `system`).
-- Window title bar right-click now shows a context menu: Restore (if maximized), Minimize, Maximize (if not maximized), Close with Alt+F4 shortcut.
-
-- Taskbar app buttons (`taskbar.appButton`) now have right-click: Open/Restore/Minimize, Pin/Unpin from Taskbar, Close window.
-- Taskbar background (`taskbar.empty`) now has right-click: Show Desktop, Task Manager, Taskbar Settings.
-- Pinned app button context menu correctly resolves window state (including minimized windows).
-- Unpinned running app buttons also expose the registry-based context menu.
-
-Still pending:
-- `resolveMenuItems` is currently light; it does not yet enforce meaningful permission filtering.
+- `resolveMenuItems` does not yet enforce meaningful permission filtering.
 - Admin record context menu is still pending.
 - File-type-specific menu resolution is still mostly local to File Explorer.
 
 Next smallest action:
 
-Wire taskbar app button right-click menu via registry, then enforce `resolveMenuItems` permission filtering.
+Enforce `resolveMenuItems` permission filtering so visitor-only contexts correctly filter admin-only items.
 
 ## Section 2: File Explorer Locations And Permissions
 
