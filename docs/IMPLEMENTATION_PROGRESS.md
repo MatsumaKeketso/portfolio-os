@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-> Last audited: 2026-05-02, updated 2026-05-05. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
+> Last audited: 2026-05-02, updated 2026-05-05 (session 3). This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
 
@@ -370,6 +370,15 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - **Admin Panel click-through fixed** — Desktop now mounts Admin Panel inside a fixed high z-index pointer-owning shell only while Admin Mode is open. This prevents desktop icons and windows from receiving clicks through the Admin Panel sidebar/content.
 - **Dark chrome contrast corrected** — Admin Panel and shared app shell controls now use explicit dark OS chrome/inset tokens (`os-ink`, `os-line`, `os-text-inverse`) instead of light-mode control tokens that caused pale/white patches on dark surfaces.
 
+### Also Actioned (2026-05-05, session 3 — brand, transparency, logo)
+
+- **Window transparency root cause fixed** — `themeStore.ts` was setting `--os-ink-950/900/800/700` to hex strings (`#111111`), but `tailwind.config.js` uses them in `rgb(var(--token) / alpha)` syntax which requires space-separated channels. `rgb(#111111 / 1)` is invalid CSS and renders as transparent. Fixed: values now set as `'17 17 17'`, `'21 21 21'`, `'31 31 31'`, `'42 42 42'`. Any component using `bg-os-ink-*` now renders correctly. Components already converted to `bg-background-chrome` (Window.tsx, LoginModal.tsx) continue to work unchanged.
+- **Generative Studio set as default theme** — `generativeStudioTheme` added to `themeStore.ts` with red brand colors (`primary: #ef4444`, `secondary: #dc2626`, `tertiary: #f97316`, `accent: #fbbf24`). Replaces `starCitizenTheme` (cyan) as the initial and fallback theme. Listed first in presets.
+- **Brand semantic tokens updated to red** — `src/index.css` brand token section updated: `--color-bg-brand-solid/hover/focus/subtle/subtle-hover`, `--color-fg-brand/hover`, `--color-stroke-brand`, `--color-stroke-focus` all changed from blue values to Generative Studio red. Dark mode brand overrides also updated.
+- **StartMenu header uses logo** — `Icons.Grid3x3` replaced with `png-white-symbol.png` logo import in StartMenu header area.
+- **Logo assets committed** — `src/assets/png-black-symbol.png`, `src/assets/png-color-symbol.png`, `src/assets/png-white-symbol.png` committed to repository. Taskbar uses color variant; StartMenu uses white variant.
+- **CV seed data committed** — `src/data/cvProfileSeed.ts` committed (was untracked). Contains full typed `UserProfile` seed with Keketso Matsuma's CV: personal info, work history (munch.cloud, mLab, CodeUp, CodeTribe), education, certifications, and skill categories.
+
 ### Still Pending (from handoff)
 
 - **Upload persistence browser verification** — Typecheck passes, and metadata recovery is implemented, but the full production path still needs browser testing: upload, refresh, confirm item remains, sign out/in, confirm Firestore/Storage records, and verify visitor visibility for public assets.
@@ -377,8 +386,8 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh.
 - **Auth workflow production verification** — Enable Firebase Email/Password auth, confirm `admin@os.com` exists, deploy updated Firestore/Storage rules, then test superuser login, guest creation/login, Admin Panel access denial for guests, and guest-safe Visitor Gallery upload.
 - **About app editing** — Constrained inline editing for Generative Studio details, email, and Kagetsu links. Open question: correct email and Generative Studio website URL.
-- **Taskbar/start icon configuration** — Currently hardcoded. Needs a clear admin/settings path to update it.
-- **CV content** — Needs populating from owner's real CV once provided.
+- **Taskbar/start icon configuration path** — Assets are now in `src/assets/` and hardcoded in Taskbar/StartMenu. A Settings or Admin Panel path to swap the logo variant is not yet exposed.
+- **CV publish** — Seed data and `seedCVProfile()` are in place. Admin must sign in as `admin@os.com` and click "Populate CV" in the CV app to write the seed to Firebase. Until that happens, CV app shows empty/default profile state.
 - **surfaceMode: 'content' for content apps** — CV, AboutOS, FileExplorer, Settings are set to `glass` in desktopStore but ARCHITECTURE.md specifies `content`. Converting requires full internal redesign of each app's colors from dark-glass to light-canvas.
 
 ### Open Questions (unresolved from handoff)
@@ -388,4 +397,4 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - Is `Kagetsu` the correct public label and how does it relate to Keketso in About?
 - What GitHub URL should be shown for Kagetsu?
 - Should About app editable content live in Firestore or existing `userStore`?
-- What is the preferred taskbar/start icon?
+- Logo assets confirmed at `src/assets/png-{black,color,white}-symbol.png`. Which variant for which surface (dark mode, light mode, active state)?
