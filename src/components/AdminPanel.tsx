@@ -4,7 +4,8 @@ import * as Icons from 'lucide-react';
 import {
   collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { ref, listAll, getMetadata, deleteObject } from 'firebase/storage';
+import { db, storage } from '../lib/firebase';
 import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
 import { App } from '../types';
@@ -97,6 +98,12 @@ export function AdminPanel() {
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'pending' | 'approved' | 'hidden'>('pending');
 
+  // Gallery state
+  interface GalleryImage { path: string; url: string; name: string; size: number; timeCreated: string; }
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryError, setGalleryError] = useState<string | null>(null);
+
   useEffect(() => {
     if (adminEditTargetAppId) {
       setActiveTab('apps');
@@ -105,6 +112,40 @@ export function AdminPanel() {
       setTimeout(() => setHighlightedAppId(null), 2500);
     }
   }, [adminEditTargetAppId, setAdminEditTarget]);
+
+  const loadGalleryImages = async () => {
+    setGalleryLoading(true);
+    setGalleryError(null);
+    try {
+      const galleryRef = ref(storage, 'visitor-gallery');
+      const result = await listAll(galleryRef);
+      const items = await Promise.all(
+        result.items.map(async (item) => {
+          const [url, meta] = await Promise.all([
+            import('firebase/storage').then(({ getDownloadURL }) => getDownloadURL(item)),
+            getMetadata(item),
+          ]);
+          return {
+            path: item.fullPath,
+            url,
+            name: item.name,
+            size: meta.size,
+            timeCreated: meta.timeCreated,
+          };
+        })
+      );
+      items.sort((a, b) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
+      setGalleryImages(items);
+    } catch (err: any) {
+      setGalleryError(err.message ?? 'Failed to load gallery');
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'gallery') loadGalleryImages();
+  }, [activeTab]);
 
   useEffect(() => {
     const q = query(collection(db, 'os-feedback'), orderBy('timestamp', 'desc'));
@@ -815,10 +856,67 @@ export function AdminPanel() {
 
             {/* ── Visitor Gallery ──────────────────────────────────────── */}
             {activeTab === 'gallery' && (
-              <div className="p-6 flex flex-col items-center justify-center min-h-[300px] text-center">
-                <Icons.GalleryHorizontal className="w-10 h-10 text-white/15 mb-3" />
-                <p className="text-sm font-medium text-white/40 mb-1">Visitor Gallery moderation</p>
-                <p className="text-xs text-white/25">Coming in a future update. Visitors will be able to upload images here.</p>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-white/80 flex-1">
+                    Visitor Gallery <span className="text-white/30 font-normal">({galleryImages.length})</span>
+                  </h2>
+                  <button
+                    onClick={loadGalleryImages}
+                    disabled={galleryLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white/80 transition-colors disabled:opacity-40"
+                  >
+                    <Icons.RefreshCw className={cn('w-3.5 h-3.5', galleryLoading && 'animate-spin')} />
+                    Refresh
+                  </button>
+                </div>
+
+                {galleryError && (
+                  <div className="px-4 py-3 rounded bg-red-500/10 border border-red-500/20 text-xs text-red-400">{galleryError}</div>
+                )}
+
+                {galleryLoading && galleryImages.length === 0 ? (
+                  <div className="text-center py-12 text-white/25">
+                    <Icons.Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
+                    <p className="text-xs">Loading visitor uploads…</p>
+                  </div>
+                ) : galleryImages.length === 0 ? (
+                  <div className="text-center py-16 text-white/25">
+                    <Icons.GalleryHorizontal className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No visitor uploads yet.</p>
+                    <p className="text-xs mt-1 text-white/20">Images uploaded to Visitor Gallery appear here.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {galleryImages.map((img) => (
+                      <AppCard key={img.path} className="group relative overflow-hidden p-0">
+                        <img src={img.url} alt={img.name} className="w-full aspect-video object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                          <div className="flex justify-end">
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Delete "${img.name}"?`)) return;
+                                try {
+                                  await deleteObject(ref(storage, img.path));
+                                  setGalleryImages(prev => prev.filter(i => i.path !== img.path));
+                                } catch (err: any) {
+                                  alert('Delete failed: ' + err.message);
+                                }
+                              }}
+                              className="p-1.5 rounded bg-black/60 hover:bg-red-500/80 text-white transition-colors"
+                            >
+                              <Icons.Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-white/80 truncate">{img.name}</p>
+                            <p className="text-[10px] text-white/40">{(img.size / 1024).toFixed(0)} KB · {new Date(img.timeCreated).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </AppCard>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </AppContent>

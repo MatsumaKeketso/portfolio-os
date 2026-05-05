@@ -235,10 +235,12 @@ export function FileExplorer() {
       if (fileType === 'image' || fileType === 'video') {
         try {
           const result = await uploadFile(file, {
-            maxSizeMB: 100,
+            maxSizeMB: locationContext === 'visitorGallery' ? 5 : 100,
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
               : ['image/*', 'video/*'],
+            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : undefined,
+            generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
               setUploadProgress((prev) => {
                 const existing = prev.findIndex((p) => p.fileName === progress.fileName);
@@ -391,10 +393,12 @@ export function FileExplorer() {
       if (fileType === 'image' || fileType === 'video') {
         try {
           const result = await uploadFile(file, {
-            maxSizeMB: 100,
+            maxSizeMB: locationContext === 'visitorGallery' ? 5 : 100,
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
               : ['image/*', 'video/*'],
+            folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : undefined,
+            generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
               setUploadProgress((prev) => {
                 const existing = prev.findIndex((p) => p.fileName === progress.fileName);

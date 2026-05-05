@@ -14,6 +14,7 @@ export interface UploadOptions {
   maxSizeMB?: number;
   allowedTypes?: string[];
   generateUniqueName?: boolean;
+  folder?: string; // storage path prefix, e.g. 'visitor-gallery'
   onProgress?: (progress: UploadProgress) => void;
 }
 
@@ -69,9 +70,10 @@ export const uploadFile = async (
     return { url: '', error: validation.error };
   }
 
-  const fileName = generateUnique
+  const baseName = generateUnique
     ? `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`
     : file.name;
+  const fileName = options.folder ? `${options.folder}/${baseName}` : baseName;
 
   options.onProgress?.({ fileName: file.name, progress: 0, status: 'uploading' });
 
