@@ -10,6 +10,8 @@ import { ContextMenu, ContextMenuItem } from '../ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from '../ui/SystemRow';
 import { MediaSurface } from '../ui/surface';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
+import { storage } from '../../lib/firebase';
+import { ref as storageRef, listAll, getDownloadURL } from 'firebase/storage';
 import { UploadProgressToast } from '../UploadProgress';
 import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
 import { getLocationContext, getPermissions, fileIsWritable } from '../../lib/filePermissions';
@@ -91,6 +93,33 @@ export function FileExplorer() {
 
   const currentFiles = fileStore.getCurrentFolderFiles();
   const pathString = fileStore.getPathString();
+
+  // When navigating to Visitor Gallery, load existing uploads from Firebase Storage
+  useEffect(() => {
+    if (locationContext !== 'visitorGallery') return;
+    const galleryRef = storageRef(storage, 'visitor-gallery');
+    listAll(galleryRef).then(async (result) => {
+      const existingUrls = new Set(
+        fileStore.files.filter(f => f.parentId === VISITOR_GALLERY_ID).map(f => f.dataUrl)
+      );
+      for (const item of result.items) {
+        const url = await getDownloadURL(item);
+        if (existingUrls.has(url)) continue;
+        fileStore.addFile({
+          id: `vg-${item.name}`,
+          name: item.name,
+          type: 'image',
+          mimeType: 'image/jpeg',
+          parentId: VISITOR_GALLERY_ID,
+          path: `/Visitor Gallery/${item.name}`,
+          dataUrl: url,
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
+          isVisitorOwned: true,
+        });
+      }
+    }).catch(() => { /* storage listing failed — gallery stays empty */ });
+  }, [locationContext]);
 
   // ---------------------------------------------------------------------------
   // Sidebar helpers
