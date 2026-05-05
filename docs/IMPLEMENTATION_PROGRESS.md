@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-> Last audited: 2026-05-02, updated 2026-05-04. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
+> Last audited: 2026-05-02, updated 2026-05-05. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
 
@@ -59,7 +59,7 @@ Still pending:
 
 Next smallest action:
 
-Move to Section 3 — enforce `minSize` on window open, then wire `surfaceMode` fully through `Window.tsx` title bar onto `ChromeSurface`.
+Wire taskbar app button right-click menu via registry, then enforce `resolveMenuItems` permission filtering.
 
 ## Section 2: File Explorer Locations And Permissions
 
@@ -169,17 +169,21 @@ What is actioned:
   - `year`
   - `projectLinks`
 
+Also actioned (2026-05-05):
+
+- `Edit in Admin` now deep-links: sets `adminEditTargetAppId` in `desktopStore` before opening AdminPanel. AdminPanel switches to Apps tab and briefly highlights the target app row, then clears state.
+- `App Info` is now enabled: fires an OS notification with app name, description, and default window size.
+- Milestone tag picker: replaced free-text input with clickable predefined tag chips (23 tags) plus a custom tag input field. Image grid made responsive.
+
 Still pending:
 
 - Start Menu has no explicit `Personal` or `Admin` group yet.
-- `Edit in Admin` currently only closes the Start Menu; it does not deep-link/select the app in Admin Panel.
-- App Info is disabled rather than opening a real details panel.
 - App context menu is locally assembled rather than using the registry.
 - Admin Panel project publishing fields should be checked against the new metadata and filled out where missing.
 
 Next smallest action:
 
-Add a real App Info panel or modal, then connect `Edit in Admin` to the specific app record.
+Connect Start Menu app groups to a proper Admin/Personal designation in app metadata.
 
 ## Section 5: CV And AboutOS
 
@@ -313,14 +317,22 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - **AdminPanel** — Fully reworked with 6-tab layout (Overview, Apps, Backgrounds, Milestones, Feedback, Gallery).
 - **firebase.json** — `"public"` dir corrected from `"build"` to `"dist"` for Vite output.
 
+### Also Actioned (2026-05-05)
+
+- **Theme token cleanup** — Replaced hardcoded `bg-[#141414]` hex values with `bg-background-chrome` semantic token across Taskbar, CalendarPopup, ContextMenu, NotificationPanel, VolumePopup, AdminPanel. Wired `background.chrome/chrome-raised/floating` Tailwind utilities through CSS variable primitives (`index.css` + `tailwind.config.js`). OS ink tokens now use CSS variable channels.
+- **FileExplorer performance** — Removed `AuroraBackground` animated component and `backdrop-blur-md` from FileExplorer root div. No more animated background or GPU compositing on every render.
+- **FileExplorer drag lag** — Confirmed: Window.tsx already uses `bg-background-chrome` (solid `#111111`) for `glass` surfaceMode. No backdrop-blur on window bodies.
+- **Milestone tag picker** — Tags field replaced with clickable predefined chip picker (23 tags) + custom tag input on Enter. Image grid made responsive (`grid-cols-2` → `sm:grid-cols-4`).
+- **Edit in Admin deep-link** — `adminEditTargetAppId` state in desktopStore; StartMenu sets it before opening AdminPanel; AdminPanel switches to Apps tab and highlights target row with primary ring for 2.5s.
+- **App Info notification** — App Info context menu item is now enabled; shows OS notification with app name, description, and default window size.
+
 ### Still Pending (from handoff)
 
-- **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh. The Firestore write path looks correct in code; rule fix may be sufficient.
+- **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh.
 - **About app editing** — Constrained inline editing for Generative Studio details, email, and Kagetsu links. Open question: correct email and Generative Studio website URL.
 - **Taskbar/start icon configuration** — Currently hardcoded. Needs a clear admin/settings path to update it.
-- **Milestones mobile UX** — Tag dropdown (not free-text only), mobile-friendly layout improvements.
 - **CV content** — Needs populating from owner's real CV once provided.
-- **Settings/Admin Panel background** — AdminPanel uses `AppShell` with glass surface; may still need solid background treatment review.
+- **surfaceMode: 'content' for content apps** — CV, AboutOS, FileExplorer, Settings are set to `glass` in desktopStore but ARCHITECTURE.md specifies `content`. Converting requires full internal redesign of each app's colors from dark-glass to light-canvas.
 
 ### Open Questions (unresolved from handoff)
 
@@ -330,4 +342,3 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - What GitHub URL should be shown for Kagetsu?
 - Should About app editable content live in Firestore or existing `userStore`?
 - What is the preferred taskbar/start icon?
-- What tags should be available in the milestone dropdown?
