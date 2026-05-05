@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
+import { useNotificationStore } from '../store/notificationStore';
 import { App } from '../types';
 import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
@@ -77,9 +78,10 @@ interface StartMenuProps {
 }
 
 export function StartMenu({ anchor }: StartMenuProps = {}) {
-  const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp } =
+  const { apps, isStartMenuOpen, openWindow, setStartMenuOpen, isAdminMode, updateApp, setAdminEditTarget } =
     useDesktopStore();
   const { isAuthenticated, logout } = useAuthStore();
+  const { addNotification } = useNotificationStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomization, setShowCustomization] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -130,17 +132,23 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
       group: 'organize',
       action: () => updateApp(app.id, { pinnedToDesktop: !app.pinnedToDesktop }),
     },
-    ...(app.description
-      ? [{
-          id: 'app-info',
-          label: 'App Info',
-          icon: Icons.Info,
-          group: 'system' as MenuGroup,
-          disabled: true,
-          shortcut: app.description.slice(0, 28) + (app.description.length > 28 ? '…' : ''),
-          action: () => {},
-        }]
-      : []),
+    {
+      id: 'app-info',
+      label: 'App Info',
+      icon: Icons.Info,
+      group: 'system' as MenuGroup,
+      action: () => {
+        addNotification({
+          type: 'info',
+          title: app.name,
+          message: [
+            app.description,
+            app.defaultSize ? `${app.defaultSize.width}×${app.defaultSize.height}` : null,
+          ].filter(Boolean).join(' — '),
+          duration: 6000,
+        });
+      },
+    },
     ...(isAuthenticated && isAdminMode
       ? [{
           id: 'edit-admin',
@@ -149,7 +157,10 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
           group: 'system' as MenuGroup,
           action: () => {
             const adminApp = apps.find(a => a.id === 'admin-panel');
-            if (adminApp) openWindow(adminApp);
+            if (adminApp) {
+              setAdminEditTarget(app.id);
+              openWindow(adminApp);
+            }
             setStartMenuOpen(false);
           },
         }]

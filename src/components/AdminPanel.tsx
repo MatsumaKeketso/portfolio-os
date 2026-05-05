@@ -55,10 +55,12 @@ export function AdminPanel() {
   const {
     apps, isAdminMode, addApp, removeApp, updateApp, openWindow, exportConfig, importConfig,
     backgrounds, selectedBackgroundId, addBackground, removeBackground, setSelectedBackground,
+    adminEditTargetAppId, setAdminEditTarget,
   } = useDesktopStore();
   const { profile, addMilestone, updateMilestone, removeMilestone } = useUserStore();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [highlightedAppId, setHighlightedAppId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [appContextMenu, setAppContextMenu] = useState<{ x: number; y: number; app: App } | null>(null);
@@ -94,6 +96,15 @@ export function AdminPanel() {
   // Feedback state
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'pending' | 'approved' | 'hidden'>('pending');
+
+  useEffect(() => {
+    if (adminEditTargetAppId) {
+      setActiveTab('apps');
+      setHighlightedAppId(adminEditTargetAppId);
+      setAdminEditTarget(null);
+      setTimeout(() => setHighlightedAppId(null), 2500);
+    }
+  }, [adminEditTargetAppId, setAdminEditTarget]);
 
   useEffect(() => {
     const q = query(collection(db, 'os-feedback'), orderBy('timestamp', 'desc'));
@@ -476,7 +487,7 @@ export function AdminPanel() {
                     {apps.map((app) => {
                       const Icon = getIcon(app.icon);
                       return (
-                        <div key={app.id} className="px-4 py-2.5 grid grid-cols-12 gap-4 items-center hover:bg-white/[0.03] transition-colors group" onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
+                        <div key={app.id} className={cn('px-4 py-2.5 grid grid-cols-12 gap-4 items-center transition-colors group', highlightedAppId === app.id ? 'bg-primary-500/10 ring-1 ring-inset ring-primary-500/20' : 'hover:bg-white/[0.03]')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
                           <div className="col-span-4 flex items-center gap-2 min-w-0">
                             {app.customIcon ? <img src={app.customIcon} alt={app.name} className="w-4 h-4 object-contain flex-shrink-0" /> : <Icon className="w-4 h-4 text-white/40 flex-shrink-0" />}
                             <span className="text-sm text-white/80 truncate">{app.name}</span>

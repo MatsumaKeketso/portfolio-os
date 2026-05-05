@@ -29,6 +29,8 @@ interface DesktopStore {
   backgrounds: DesktopBackground[];
   selectedBackgroundId: string;
   systemPreferences: SystemPreferences;
+  adminEditTargetAppId: string | null;
+  setAdminEditTarget: (appId: string | null) => void;
 
   addApp: (app: App) => void;
   removeApp: (appId: string) => void;
@@ -459,14 +461,16 @@ const saveSystemPreferences = (preferences: SystemPreferences): void => {
 };
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
-  apps: defaultApps, // Will be loaded from Supabase via fetchApps()
+  apps: defaultApps,
   windows: [],
   isStartMenuOpen: false,
   isAdminMode: false,
   maxZIndex: 1000,
-  backgrounds: defaultBackgrounds, // Will be loaded from Supabase via fetchBackgrounds()
-  selectedBackgroundId: 'default-quantum', // Will be loaded from Supabase
+  backgrounds: defaultBackgrounds,
+  selectedBackgroundId: 'default-quantum',
   systemPreferences: loadSystemPreferences(),
+  adminEditTargetAppId: null,
+  setAdminEditTarget: (appId) => set({ adminEditTargetAppId: appId }),
 
   fetchApps: async () => {
     const apps = await fetchAppsFromFirestore();
