@@ -159,6 +159,8 @@ Also actioned (2026-05-05):
 - `Edit in Admin` now deep-links: sets `adminEditTargetAppId` in `desktopStore` before opening AdminPanel. AdminPanel switches to Apps tab and briefly highlights the target app row, then clears state.
 - `App Info` is now enabled: fires an OS notification with app name, description, and default window size.
 - Milestone tag picker: replaced free-text input with clickable predefined tag chips (23 tags) plus a custom tag input field. Image grid made responsive.
+- **Visitor Gallery upload path bug fixed**: Visitor uploads were going to storage root (blocked by auth rules) and silently falling back to ephemeral data URLs. Now routes to `visitor-gallery/` prefix with unique names and 5MB limit, matching the storage rules.
+- **Gallery moderation tab implemented**: AdminPanel Gallery tab replaced with real UI — lists images from Firebase Storage `visitor-gallery/`, shows thumbnails with name/size/date, allows admin delete with confirmation. Loads on tab switch.
 
 Still pending:
 
@@ -282,10 +284,10 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Recommended Next Work Order
 
-1. Finish Section 4 by adding real App Info and Admin deep-link behavior.
+1. ~~Finish Section 4 by adding real App Info and Admin deep-link behavior.~~ ✓ Done 2026-05-05
 2. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces and populating CV content from owner's real CV.
 3. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
-4. Build AdminPanel → Visitor Gallery moderation tab (currently placeholder).
+4. ~~Build AdminPanel → Visitor Gallery moderation tab (currently placeholder).~~ ✓ Done 2026-05-05
 
 ---
 
