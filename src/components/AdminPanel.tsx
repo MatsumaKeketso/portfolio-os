@@ -44,6 +44,13 @@ const TAB_ICONS: Record<AdminTab, keyof typeof Icons> = {
   gallery: 'GalleryHorizontal',
 };
 
+const MILESTONE_TAGS = [
+  'TypeScript', 'JavaScript', 'Python', 'React', 'Next.js', 'Node.js',
+  'Firebase', 'GraphQL', 'REST API', 'SQL', 'Figma', 'UI/UX',
+  'Frontend', 'Backend', 'Full Stack', 'Mobile', 'AI/ML', 'DevOps',
+  'Open Source', 'Design Systems', 'Animation', 'Performance', 'Architecture',
+];
+
 export function AdminPanel() {
   const {
     apps, isAdminMode, addApp, removeApp, updateApp, openWindow, exportConfig, importConfig,
@@ -564,14 +571,14 @@ export function AdminPanel() {
                           setShowMilestoneForm(false); setEditingMilestone(null);
                           setMilestoneFormData({ title: '', description: '', date: new Date().toISOString().split('T')[0], category: 'project', images: [], links: [], tags: [], featured: false });
                         }} className="space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-[1fr_auto] gap-3">
                             <div>
                               <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 mb-1.5">Title *</label>
                               <input type="text" value={milestoneFormData.title} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, title: e.target.value })} placeholder="Milestone title" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                             </div>
                             <div>
                               <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 mb-1.5">Date *</label>
-                              <input type="date" value={milestoneFormData.date} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, date: e.target.value })} required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              <input type="date" value={milestoneFormData.date} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, date: e.target.value })} required className={cn(appInputClass, 'px-3 py-2 text-sm')} />
                             </div>
                           </div>
 
@@ -593,8 +600,50 @@ export function AdminPanel() {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 mb-1.5">Tags (comma-separated)</label>
-                            <input type="text" value={milestoneFormData.tags.join(', ')} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })} placeholder="React, TypeScript, Design" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30">Tags</label>
+                              {milestoneFormData.tags.length > 0 && (
+                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, tags: [] }))} className="text-[10px] text-white/30 hover:text-white/50 transition-colors">Clear</button>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              {MILESTONE_TAGS.map(tag => {
+                                const active = milestoneFormData.tags.includes(tag);
+                                return (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => setMilestoneFormData(prev => ({
+                                      ...prev,
+                                      tags: active ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag],
+                                    }))}
+                                    className={cn(
+                                      'px-2 py-0.5 rounded text-[11px] border transition-colors',
+                                      active
+                                        ? 'bg-primary-500/20 border-primary-500/40 text-primary-400'
+                                        : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:bg-white/[0.08] hover:text-white/60',
+                                    )}
+                                  >
+                                    {tag}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Custom tag, press Enter"
+                              className={cn(appInputClass, 'px-3 py-1.5 text-xs w-full')}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  if (val && !milestoneFormData.tags.includes(val)) {
+                                    setMilestoneFormData(prev => ({ ...prev, tags: [...prev.tags, val] }));
+                                  }
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }}
+                            />
                           </div>
 
                           {/* Images */}
@@ -614,7 +663,7 @@ export function AdminPanel() {
                               </label>
                             </div>
                             {milestoneFormData.images.length > 0 && (
-                              <div className="grid grid-cols-4 gap-2">
+                              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 {milestoneFormData.images.map((img, idx) => (
                                   <div key={idx} className="relative group">
                                     <img src={img} alt="" className="w-full aspect-video object-cover rounded border border-white/[0.08]" />
