@@ -62,15 +62,15 @@ export function NotificationPanel({ anchor, onClose }: NotificationPanelProps) {
       exit={{ opacity: 0, y: 8, scale: 0.96 }}
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
       style={{ position: 'fixed', bottom: anchor.bottom, left, width }}
-      className="bg-background-chrome/95 backdrop-blur-md border border-white/[0.08] rounded-2xl shadow-xl shadow-black/50 z-[10001] overflow-hidden"
+      className="bg-background-chrome/95 backdrop-blur-md border border-os-line-dark rounded-2xl shadow-xl shadow-black/50 z-[10001] overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-os-line-dark">
         <div className="flex items-center gap-2">
           <Bell className="w-3.5 h-3.5 text-white/40" />
           <span className="text-xs font-semibold text-white/60">Notifications</span>
           {notifications.length > 0 && (
-            <span className="text-[10px] bg-white/[0.08] text-white/40 px-1.5 py-0.5 rounded-full">
+            <span className="text-[10px] bg-os-ink-800 text-white/55 px-1.5 py-0.5 rounded-full">
               {notifications.length}
             </span>
           )}
@@ -78,7 +78,7 @@ export function NotificationPanel({ anchor, onClose }: NotificationPanelProps) {
         {notifications.length > 0 && (
           <button
             onClick={clearAll}
-            className="p-1 rounded text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+            className="p-1 rounded text-white/30 hover:text-white/60 hover:bg-os-ink-800 transition-colors"
             title="Clear all"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -99,9 +99,9 @@ export function NotificationPanel({ anchor, onClose }: NotificationPanelProps) {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="border-b border-white/[0.04] last:border-0"
+                  className="border-b border-os-line-dark last:border-0"
                 >
-                  <div className="flex items-start gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors group">
+                  <div className="flex items-start gap-3 px-4 py-3 hover:bg-os-ink-900 transition-colors group">
                     <Icon className={cn('w-4 h-4 mt-px flex-shrink-0', TYPE_COLOR[n.type])} />
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-white/80 leading-snug">{n.title}</p>

@@ -1,31 +1,104 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function isSuperuser() {
-      return request.auth != null
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOsSuperuser() {
+      return isAuthed()
              && request.auth.token.email == 'admin@os.com';
     }
 
-    // Visitor Gallery: image-only, size-limited, no auth required.
+    function isGenOsManagedPath(topLevel) {
+      return topLevel == 'visitor-gallery'
+             || topLevel == 'app-icons'
+             || topLevel == 'app-media'
+             || topLevel == 'backgrounds'
+             || topLevel == 'milestones'
+             || topLevel == 'desktop-uploads'
+             || topLevel == 'portfolio-files'
+             || topLevel == 'reads';
+    }
+
+    // GenOS: Visitor Gallery. Public image upload zone, size-limited.
     match /visitor-gallery/{allPaths=**} {
       allow read: if true;
-      allow write: if request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+      allow create: if request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+      allow update, delete: if isOsSuperuser();
     }
 
-    // App preview media: owner-curated screenshots and short videos.
+    // GenOS: Owner-curated app icons (uploaded images).
+    match /app-icons/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 2 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if isOsSuperuser();
+    }
+
+    // GenOS: Owner-curated app preview media.
     match /app-media/{allPaths=**} {
       allow read: if true;
-      allow write: if isSuperuser()
-                   && request.resource.size < 25 * 1024 * 1024
-                   && request.resource.contentType.matches('(image|video)/.*');
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 25 * 1024 * 1024
+                            && request.resource.contentType.matches('(image|video)/.*');
+      allow delete: if isOsSuperuser();
     }
 
-    // Public owner-curated assets. Visitors can read; only superuser can write.
-    match /{allPaths=**} {
+    // GenOS: Owner-curated backgrounds.
+    match /backgrounds/{allPaths=**} {
       allow read: if true;
-      allow write: if isSuperuser()
-                   && request.resource.size < 10 * 1024 * 1024;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 10 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if isOsSuperuser();
+    }
+
+    // GenOS: Owner-curated milestone images.
+    match /milestones/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 2 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if isOsSuperuser();
+    }
+
+    // GenOS: Owner desktop uploads.
+    match /desktop-uploads/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 100 * 1024 * 1024
+                            && request.resource.contentType.matches('(image|video)/.*');
+      allow delete: if isOsSuperuser();
+    }
+
+    // GenOS: Owner-managed file and read assets.
+    match /portfolio-files/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 100 * 1024 * 1024;
+      allow delete: if isOsSuperuser();
+    }
+
+    match /reads/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isOsSuperuser()
+                            && request.resource.size < 10 * 1024 * 1024
+                            && request.resource.contentType.matches('image/.*');
+      allow delete: if isOsSuperuser();
+    }
+
+    // Other app namespaces in the same Firebase project.
+    // Keep GenOS restrictions scoped to managed folders so other apps are not locked out.
+    match /{topLevel}/{allPaths=**} {
+      allow read, write: if !isGenOsManagedPath(topLevel);
+    }
+
+    // Root-level files, for legacy apps that do not use folder prefixes.
+    match /{fileName} {
+      allow read, write: if true;
     }
   }
 }

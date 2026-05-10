@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import generativeStudioLogo from '../assets/png-white-symbol.png';
+import { AppIcon } from '../lib/AppIcon';
 import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
@@ -52,20 +53,10 @@ const GROUP_ORDER: AppGroup[] = ['work', 'projects', 'system'];
 // Icon helper — 24×24 app icon for the SystemRow icon slot
 // ---------------------------------------------------------------------------
 
-function AppIcon({ app, getIcon }: { app: App; getIcon: (name: string) => any }) {
-  if (app.customIcon) {
-    return (
-      <img
-        src={app.customIcon}
-        alt=""
-        className="w-5 h-5 rounded object-contain"
-      />
-    );
-  }
-  const Icon = getIcon(app.icon);
+function StartMenuAppIcon({ app }: { app: App }) {
   return (
-    <span className="w-5 h-5 rounded bg-white/[0.08] flex items-center justify-center flex-shrink-0">
-      <Icon className="w-3 h-3 text-white/80" />
+    <span className="w-5 h-5 rounded bg-os-ink-800 flex items-center justify-center flex-shrink-0">
+      <AppIcon icon={app.icon} customIcon={app.customIcon} className="w-3 h-3 text-white/80" />
     </span>
   );
 }
@@ -88,17 +79,6 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [appMenu, setAppMenu] = useState<{ app: App; x: number; y: number } | null>(null);
-
-  const getIcon = (iconName: string) => {
-    const Icon =
-      (Icons as any)[
-        iconName
-          .split('-')
-          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join('')
-      ] || Icons.Square;
-    return Icon;
-  };
 
   const handleOpenApp = (app: App) => {
     openWindow(app);
@@ -225,15 +205,15 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
             <div
               className="flex flex-col overflow-hidden rounded-lg"
               style={{
-                background: '#151515',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgb(var(--os-ink-900) / 1)',
+                border: '1px solid var(--os-line-dark)',
                 boxShadow: '0 18px 50px rgba(0,0,0,0.42), 0 4px 16px rgba(0,0,0,0.28)',
               }}
             >
               {/* Header */}
               <div
                 className="flex items-center justify-between px-4 py-2.5"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                style={{ borderBottom: '1px solid var(--os-line-dark)' }}
               >
                 <div className="flex items-center gap-2">
                   <img src={generativeStudioLogo} alt="" className="w-[18px] h-[18px] object-contain" />
@@ -258,7 +238,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                     placeholder="Search apps..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/[0.05] border border-white/[0.09] rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-white/[0.16] transition-colors"
+                    className="w-full bg-os-ink-800 border border-os-line-dark rounded-md pl-8 pr-3 py-1.5 text-[12px] text-white placeholder:text-white/25 outline-none focus:border-stroke-brand transition-colors"
                     autoFocus
                   />
                 </div>
@@ -274,7 +254,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                       {filteredApps!.map((app) => (
                         <SystemRow
                           key={app.id}
-                          icon={<AppIcon app={app} getIcon={getIcon} />}
+                          icon={<StartMenuAppIcon app={app} />}
                           label={app.name}
                           description={app.description}
                           context="chrome"
@@ -299,7 +279,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                         {groupApps.map((app) => (
                           <SystemRow
                             key={app.id}
-                            icon={<AppIcon app={app} getIcon={getIcon} />}
+                            icon={<StartMenuAppIcon app={app} />}
                             label={app.name}
                             description={app.description}
                             context="chrome"
@@ -331,13 +311,13 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                       ? 'bg-primary-500/15 border-primary-500/35'
                       : isAuthenticated
                         ? 'bg-emerald-500/12 border-emerald-500/30'
-                        : 'bg-white/[0.08] border-transparent'
+                        : 'bg-os-ink-800 border-transparent'
                   }`}>
                     <Icons.User className={`w-3 h-3 ${
                       isAdmin ? 'text-primary-300' : isAuthenticated ? 'text-emerald-300' : 'text-white/50'
                     }`} />
                     {isAuthenticated && (
-                      <span className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-[#151515] ${
+                      <span className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-background-chrome ${
                         isAdmin ? 'bg-primary-400' : 'bg-emerald-400'
                       }`} />
                     )}
@@ -359,7 +339,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                   <button
                     onClick={() => setShowCustomization(true)}
                     title="Appearance"
-                    className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-white/[0.07] hover:text-white/70 transition-colors"
+                    className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-os-ink-800 hover:text-white/70 transition-colors"
                   >
                     <Icons.Palette className="w-3.5 h-3.5" />
                   </button>
@@ -375,7 +355,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                     <button
                       onClick={() => setShowLoginModal(true)}
                       title="Sign In"
-                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-white/[0.07] hover:text-white/70 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-os-ink-800 hover:text-white/70 transition-colors"
                     >
                       <Icons.LogIn className="w-3.5 h-3.5" />
                     </button>
@@ -394,7 +374,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.98 }}
                         transition={{ duration: 0.14 }}
-                        className="absolute right-2 bottom-11 z-[10001] w-64 rounded-lg border border-white/[0.10] bg-background-chrome shadow-os-window p-3"
+                        className="absolute right-2 bottom-11 z-[10001] w-64 rounded-lg border border-os-line-dark bg-background-chrome shadow-os-window p-3"
                       >
                         <div className="flex gap-3">
                           <div className="mt-0.5 w-6 h-6 rounded-full bg-primary-500/15 border border-primary-500/25 flex items-center justify-center shrink-0">
@@ -410,7 +390,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                         <div className="mt-3 flex justify-end gap-2">
                           <button
                             onClick={() => setShowLogoutConfirm(false)}
-                            className="rounded px-2.5 py-1.5 text-xs text-white/55 hover:bg-white/[0.07] hover:text-white/80 transition-colors"
+                            className="rounded px-2.5 py-1.5 text-xs text-white/55 hover:bg-os-ink-800 hover:text-white/80 transition-colors"
                           >
                             Cancel
                           </button>
@@ -430,7 +410,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
               {/* Studio credit */}
               <div
                 className="text-center py-1"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+                style={{ borderTop: '1px solid var(--os-line-dark)' }}
               >
                 <span className="text-[10px] text-white/15">Built by Generative Studio</span>
               </div>

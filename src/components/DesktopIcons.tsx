@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useDesktopContrast } from '../hooks/useDesktopContrast';
 import { App } from '../types';
+import { AppIcon } from '../lib/AppIcon';
 
 interface GridPosition {
   row: number;
@@ -47,28 +48,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     currentPos: { x: number; y: number };
   } | null>(null);
 
-  const getIcon = (iconName: string) => {
-    const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join('')] || Icons.Square;
-    return Icon;
-  };
-
-  // Render icon - either custom image or lucide icon
-  const renderIcon = (app: App, className: string) => {
-    if (app.customIcon) {
-      return (
-        <img
-          src={app.customIcon}
-          alt={app.name}
-          className={className}
-          style={{ objectFit: 'contain' }}
-        />
-      );
-    }
-    const Icon = getIcon(app.icon);
-    return <Icon className={className} />;
-  };
+  const renderIcon = (app: App, className: string) => (
+    <AppIcon icon={app.icon} customIcon={app.customIcon} className={className} />
+  );
 
   // Update container height
   useEffect(() => {
@@ -209,6 +191,37 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   // Get apps in their display order (reordered if dragging, then sorted)
   const reorderedApps = getReorderedApps();
   const displayApps = draggingAppId ? reorderedApps : sortApps(reorderedApps);
+  const previewEase = [0.16, 1, 0.3, 1] as const;
+  const previewStageVariants: Variants = {
+    hidden: { opacity: 0, y: 16, scale: 0.985 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: previewEase,
+        delayChildren: 0.04,
+        staggerChildren: 0.055,
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: 10,
+      scale: 0.99,
+      transition: {
+        duration: 0.28,
+        ease: previewEase,
+        staggerChildren: 0.035,
+        staggerDirection: -1,
+      },
+    },
+  };
+  const previewItemVariants: Variants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: previewEase } },
+    exit: { opacity: 0, y: 8, transition: { duration: 0.16, ease: previewEase } },
+  };
 
   const handleIconHover = (app: App, position: { x: number; y: number }) => {
     if (!draggingAppId) {
@@ -234,31 +247,57 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
               className="fixed inset-0 pointer-events-none"
               style={{ zIndex: 5 }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500/18 via-background-chrome/28 to-secondary-500/18" />
-              <div className="absolute inset-0 bg-black/58" />
-              <div className="absolute inset-y-0 left-0 w-[68vw] bg-gradient-to-r from-background-chrome/96 via-background-chrome/78 to-transparent backdrop-blur-2xl [mask-image:linear-gradient(to_right,black_0%,black_68%,transparent_100%)]" />
-              <div className="absolute inset-y-0 left-0 w-[54vw] bg-gradient-to-r from-black/50 via-black/18 to-transparent" />
-
+              <div className="absolute inset-0 bg-black/46" />
               <motion.div
-                initial={{ opacity: 0, y: 18, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.98 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, x: -90 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -150 }}
+                transition={{ duration: 0.44, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute -left-[18vw] -top-[26vh] h-[118vh] w-[86vw] rounded-br-[48vw] rounded-tr-[42vw] bg-background-chrome/90 shadow-[40px_0_120px_rgba(0,0,0,0.48)] [mask-image:radial-gradient(ellipse_at_0%_0%,black_0%,black_62%,transparent_100%)]"
+              />
+              <motion.div
+                initial={{ opacity: 0, x: -70 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -120 }}
+                transition={{ duration: 0.4, delay: 0.035, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute -left-[12vw] -top-[18vh] h-[102vh] w-[70vw] rounded-br-[40vw] rounded-tr-[36vw] bg-gradient-to-br from-black/54 via-black/18 to-transparent"
+              />
+              <motion.div
+                initial={{ opacity: 0, x: -90 }}
+                animate={{ opacity: 0.16, x: 0 }}
+                exit={{ opacity: 0, x: -150 }}
+                transition={{ duration: 0.46, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute -left-[18vw] -top-[26vh] h-[118vh] w-[86vw] rounded-br-[48vw] rounded-tr-[42vw] opacity-[0.16] mix-blend-screen [mask-image:radial-gradient(ellipse_at_0%_0%,black_0%,black_64%,transparent_100%)]"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.55) 1px, transparent 0), radial-gradient(circle at 11px 17px, rgba(255,255,255,0.22) 1px, transparent 0)',
+                  backgroundSize: '18px 18px, 23px 23px',
+                }}
+              />
+
+              <AnimatePresence mode="wait">
+              <motion.div
+                key={hoveredApp.id}
+                variants={previewStageVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="absolute left-[8vw] right-[8vw] top-[10vh] grid max-h-[78vh] grid-cols-[minmax(320px,0.95fr)_minmax(380px,1.05fr)] gap-8"
               >
                 <div className="relative space-y-6 self-center p-2">
-                  <div className="relative inline-flex h-24 w-24 items-center justify-center">
+                  <motion.div variants={previewItemVariants} className="relative inline-flex h-24 w-24 items-center justify-center">
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500/30 to-secondary-500/20 blur-xl" />
-                    <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-white/[0.10] bg-white/[0.06]">
+                    <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-os-line-dark bg-os-ink-900/70">
                       {renderIcon(hoveredApp, "w-12 h-12 text-white drop-shadow-2xl")}
                     </div>
-                  </div>
+                  </motion.div>
 
-                  <div className="space-y-3">
+                  <motion.div variants={previewItemVariants} className="space-y-3">
                     <h1 className="max-w-3xl text-6xl font-bold leading-tight tracking-normal text-white">
                       {hoveredApp.name}
                     </h1>
@@ -272,9 +311,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                     <p className="max-w-2xl text-base leading-relaxed text-white/62">
                       {hoveredApp.description || 'No description available.'}
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex flex-wrap gap-3 pt-1">
+                  <motion.div variants={previewItemVariants} className="flex flex-wrap gap-3 pt-1">
                     {hoveredApp.pinnedToTaskbar && (
                       <span className="flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/15 px-3 py-1.5 text-sm font-medium text-primary-200">
                         <Icons.Pin className="w-4 h-4" />
@@ -282,28 +321,28 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                       </span>
                     )}
                     {hoveredApp.pinnedToDesktop && (
-                      <span className="flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 text-sm font-medium text-white/65">
+                      <span className="flex items-center gap-2 rounded-full border border-os-line-dark bg-os-ink-900/70 px-3 py-1.5 text-sm font-medium text-white/65">
                         <Icons.Monitor className="w-4 h-4" />
                         Pinned to Desktop
                       </span>
                     )}
                     {mediaItems.length > 0 && (
-                      <span className="flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 text-sm font-medium text-white/65">
+                      <span className="flex items-center gap-2 rounded-full border border-os-line-dark bg-os-ink-900/70 px-3 py-1.5 text-sm font-medium text-white/65">
                         <Icons.Images className="w-4 h-4" />
                         {mediaItems.length} media {mediaItems.length === 1 ? 'item' : 'items'}
                       </span>
                     )}
-                  </div>
+                  </motion.div>
 
                   {hoveredApp.url && (
-                    <div className="flex max-w-xl items-center gap-2 text-sm text-white/42">
+                    <motion.div variants={previewItemVariants} className="flex max-w-xl items-center gap-2 text-sm text-white/42">
                       <Icons.Link className="w-4 h-4 shrink-0 text-primary-300" />
                       <span className="truncate">{hoveredApp.url}</span>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
 
-                <div className="self-center overflow-hidden rounded-2xl border border-white/[0.10] bg-background-chrome shadow-2xl shadow-black/60">
+                <motion.div variants={previewItemVariants} className="self-center overflow-hidden rounded-2xl border border-os-line-dark bg-background-chrome shadow-2xl shadow-black/60">
                   <div className="relative aspect-video bg-background-chrome-raised">
                     {previewMedia ? (
                       previewMedia.type === 'video' ? (
@@ -313,7 +352,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                       )
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <div className="flex h-28 w-28 items-center justify-center rounded-3xl border border-white/[0.08] bg-white/[0.05]">
+                        <div className="flex h-28 w-28 items-center justify-center rounded-3xl border border-os-line-dark bg-os-ink-900/70">
                           {renderIcon(hoveredApp, "w-14 h-14 text-white/70")}
                         </div>
                       </div>
@@ -325,7 +364,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                         <p className="text-xs text-white/40">{previewMedia ? `${previewMedia.type} preview` : 'Application preview'}</p>
                       </div>
                       {previewMedia && (
-                        <span className="flex items-center gap-1.5 rounded-md border border-white/[0.10] bg-background-chrome/80 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white/60">
+                        <span className="flex items-center gap-1.5 rounded-md border border-os-line-dark bg-background-chrome/80 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white/60">
                           {previewMedia.type === 'video' ? <Icons.Video className="w-3 h-3" /> : <Icons.Image className="w-3 h-3" />}
                           {previewMedia.type}
                         </span>
@@ -334,9 +373,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                   </div>
 
                   {mediaItems.length > 1 && (
-                    <div className="grid grid-cols-4 gap-2 border-t border-white/[0.06] p-3">
+                    <div className="grid grid-cols-4 gap-2 border-t border-os-line-dark p-3">
                       {mediaItems.slice(0, 4).map((item) => (
-                        <div key={item.id} className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                        <div key={item.id} className="relative overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900/70">
                           {item.type === 'video' ? (
                             <video src={item.url} muted playsInline className="aspect-video w-full object-cover" />
                           ) : (
@@ -349,8 +388,9 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                       ))}
                     </div>
                   )}
-                </div>
+                </motion.div>
               </motion.div>
+              </AnimatePresence>
             </motion.div>
           )
         })()}
@@ -394,10 +434,10 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
             }}
             className={`flex flex-col items-center gap-1 p-2 rounded-lg group ${
               isDragging || isHovered
-                ? contrastMode === 'light' ? 'bg-black/[0.12]' : 'bg-white/[0.16]'
+                ? contrastMode === 'light' ? 'bg-black/[0.12]' : 'bg-os-ink-800/70'
                 : contrastMode === 'light'
                   ? 'hover:bg-black/[0.07] active:bg-black/[0.12]'
-                  : 'hover:bg-white/[0.08] active:bg-white/[0.16]'
+                  : 'hover:bg-os-ink-800/60 active:bg-os-ink-800'
             }`}
           >
             <div

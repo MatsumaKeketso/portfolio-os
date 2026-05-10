@@ -56,7 +56,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, y: -4 }}
       transition={{ duration: 0.08, ease: 'easeOut' }}
-      className="fixed z-[15002] min-w-[200px] py-1 rounded-lg overflow-hidden bg-background-floating border border-white/[0.08] shadow-os-floating"
+      className="fixed z-[15002] min-w-[200px] py-1 rounded-lg overflow-hidden bg-background-floating border border-os-line-dark shadow-os-floating"
       style={{ left: x, top: y }}
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
@@ -67,7 +67,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
             <div
               key={`divider-${index}`}
               className="my-1 mx-2 h-px"
-              style={{ background: 'rgba(255,255,255,0.07)' }}
+              style={{ background: 'var(--os-line-dark)' }}
             />
           );
         }
@@ -93,7 +93,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
                 ? 'opacity-40 pointer-events-none text-white/50'
                 : item.danger
                   ? 'text-red-400 hover:bg-red-500/[0.12] hover:text-red-300'
-                  : 'text-white/80 hover:bg-white/[0.07] hover:text-white',
+                  : 'text-white/80 hover:bg-os-ink-800 hover:text-white',
             )}
           >
             <span className="flex items-center gap-2.5 min-w-0">

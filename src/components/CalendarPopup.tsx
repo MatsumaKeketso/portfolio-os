@@ -59,12 +59,12 @@ export function CalendarPopup({ anchor, onClose }: CalendarPopupProps) {
       exit={{ opacity: 0, y: 8, scale: 0.96 }}
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
       style={{ position: 'fixed', bottom: anchor.bottom, left, width }}
-      className="bg-background-chrome/95 backdrop-blur-md border border-white/[0.08] rounded-2xl shadow-xl shadow-black/50 p-4 z-[10001]"
+      className="bg-background-chrome/95 backdrop-blur-md border border-os-line-dark rounded-2xl shadow-xl shadow-black/50 p-4 z-[10001]"
     >
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setViewDate(new Date(year, month - 1, 1))}
-          className="p-1.5 hover:bg-white/[0.08] rounded-lg text-white/40 hover:text-white transition-colors"
+          className="p-1.5 hover:bg-os-ink-800 rounded-lg text-white/40 hover:text-white transition-colors"
         >
           <Icons.ChevronLeft className="w-4 h-4" />
         </button>
@@ -73,7 +73,7 @@ export function CalendarPopup({ anchor, onClose }: CalendarPopupProps) {
         </span>
         <button
           onClick={() => setViewDate(new Date(year, month + 1, 1))}
-          className="p-1.5 hover:bg-white/[0.08] rounded-lg text-white/40 hover:text-white transition-colors"
+          className="p-1.5 hover:bg-os-ink-800 rounded-lg text-white/40 hover:text-white transition-colors"
         >
           <Icons.ChevronRight className="w-4 h-4" />
         </button>
@@ -97,7 +97,7 @@ export function CalendarPopup({ anchor, onClose }: CalendarPopupProps) {
                 ? ''
                 : isToday(day)
                 ? 'bg-primary-500 text-white font-semibold'
-                : 'text-white/50 hover:bg-white/[0.08] hover:text-white cursor-pointer transition-colors',
+                : 'text-white/50 hover:bg-os-ink-800 hover:text-white cursor-pointer transition-colors',
             ].join(' ')}
           >
             {day}
@@ -105,7 +105,7 @@ export function CalendarPopup({ anchor, onClose }: CalendarPopupProps) {
         ))}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-white/[0.06]">
+      <div className="mt-3 pt-3 border-t border-os-line-dark">
         <p className="text-white/30 text-[11px] text-center">
           {today.toLocaleDateString('en-US', {
             weekday: 'long',

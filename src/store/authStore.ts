@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
   User,
 } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 export type AuthRole = 'guest' | 'superuser' | null;
 
@@ -34,6 +35,22 @@ export const getAuthRole = (user: User | null): AuthRole => {
   return isAdminUser(user) ? 'superuser' : 'guest';
 };
 
+const ensureOsUserProfile = async (user: User, role: Exclude<AuthRole, null>) => {
+  await setDoc(
+    doc(db, 'os-users', user.uid),
+    {
+      uid: user.uid,
+      email: normalizeEmail(user.email),
+      role,
+      source: 'generativeos',
+      app: 'generativeos',
+      lastSeenAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isAdmin: false,
@@ -48,6 +65,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       let resolved = false;
       onAuthStateChanged(auth, (user) => {
         const role = getAuthRole(user);
+        if (user && role) {
+          ensureOsUserProfile(user, role).catch((error) => {
+            console.error('OS user profile sync failed:', error.message);
+          });
+        }
         set({
           isAuthenticated: !!user,
           isAdmin: role === 'superuser',
@@ -69,6 +91,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { user } = await signInWithEmailAndPassword(auth, normalizedEmail, password);
       const role = getAuthRole(user);
+      if (role) {
+        await ensureOsUserProfile(user, role);
+      }
       set({ isAuthenticated: true, isAdmin: role === 'superuser', isGuest: role === 'guest', role, user });
       return { success: true, role };
     } catch (error: any) {
@@ -76,6 +101,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
           const { user } = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
           const role = getAuthRole(user);
+          if (role) {
+            await ensureOsUserProfile(user, role);
+          }
           set({ isAuthenticated: true, isAdmin: false, isGuest: true, role, user });
           return { success: true, role };
         } catch (createError: any) {

@@ -88,15 +88,15 @@ const SystemRow = React.forwardRef<HTMLButtonElement, SystemRowProps>(
           showRail ? 'pl-[10px] pr-3' : 'px-3',
 
           // Left accent rail (selected state)
-          showRail && 'border-l-2 border-accent-500',
+          showRail && 'border-l-2 border-stroke-brand',
 
           // Context-aware hover
           isChrome
-            ? 'hover:bg-white/[0.06] focus-visible:ring-white/20'
+            ? 'hover:bg-os-ink-800/70 focus-visible:ring-os-line-dark-hover'
             : 'hover:bg-black/[0.04] focus-visible:ring-black/20',
 
           // Selected fill (no rail variant)
-          selected && !accentRail && (isChrome ? 'bg-white/[0.09]' : 'bg-black/[0.05]'),
+          selected && !accentRail && (isChrome ? 'bg-os-ink-800' : 'bg-black/[0.05]'),
 
           // Text color
           isChrome
@@ -163,7 +163,7 @@ const SystemRow = React.forwardRef<HTMLButtonElement, SystemRowProps>(
                 className={cn(
                   'text-[10px] px-1.5 py-[2px] rounded-[4px] font-medium leading-none',
                   isChrome
-                    ? 'bg-white/[0.08] text-white/50'
+                    ? 'bg-os-ink-800 text-os-text-inverse/70'
                     : 'bg-black/[0.05] text-os-text-muted'
                 )}
               >
@@ -210,7 +210,7 @@ const SystemRowDivider = React.forwardRef<HTMLDivElement, SystemRowDividerProps>
       ref={ref}
       className={cn(
         'my-1 mx-3 h-px',
-        context === 'chrome' ? 'bg-white/[0.07]' : 'bg-os-line-light',
+        context === 'chrome' ? 'bg-os-line-dark' : 'bg-os-line-light',
         className
       )}
       {...props}

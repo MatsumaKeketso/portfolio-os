@@ -67,10 +67,10 @@ export function KeyboardShortcutsHelp() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-os-ink-950 rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
+              className="w-full max-w-2xl max-h-[85vh] flex flex-col bg-os-ink-950 rounded-lg border border-os-line-dark shadow-os-window overflow-hidden"
             >
               {/* Header */}
-              <div className="shrink-0 px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
+              <div className="shrink-0 px-6 py-4 border-b border-os-line-dark flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-white flex items-center gap-2">
                     <Icons.Keyboard className="w-4 h-4 text-white/50" />
@@ -78,7 +78,7 @@ export function KeyboardShortcutsHelp() {
                   </h2>
                   <p className="text-white/40 text-xs mt-0.5">Boost your productivity with these shortcuts</p>
                 </div>
-                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/[0.08] rounded transition-colors">
+                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-os-ink-800 rounded transition-colors">
                   <Icons.X className="w-4 h-4 text-white/60" />
                 </button>
               </div>
@@ -97,13 +97,13 @@ export function KeyboardShortcutsHelp() {
                           .map((shortcut, index) => (
                             <div
                               key={index}
-                              className="flex items-center justify-between px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] rounded border border-white/[0.06] transition-colors"
+                              className="flex items-center justify-between px-3 py-2 bg-os-ink-900/55 hover:bg-os-ink-800 rounded border border-os-line-dark transition-colors"
                             >
                               <span className="text-white/70 text-sm">{shortcut.description}</span>
                               <div className="flex items-center gap-1">
                                 {shortcut.keys.map((key, i) => (
                                   <div key={i} className="flex items-center gap-1">
-                                    <kbd className="px-2 py-1 text-xs font-semibold text-white/80 bg-os-ink-800 border border-white/[0.12] rounded">
+                                    <kbd className="px-2 py-1 text-xs font-semibold text-white/80 bg-os-ink-800 border border-os-line-dark rounded">
                                       {key}
                                     </kbd>
                                     {i < shortcut.keys.length - 1 && (
@@ -119,11 +119,11 @@ export function KeyboardShortcutsHelp() {
                   ))}
                 </div>
 
-                <div className="mt-6 p-4 bg-white/[0.03] border border-white/[0.06] rounded">
+                <div className="mt-6 p-4 bg-os-ink-900/55 border border-os-line-dark rounded">
                   <div className="flex items-start gap-3">
                     <Icons.Lightbulb className="w-4 h-4 text-white/30 flex-shrink-0 mt-0.5" />
                     <p className="text-white/40 text-sm">
-                      Press <kbd className="px-1.5 py-0.5 mx-0.5 text-xs font-semibold text-white/70 bg-os-ink-800 border border-white/[0.12] rounded">?</kbd>
+                      Press <kbd className="px-1.5 py-0.5 mx-0.5 text-xs font-semibold text-white/70 bg-os-ink-800 border border-os-line-dark rounded">?</kbd>
                       anytime to quickly access this shortcuts guide
                     </p>
                   </div>
@@ -131,8 +131,8 @@ export function KeyboardShortcutsHelp() {
               </div>
 
               {/* Footer */}
-              <div className="h-px bg-white/[0.07]" />
-              <div className="shrink-0 px-6 py-3 bg-white/[0.02] flex items-center justify-between">
+              <div className="h-px bg-os-line-dark" />
+              <div className="shrink-0 px-6 py-3 bg-os-ink-950 flex items-center justify-between">
                 <p className="text-white/30 text-xs">Most shortcuts work across all apps</p>
                 <p className="text-white/30 text-xs">Press <span className="text-white/50">Esc</span> to close</p>
               </div>

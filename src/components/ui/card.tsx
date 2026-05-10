@@ -36,39 +36,39 @@ const cardVariants = cva(
       variant: {
         // Desktop icon style card
         hover:
-          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:bg-os-ink-800 hover:translate-y-[-2px] overflow-hidden',
+          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:translate-y-[-2px] overflow-hidden',
 
         // Standard panel
         standard:
-          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:bg-os-ink-800 hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:translate-y-[-1px]',
 
         // Elevated panel
         elevated:
-          'bg-os-ink-900 border border-white/[0.08] hover:border-white/[0.16] hover:translate-y-[-2px]',
+          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:translate-y-[-2px]',
 
         // Flat minimal surface
         flat:
-          'bg-os-ink-950 border border-white/[0.08] hover:border-white/[0.16]',
+          'bg-os-ink-950 border border-os-line-dark hover:border-os-line-dark-hover',
 
         // Accent panel
         accent:
-          'bg-os-ink-900 border border-white/[0.10] hover:border-white/[0.20] hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-os-line-dark-hover hover:border-stroke-brand hover:translate-y-[-1px]',
 
         // Window main container
         window:
-          'bg-os-ink-950 border border-white/[0.08] shadow-os-window',
+          'bg-os-ink-950 border border-os-line-dark shadow-os-window',
 
         // Modal elevated dialog
         modal:
-          'bg-os-ink-950 border border-white/[0.08] shadow-os-window',
+          'bg-os-ink-950 border border-os-line-dark shadow-os-window',
 
         // Icon container
         icon:
-          'bg-os-ink-900 border border-white/[0.08]',
+          'bg-os-ink-900 border border-os-line-dark',
 
         // Menu context panel
         menu:
-          'bg-os-ink-950 border border-white/[0.08] shadow-os-floating',
+          'bg-os-ink-950 border border-os-line-dark shadow-os-floating',
       },
 
       padding: {
@@ -270,7 +270,7 @@ const CardDivider = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'h-px bg-white/[0.07] my-4',
+      'h-px bg-os-line-dark my-4',
       className
     )}
     {...props}

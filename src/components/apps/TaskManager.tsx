@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useDesktopStore } from '../../store/desktopStore';
-import { AppShell } from '../ui/AppShell';
+import {
+  AppShell,
+  appInputClass,
+  appTableBodyClass,
+  appTableClass,
+  appTableHeaderClass,
+  appTableRowClass,
+} from '../ui/AppShell';
+import { cn } from '../../lib/utils';
 
 interface Process {
   id: string;
@@ -130,28 +138,25 @@ export function TaskManager() {
   return (
     <AppShell>
       {/* Header with Tabs */}
-      <div className="border-b border-white/[0.08] p-3 flex items-center gap-2 bg-white/[0.02]">
-        <div className="flex items-center gap-1 bg-black/30 rounded p-1">
+      <div className="border-b border-os-line-dark p-3 flex items-center gap-2 bg-os-ink-900">
+        <div className="flex items-center gap-1 bg-os-ink-950/60 rounded p-1 border border-os-line-dark">
           <button
             onClick={() => setActiveTab('processes')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'processes' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
-              }`}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'processes' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.List className="w-3.5 h-3.5" />
             Processes
           </button>
           <button
             onClick={() => setActiveTab('performance')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'performance' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
-              }`}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'performance' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.Activity className="w-3.5 h-3.5" />
             Performance
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-3 py-1.5 text-xs rounded flex items-center gap-2 transition-all ${activeTab === 'details' ? 'bg-white/[0.12] text-white' : 'text-white/40 hover:text-white'
-              }`}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'details' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.Info className="w-3.5 h-3.5" />
             Details
@@ -168,7 +173,7 @@ export function TaskManager() {
               placeholder="Search processes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 pr-3 py-1 text-xs bg-white/[0.06] text-white rounded border border-white/[0.08] focus:outline-none focus:border-white/[0.20] w-48"
+              className={cn(appInputClass, 'pl-7 pr-3 py-1 text-xs w-48')}
             />
           </div>
         )}
@@ -182,20 +187,20 @@ export function TaskManager() {
       {activeTab === 'processes' && (
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Stats Cards */}
-          <div className="bg-white/[0.02] p-4 border-b border-white/[0.08]">
+          <div className="bg-os-ink-950/30 p-4 border-b border-os-line-dark">
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-black/30 border border-white/[0.08] rounded-lg p-4">
+              <div className="os-interactive bg-os-ink-900 border border-os-line-dark rounded-lg p-4 hover:border-os-line-dark-hover">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-white/50">CPU Usage</span>
                   <Icons.Cpu className="w-4 h-4 text-white/30" />
                 </div>
                 <div className="text-2xl font-bold text-white">{totalCpu}%</div>
-                <div className="w-full bg-white/[0.12] rounded-full h-1.5 mt-2">
+                <div className="w-full bg-os-ink-700/60 rounded-full h-1.5 mt-2">
                   <div className="bg-primary-500 rounded-full h-1.5 transition-all" style={{ width: `${totalCpu}%` }} />
                 </div>
               </div>
 
-              <div className="bg-black/30 border border-white/[0.08] rounded-lg p-4">
+              <div className="os-interactive bg-os-ink-900 border border-os-line-dark rounded-lg p-4 hover:border-os-line-dark-hover">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-white/50">Memory</span>
                   <Icons.HardDrive className="w-4 h-4 text-white/30" />
@@ -204,7 +209,7 @@ export function TaskManager() {
                 <div className="text-xs text-white/30 mt-1">{usedMemory} / {totalMemory} MB</div>
               </div>
 
-              <div className="bg-black/30 border border-white/[0.08] rounded-lg p-4">
+              <div className="os-interactive bg-os-ink-900 border border-os-line-dark rounded-lg p-4 hover:border-os-line-dark-hover">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-white/50">Active</span>
                   <Icons.Activity className="w-4 h-4 text-white/30" />
@@ -217,33 +222,33 @@ export function TaskManager() {
 
           {/* Process List */}
           <div className="flex-1 overflow-auto p-4">
-            <div className="bg-black/30 rounded-lg border border-white/[0.08] overflow-hidden">
+            <div className={appTableClass}>
               {/* Header */}
-              <div className="px-4 py-3 bg-white/[0.03] grid grid-cols-12 gap-4 text-xs font-semibold text-white/40">
+              <div className={cn(appTableHeaderClass, 'grid-cols-12')}>
                 <button
                   onClick={() => handleSort('name')}
-                  className="col-span-4 flex items-center gap-1 text-white/40 hover:text-white transition-colors"
+                  className="os-interactive os-focus-ring col-span-4 flex items-center gap-1 text-white/40 hover:text-white"
                 >
                   Process
                   <SortIcon column="name" />
                 </button>
                 <button
                   onClick={() => handleSort('status')}
-                  className="col-span-2 flex items-center gap-1 text-white/40 hover:text-white transition-colors"
+                  className="os-interactive os-focus-ring col-span-2 flex items-center gap-1 text-white/40 hover:text-white"
                 >
                   Status
                   <SortIcon column="status" />
                 </button>
                 <button
                   onClick={() => handleSort('cpu')}
-                  className="col-span-2 flex items-center gap-1 text-white/40 hover:text-white transition-colors"
+                  className="os-interactive os-focus-ring col-span-2 flex items-center gap-1 text-white/40 hover:text-white"
                 >
                   CPU
                   <SortIcon column="cpu" />
                 </button>
                 <button
                   onClick={() => handleSort('memory')}
-                  className="col-span-2 flex items-center gap-1 text-white/40 hover:text-white transition-colors"
+                  className="os-interactive os-focus-ring col-span-2 flex items-center gap-1 text-white/40 hover:text-white"
                 >
                   Memory
                   <SortIcon column="memory" />
@@ -251,18 +256,17 @@ export function TaskManager() {
                 <div className="col-span-2">Actions</div>
               </div>
 
-              <div className="h-px bg-white/[0.06]" />
-
               {/* Process Rows */}
-              {filteredProcesses.map((process, index) => {
+              <div className={appTableBodyClass}>
+              {filteredProcesses.map((process) => {
                 const Icon = getIcon(process.icon);
                 return (
-                  <div key={process.id}>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="px-4 py-3 hover:bg-white/[0.04] transition-colors grid grid-cols-12 gap-4 items-center"
-                    >
+                  <motion.div
+                    key={process.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={cn(appTableRowClass, 'grid-cols-12')}
+                  >
                       <div className="col-span-4 flex items-center gap-3">
                         <Icon className="w-5 h-5 text-primary-400 shrink-0" />
                         <span className="text-sm font-medium text-white truncate">{process.name}</span>
@@ -272,14 +276,14 @@ export function TaskManager() {
                             ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                             : process.status === 'Minimized'
                               ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                              : 'bg-white/[0.08] text-white/60 border border-white/[0.12]'
+                              : 'bg-os-ink-800 text-white/60 border border-os-line-dark-hover'
                           }`}>
                           {process.status}
                         </span>
                       </div>
                       <div className="col-span-2">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-white/[0.12] rounded-full h-1.5">
+                          <div className="flex-1 bg-os-ink-700/60 rounded-full h-1.5">
                             <div
                               className="bg-primary-500 rounded-full h-1.5 transition-all"
                               style={{ width: `${Math.min(process.cpu * 5, 100)}%` }}
@@ -293,20 +297,17 @@ export function TaskManager() {
                         {process.isWindow && (
                           <button
                             onClick={() => handleEndTask(process)}
-                            className="px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded border border-red-500/30 transition-colors flex items-center gap-1"
+                            className="os-interactive os-focus-ring px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded border border-red-500/30 flex items-center gap-1"
                           >
                             <Icons.X className="w-3 h-3" />
                             End
                           </button>
                         )}
                       </div>
-                    </motion.div>
-                    {index < filteredProcesses.length - 1 && (
-                      <div className="h-px bg-white/[0.07]" />
-                    )}
-                  </div>
+                  </motion.div>
                 );
               })}
+              </div>
             </div>
           </div>
         </div>
@@ -316,7 +317,7 @@ export function TaskManager() {
         <div className="flex-1 p-6 overflow-auto">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* CPU Performance */}
-            <div className="bg-black/30 rounded-lg p-6 border border-white/[0.08]">
+            <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Icons.Cpu className="w-5 h-5 text-primary-400" />
@@ -346,7 +347,7 @@ export function TaskManager() {
             </div>
 
             {/* Memory Performance */}
-            <div className="bg-black/30 rounded-lg p-6 border border-white/[0.08]">
+            <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Icons.HardDrive className="w-5 h-5 text-green-400" />
@@ -380,33 +381,33 @@ export function TaskManager() {
 
       {activeTab === 'details' && (
         <div className="flex-1 p-6 overflow-auto">
-          <div className="bg-white/[0.04] rounded-lg p-6 border border-white/[0.08]">
+          <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Icons.Info className="w-5 h-5 text-primary-400" />
               System Information
             </h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">Operating System:</span>
                 <span className="text-white">GenOS v1.0</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">Total Memory:</span>
                 <span className="text-white">{totalMemory} MB</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">Available Memory:</span>
                 <span className="text-white">{totalMemory - usedMemory} MB</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">CPU Usage:</span>
                 <span className="text-white">{totalCpu}%</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">Active Windows:</span>
                 <span className="text-white">{windowProcesses.length}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between py-2 border-b border-os-line-dark">
                 <span className="text-white/40">System Processes:</span>
                 <span className="text-white">{systemProcesses.length}</span>
               </div>

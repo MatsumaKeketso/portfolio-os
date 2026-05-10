@@ -20,6 +20,11 @@ interface SystemPreferences {
   autoHideTaskbar: boolean;
 }
 
+interface PublishResult {
+  success: boolean;
+  error?: string;
+}
+
 interface DesktopStore {
   apps: App[];
   windows: WindowState[];
@@ -32,11 +37,11 @@ interface DesktopStore {
   adminEditTargetAppId: string | null;
   setAdminEditTarget: (appId: string | null) => void;
 
-  addApp: (app: App) => void;
-  removeApp: (appId: string) => void;
-  updateApp: (appId: string, updates: Partial<App>) => void;
-  updateAppPosition: (appId: string, position: { x: number; y: number }) => void;
-  reorderApps: (reorderedApps: App[]) => void;
+  addApp: (app: App) => Promise<PublishResult>;
+  removeApp: (appId: string) => Promise<PublishResult>;
+  updateApp: (appId: string, updates: Partial<App>) => Promise<PublishResult>;
+  updateAppPosition: (appId: string, position: { x: number; y: number }) => Promise<PublishResult>;
+  reorderApps: (reorderedApps: App[]) => Promise<PublishResult>;
 
   openWindow: (app: App, fileData?: { fileId?: string; content?: string; title?: string; file?: FileItem }) => void;
   closeWindow: (windowId: string) => void;
@@ -52,10 +57,10 @@ interface DesktopStore {
   toggleAdminMode: () => void;
   setAdminMode: (mode: boolean) => void;
 
-  loadApps: (apps: App[]) => void;
+  loadApps: (apps: App[]) => Promise<PublishResult>;
   fetchApps: () => Promise<void>;
   exportConfig: () => string;
-  importConfig: (json: string) => void;
+  importConfig: (json: string) => Promise<PublishResult>;
 
   fetchBackgrounds: () => Promise<void>;
   addBackground: (background: DesktopBackground) => void;
@@ -277,21 +282,29 @@ const mergeBackgrounds = (...backgroundSets: Array<DesktopBackground[] | null | 
   return Array.from(byId.values());
 };
 
-let appsTimeout: ReturnType<typeof setTimeout>;
-const saveAppsToFirestore = (apps: App[]): void => {
-  if (!canWrite()) return;
-  clearTimeout(appsTimeout);
-  appsTimeout = setTimeout(async () => {
-    if (!canWrite()) return;
-    try {
-      await setDoc(doc(db, 'os-site_content', 'apps'), {
-        data: apps,
-        updated_at: new Date().toISOString(),
-      });
-    } catch (e: any) {
-      console.error('Failed to save apps:', e);
-    }
-  }, 1000);
+const saveAppsToFirestore = async (apps: App[]): Promise<PublishResult> => {
+  if (!canWrite()) {
+    return {
+      success: false,
+      error: 'Only admin@os.com can publish global app changes.',
+    };
+  }
+
+  try {
+    // Strip undefined fields — Firestore rejects them
+    const sanitized = JSON.parse(JSON.stringify(apps)) as App[];
+    await setDoc(doc(db, 'os-site_content', 'apps'), {
+      data: sanitized,
+      updated_at: new Date().toISOString(),
+    });
+    return { success: true };
+  } catch (e: any) {
+    console.error('Failed to save apps:', e);
+    return {
+      success: false,
+      error: e.message || 'Failed to publish apps to Firestore.',
+    };
+  }
 };
 
 const fetchAppsFromFirestore = async (): Promise<App[]> => {
@@ -302,12 +315,12 @@ const fetchAppsFromFirestore = async (): Promise<App[]> => {
       const missingApps = defaultApps.filter(defApp => !dbApps.some(dbApp => dbApp.id === defApp.id));
       if (missingApps.length > 0) {
         const mergedApps = [...dbApps, ...missingApps];
-        saveAppsToFirestore(mergedApps);
+        if (canWrite()) await saveAppsToFirestore(mergedApps);
         return mergedApps;
       }
       return dbApps;
     }
-    saveAppsToFirestore(defaultApps);
+    if (canWrite()) await saveAppsToFirestore(defaultApps);
     return defaultApps;
   } catch (err: any) {
     console.error('Error fetching apps:', err);
@@ -533,42 +546,58 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     set({ backgrounds, selectedBackgroundId });
   },
 
-  addApp: (app) => set((state) => {
-    const newApps = [...state.apps, app];
-    saveAppsToFirestore(newApps);
-    return { apps: newApps };
-  }),
+  addApp: async (app) => {
+    const newApps = [...get().apps, app];
+    const result = await saveAppsToFirestore(newApps);
+    if (result.success) set({ apps: newApps });
+    return result;
+  },
 
-  removeApp: (appId) => set((state) => {
+  removeApp: async (appId) => {
+    const state = get();
     const newApps = state.apps.filter(a => a.id !== appId);
-    const newWindows = state.windows.filter(w => w.appId !== appId);
-    saveAppsToFirestore(newApps);
-    return { apps: newApps, windows: newWindows };
-  }),
+    const result = await saveAppsToFirestore(newApps);
+    if (result.success) {
+      set({
+        apps: newApps,
+        windows: state.windows.filter(w => w.appId !== appId),
+      });
+    }
+    return result;
+  },
 
-  updateApp: (appId, updates) => set((state) => {
-    const newApps = state.apps.map(a => a.id === appId ? { ...a, ...updates } : a);
-    saveAppsToFirestore(newApps);
-    return { apps: newApps };
-  }),
+  updateApp: async (appId, updates) => {
+    const newApps = get().apps.map(a => a.id === appId ? { ...a, ...updates } : a);
+    const result = await saveAppsToFirestore(newApps);
+    if (result.success) set({ apps: newApps });
+    return result;
+  },
 
-  updateAppPosition: (appId, position) => set((state) => {
-    const newApps = state.apps.map(a =>
+  updateAppPosition: async (appId, position) => {
+    const newApps = get().apps.map(a =>
       a.id === appId ? { ...a, desktopPosition: position } : a
     );
-    saveAppsToFirestore(newApps);
-    return { apps: newApps };
-  }),
+    const result = await saveAppsToFirestore(newApps);
+    if (result.success) set({ apps: newApps });
+    return result;
+  },
 
-  reorderApps: (reorderedApps) => set((state) => {
-    // Replace desktop apps with reordered ones, keep non-desktop apps
+  reorderApps: async (reorderedApps) => {
+    const state = get();
     const nonDesktopApps = state.apps.filter(a => !a.pinnedToDesktop);
     const newApps = [...reorderedApps, ...nonDesktopApps];
-    saveAppsToFirestore(newApps);
-    return { apps: newApps };
-  }),
+    const result = await saveAppsToFirestore(newApps);
+    if (result.success) set({ apps: newApps });
+    return result;
+  },
 
-  openWindow: (app, fileData) => set((state) => {
+  openWindow: (app, fileData) => {
+    if (app.type === 'link' && app.url) {
+      globalThis.window.open(app.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    const windowType: WindowState['type'] = app.type === 'link' ? 'iframe' : app.type;
+    set((state) => {
     // If opening a file, check if we already have this specific file open
     const existingWindow = fileData
       ? state.windows.find(w => w.fileId === fileData.fileId)
@@ -608,7 +637,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       title: fileData?.title || app.name,
       icon: app.icon,
       customIcon: app.customIcon,
-      type: app.type,
+      type: windowType,
       component: app.component,
       url: app.url,
       content: fileData?.content,
@@ -627,7 +656,8 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       windows: [...state.windows, newWindow],
       maxZIndex: state.maxZIndex + 1
     };
-  }),
+    });
+  },
 
   closeWindow: (windowId) => set((state) => ({
     windows: state.windows.filter(w => w.id !== windowId)
@@ -678,9 +708,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   setAdminMode: (mode) => set({ isAdminMode: mode }),
 
-  loadApps: (apps) => {
-    set({ apps });
-    saveAppsToFirestore(apps);
+  loadApps: async (apps) => {
+    const result = await saveAppsToFirestore(apps);
+    if (result.success) set({ apps });
+    return result;
   },
 
   exportConfig: () => {
@@ -688,13 +719,18 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     return JSON.stringify(apps, null, 2);
   },
 
-  importConfig: (json) => {
+  importConfig: async (json) => {
     try {
       const apps = JSON.parse(json);
-      set({ apps });
-      saveAppsToFirestore(apps);
+      if (!Array.isArray(apps)) {
+        return { success: false, error: 'Imported config must be an app array.' };
+      }
+      const result = await saveAppsToFirestore(apps);
+      if (result.success) set({ apps });
+      return result;
     } catch (e) {
       console.error('Invalid JSON configuration');
+      return { success: false, error: 'Invalid JSON configuration.' };
     }
   },
   addBackground: (background) => set((state) => {

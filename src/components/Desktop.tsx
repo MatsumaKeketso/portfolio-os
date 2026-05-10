@@ -278,6 +278,12 @@ export function Desktop() {
     };
 
     const handleDrop = async (e: DragEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-os-window="true"]')) {
+        setIsDraggingOver(false);
+        return;
+      }
+
       e.preventDefault();
       setIsDraggingOver(false);
 
@@ -439,7 +445,7 @@ export function Desktop() {
 
         {isAdmin && isAdminMode && (
           <div
-            className="fixed left-3 right-3 top-3 bottom-[76px] z-[9000] pointer-events-auto overflow-hidden rounded-2xl border border-stroke-primary bg-background-chrome shadow-os-window"
+            className="fixed left-3 right-3 top-3 bottom-[76px] z-[9000] pointer-events-auto overflow-hidden rounded-2xl border border-os-line-dark bg-background-chrome shadow-os-window"
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}

@@ -3,7 +3,7 @@ export interface App {
   name: string;
   icon: string;
   customIcon?: string;
-  type: 'component' | 'iframe' | 'static';
+  type: 'component' | 'iframe' | 'static' | 'link';
   component?: string;
   url?: string;
   pinnedToTaskbar?: boolean;
@@ -79,4 +79,22 @@ export const VISITOR_GALLERY_ID = 'folder-visitor-gallery';
 export interface FileSystemState {
   files: FileItem[];
   currentPath: string[];
+}
+
+export interface ReadArticle {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  author: string;
+  date: string;
+  imageUrl: string;
+  imageAlt?: string;
+  source?: string;
+  hasSource?: boolean;
+  categories: string[];
+  content: string;
+  html?: string;
+  readingTimeMinutes: number;
+  isDraft?: boolean;
 }

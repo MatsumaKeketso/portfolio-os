@@ -289,6 +289,8 @@ portfolio-os/
 
 **Persistence**: Apps saved to Firestore `os-site_content/apps`
 
+Admin-created apps are global published OS content. The superuser workflow must write to Firestore before the local app list is updated. Visitors and signed-out users load the same public app registry from Firestore. A local-only app mutation is a bug unless it is explicitly documented as a visitor personalization feature.
+
 ### File Store (`fileStore.ts`)
 
 **State Properties**:

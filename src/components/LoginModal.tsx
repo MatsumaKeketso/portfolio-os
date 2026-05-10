@@ -68,12 +68,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md bg-background-chrome rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
+          className="w-full max-w-md bg-background-chrome rounded-lg border border-os-line-dark shadow-os-window overflow-hidden"
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-os-line-dark flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-background-chrome-raised rounded flex items-center justify-center border border-white/[0.08]">
+              <div className="w-8 h-8 bg-background-chrome-raised rounded flex items-center justify-center border border-os-line-dark">
                 <Icons.Lock className="w-4 h-4 text-white/60" />
               </div>
               <div>
@@ -88,12 +88,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-1 rounded bg-background-chrome-raised p-1 border border-white/[0.08]">
+            <div className="grid grid-cols-2 gap-1 rounded bg-background-chrome-raised p-1 border border-os-line-dark">
               <button
                 type="button"
                 onClick={() => { setMode('guest'); setError(''); }}
                 disabled={isSubmitting}
-                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-white/[0.12] text-white' : 'text-white/45 hover:text-white/75'}`}
+                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-os-ink-800 text-white' : 'text-white/45 hover:bg-os-ink-800/60 hover:text-white/75'}`}
               >
                 Guest
               </button>
@@ -101,7 +101,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 type="button"
                 onClick={() => { setMode('superuser'); setError(''); }}
                 disabled={isSubmitting}
-                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'superuser' ? 'bg-white/[0.12] text-white' : 'text-white/45 hover:text-white/75'}`}
+                className={`rounded px-3 py-2 text-xs font-medium transition-colors ${mode === 'superuser' ? 'bg-os-ink-800 text-white' : 'text-white/45 hover:bg-os-ink-800/60 hover:text-white/75'}`}
               >
                 Superuser
               </button>
@@ -116,7 +116,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 type="email"
                 value={mode === 'superuser' ? ADMIN_EMAIL : email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 rounded border border-os-line-dark text-sm focus:outline-none focus:border-stroke-brand"
                 placeholder={mode === 'superuser' ? ADMIN_EMAIL : 'you@example.com'}
                 disabled={mode === 'superuser' || isSubmitting}
                 autoFocus
@@ -139,7 +139,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isSubmitting}
-                  className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-white/[0.08] text-sm focus:outline-none focus:border-white/[0.20]"
+                  className="w-full bg-background-chrome-raised text-white placeholder-white/30 px-3 py-2 pr-10 rounded border border-os-line-dark text-sm focus:outline-none focus:border-stroke-brand"
                   placeholder={mode === 'superuser' ? 'Enter superuser password' : 'Enter or create guest password'}
                 />
                 <Button

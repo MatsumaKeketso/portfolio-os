@@ -20,7 +20,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
   );
 
   return (
-    <div className={`bg-os-ink-950 rounded-lg shadow-os-floating border border-white/[0.08] p-4 min-w-[320px] max-w-md ${className}`}>
+    <div className={`bg-os-ink-950 rounded-lg shadow-os-floating border border-os-line-dark p-4 min-w-[320px] max-w-md ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Upload className="w-5 h-5 text-primary-400" />
@@ -63,7 +63,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-white/[0.12] rounded-full h-1.5">
+            <div className="w-full bg-os-ink-800 rounded-full h-1.5">
               <div
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   upload.status === 'error'
@@ -85,7 +85,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
       </div>
 
       {allCompleted && (
-        <div className="mt-3 pt-3 border-t border-white/[0.08]">
+        <div className="mt-3 pt-3 border-t border-os-line-dark">
           <p className="text-xs text-white/40">
             {uploads.filter((u) => u.status === 'success').length} of {uploads.length} files uploaded successfully
           </p>

@@ -1,27 +1,134 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSuperuser() {
-      return request.auth != null
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOsSuperuser() {
+      return isAuthed()
              && request.auth.token.email == 'admin@os.com';
     }
 
-    // os-site_content: public read, superuser write.
-    match /os-site_content/{document} {
-      allow read: if true;
-      allow write: if isSuperuser();
+    function crpUserDoc() {
+      return get(/databases/$(database)/documents/crp-users/profiles/users/$(request.auth.uid));
     }
 
-    // os-feedback: public create, superuser moderation.
+    function crpRole() {
+      return crpUserDoc().data.role;
+    }
+
+    function isCrpAdmin() {
+      return isAuthed() && crpRole() == 'admin';
+    }
+
+    function isProtectedCollection(collectionId) {
+      return collectionId == 'crp-users'
+             || collectionId == 'crp-orgs'
+             || collectionId == 'crp-settings'
+             || collectionId == 'crp-clients'
+             || collectionId == 'crp-invoices'
+             || collectionId == 'crp-quotes'
+             || collectionId == 'crp-payments'
+             || collectionId == 'crp-employees'
+             || collectionId == 'crp-payrollRuns'
+             || collectionId == 'crp-products'
+             || collectionId == 'crp-stockMovements'
+             || collectionId == 'crp-auditLog'
+             || collectionId == 'os-site_content'
+             || collectionId == 'os-feedback'
+             || collectionId == 'os-users';
+    }
+
+    // CRM / Business Platform
+    match /crp-users/profiles/users/{userId} {
+      allow read: if isAuthed() && (request.auth.uid == userId || isCrpAdmin());
+      allow create: if isAuthed() && request.auth.uid == userId;
+      allow update: if isCrpAdmin();
+      allow delete: if isCrpAdmin();
+    }
+
+    match /crp-orgs/profiles/orgs/{orgId} {
+      allow read: if isAuthed();
+      allow write: if isCrpAdmin();
+    }
+
+    match /crp-settings/profiles/settings/company {
+      allow read: if isAuthed();
+      allow write: if isCrpAdmin();
+    }
+
+    match /crp-clients/profiles/clients/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-invoices/profiles/invoices/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-quotes/profiles/quotes/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-payments/profiles/payments/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-employees/profiles/employees/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-payrollRuns/profiles/payrollRuns/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-products/profiles/products/{id} {
+      allow read, write: if isAuthed();
+    }
+
+    match /crp-stockMovements/profiles/stockMovements/{id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed();
+      allow update, delete: if false;
+    }
+
+    match /crp-auditLog/profiles/auditLog/{id} {
+      allow read: if isCrpAdmin();
+      allow create: if isAuthed();
+      allow update, delete: if false;
+    }
+
+    // GenOS Portfolio OS
+    match /os-site_content/{document} {
+      allow read: if true;
+      allow write: if isOsSuperuser();
+    }
+
     match /os-feedback/{document} {
       allow create: if request.resource.data.keys().hasOnly(['name', 'message', 'status', 'timestamp'])
                     && request.resource.data.name is string
                     && request.resource.data.message is string
-                    && request.resource.data.status == 'pending'
-                    && request.resource.data.timestamp == request.time;
-      allow read: if isSuperuser()
+                    && request.resource.data.status == 'pending';
+      allow read: if isOsSuperuser()
                   || resource.data.status == 'approved';
-      allow update, delete: if isSuperuser();
+      allow update, delete: if isOsSuperuser();
+    }
+
+    match /os-users/{userId} {
+      allow read: if isOsSuperuser()
+                  || (isAuthed() && request.auth.uid == userId);
+      allow create, update: if isAuthed()
+                            && request.auth.uid == userId
+                            && request.resource.data.source == 'generativeos'
+                            && request.resource.data.app == 'generativeos'
+                            && (request.resource.data.role == 'guest' || isOsSuperuser());
+      allow delete: if isOsSuperuser();
+    }
+
+    // Other apps in this Firebase project.
+    // This fallback is deliberately excluded from CRP and GenOS collections.
+    match /{collectionId}/{document=**} {
+      allow read, write: if !isProtectedCollection(collectionId);
     }
   }
 }

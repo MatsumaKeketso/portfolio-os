@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-> Last audited: 2026-05-02, updated 2026-05-05 (session 3). This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
+> Last audited: 2026-05-02, updated 2026-05-10. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
 
@@ -71,14 +71,12 @@ What is actioned:
 
 Still pending:
 
-- Visitor Gallery still uses client-side upload filtering. Storage/security rules should also enforce visitor image-only constraints.
-- General/root areas still allow visitors to create text files and upload videos. That may be acceptable for admin/system areas, but should be intentionally scoped.
-- `Desktop.tsx` still supports global desktop drop upload to root, including videos. This should be reviewed so it does not bypass Visitor Gallery rules.
 - There is no Trash location yet.
+- File-type-specific open/preview behavior still needs a later pass for unsupported formats such as PDFs.
 
 Next smallest action:
 
-Review global desktop drop upload so it cannot bypass scoped File Explorer permissions, then add server/storage-side visitor upload enforcement.
+Add a Trash location and define its restore/delete behavior.
 
 ## Section 3: Window Surfaces And Behavior
 
@@ -216,24 +214,24 @@ Convert CV and AboutOS outer shells to shared `ContentSurface`/`SystemRow` patte
 
 ## Section 6: Feedback App
 
-Status: **Pending**
+Status: **Complete**
 
 What is actioned:
 
-- No dedicated Feedback app found in the current source tree.
+- `src/components/apps/Feedback.tsx` exists and is registered as an app.
+- Feedback writes to the `os-feedback` Firestore collection.
+- Public visitors can submit feedback.
+- Superuser moderation is wired through the Admin Panel feedback tab.
+- Approved feedback is readable publicly; pending/hidden feedback is superuser-controlled by Firebase rules.
 
 Still pending:
 
-- Add `Feedback` app.
-- Add storage model for feedback.
-- Strip or neutralize links.
-- Add rate limiting or lightweight abuse prevention.
-- Add admin moderation.
-- Add approved-feedback visual contribution to the OS.
+- Lightweight abuse prevention/rate limiting is still a future hardening item.
+- Approved feedback contributing visually to the OS is still a future experience idea.
 
 Next smallest action:
 
-Create a simple `Feedback.tsx` app with local/Firebase-backed plain-text submissions and an admin-only moderation placeholder.
+Add lightweight rate limiting or duplicate-submit throttling.
 
 ## Section 7: System Components
 
@@ -277,7 +275,7 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Cross-Cutting Risks
 
-- Critical production blocker: uploaded content is not persisting after refresh. This appears to affect images/media broadly, not only one feature. The next implementation pass must audit File Explorer uploads, Visitor Gallery uploads, background uploads, milestone images, Admin Panel media uploads, CV/download assets, persistent storage writes, metadata writes, reload behavior, and Firebase permissions.
+- Upload persistence is no longer the active production blocker. Owner verified background uploads, documents, videos, Visitor Gallery uploads, and feedback after rules deployment. Keep this as a smoke-test item before each deployment.
 - Docs have been updated for Firebase; `LOOK_AND_FEEL_UPDATE_SPEC.md` still references `supabase-setup.sql` as a candidate file (historical).
 - Several old gradient/glow styles remain in modals/dialogs and File Explorer.
 - The project is mid-transition: shared primitives exist, but not every surface uses them yet.
@@ -285,8 +283,8 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ## Recommended Next Work Order
 
-1. Fix upload persistence across all upload/media flows. This is the current production-readiness blocker.
-2. Verify uploaded public media and downloadable owner-curated assets survive refresh and are readable by visitors where intended.
+1. Keep upload persistence in the smoke-test checklist for each deployment.
+2. Continue UI consistency cleanup in Settings/Admin/Browser surfaces.
 3. ~~Finish Section 4 by adding real App Info and Admin deep-link behavior.~~ ✓ Done 2026-05-05
 4. Finish Section 5 by moving CV/AboutOS shells onto shared surfaces and populating CV content from owner's real CV.
 5. Continue Section 7 by adopting `Surface` primitives in the highest-visibility shell components.
@@ -381,13 +379,11 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 
 ### Still Pending (from handoff)
 
-- **Upload persistence browser verification** — Typecheck passes, and metadata recovery is implemented, but the full production path still needs browser testing: upload, refresh, confirm item remains, sign out/in, confirm Firestore/Storage records, and verify visitor visibility for public assets.
-- **Upload persistence production blocker** — Owner reports uploaded images/media disappear after refresh. This is mitigated but not closed until the full Firebase and public-read path is verified in browser.
-- **Background persistence verification** — Rules are now correct; needs testing in browser to confirm uploaded backgrounds persist after refresh.
-- **Auth workflow production verification** — Enable Firebase Email/Password auth, confirm `admin@os.com` exists, deploy updated Firestore/Storage rules, then test superuser login, guest creation/login, Admin Panel access denial for guests, and guest-safe Visitor Gallery upload.
+- **Upload persistence verification** — Owner verified backgrounds, documents, videos, Visitor Gallery uploads, and feedback after Firebase rules deployment. Keep this in the smoke-test checklist, but it is no longer a production blocker.
+- **Auth workflow verification** — Owner verified superuser login and feedback moderation. Keep guest-safe Visitor Gallery upload and admin access denial in recurring smoke tests.
 - **About app editing** — Constrained inline editing for Generative Studio details, email, and Kagetsu links. Open question: correct email and Generative Studio website URL.
 - **Taskbar/start icon configuration path** — Assets are now in `src/assets/` and hardcoded in Taskbar/StartMenu. A Settings or Admin Panel path to swap the logo variant is not yet exposed.
-- **CV publish** — Seed data and `seedCVProfile()` are in place. Admin must sign in as `admin@os.com` and click "Populate CV" in the CV app to write the seed to Firebase. Until that happens, CV app shows empty/default profile state.
+- **CV publish** — Seed data and `seedCVProfile()` are in place. Owner has used the populate flow and CV data is visible; verify after deployments that profile data still comes from Firebase.
 - **surfaceMode: 'content' for content apps** — CV, AboutOS, FileExplorer, Settings are set to `glass` in desktopStore but ARCHITECTURE.md specifies `content`. Converting requires full internal redesign of each app's colors from dark-glass to light-canvas.
 
 ### Open Questions (unresolved from handoff)
@@ -398,3 +394,45 @@ Adopt `MediaSurface` in FileExplorer image thumbnails, then adopt `ContentSurfac
 - What GitHub URL should be shown for Kagetsu?
 - Should About app editable content live in Firestore or existing `userStore`?
 - Logo assets confirmed at `src/assets/png-{black,color,white}-symbol.png`. Which variant for which surface (dark mode, light mode, active state)?
+
+---
+
+## Release Cleanup Update (2026-05-10)
+
+Status: **Actioned**
+
+What is actioned:
+
+- Firebase rules are deployed and scoped by app namespace. Firestore preserves CRP rules, protects GenOS `os-*` collections, and leaves unrelated collections open so other apps in the same Firebase project are not locked out.
+- Storage rules protect GenOS-managed folders and leave non-GenOS folders open.
+- GenOS sign-ins write `os-users/{uid}` with `source: generativeos`, `app: generativeos`, and the current role.
+- App add/edit/remove/reorder flows publish to Firestore first and only update visible local state after Firestore accepts the write.
+- Browser Reads are loaded from `os-site_content/reads`; Admin Panel supports CSV import; duplicate slugs are skipped; article pages include tag pages, previous/next navigation, and Discuss.
+- Owner verified background uploads, documents, videos, Visitor Gallery uploads, and feedback moderation working after deployment.
+- Shared app icons normalize uploaded, Lucide, and Material UI icons into the same scalable box.
+- Icon sizing is now centralized in `src/lib/iconScale.ts`, with named size tokens and source-specific visual scales for Lucide, Material UI, and uploaded image icons.
+- Window borders now live on the rounded window shell to avoid clipped top corners.
+- Browser read cards no longer use layout resize animation, reducing maximize/minimize bounce.
+- Timeline and milestone cards were retuned from the older clipped/neon treatment to the current dark-chrome design language, with token borders, activity-density bars, calmer motion, and cleaner media expansion.
+- Admin Panel app tables now use shared dark table primitives from `AppShell.tsx` instead of light-mode divider tokens.
+- Shared card, input, button, and surface primitives now source dark borders from `os-line-dark` / `os-line-dark-hover`; Tailwind `os.line.dark` also resolves from CSS variables so the border system can be tuned centrally.
+- Milestone header now uses the available header space for entries, featured count, year controls, and expand/collapse. The old secondary metadata row and month density divider were removed.
+- Milestone horizontal mouse-wheel scrolling is restored without requiring Shift.
+- Admin Panel and File Explorer side navigation now share the same selected-row behavior: red active rail, dark selected fill, and high-contrast label/icon state.
+- High-visibility shell surfaces were cleaned to use OS tokens instead of raw white/cyan styling: File Explorer chrome/sidebar/dialogs, Taskbar and system tray, Login modal, Context Menu, Window controls, and Window snap/cutout overlays.
+- Secondary shell surfaces were also cleaned to use OS tokens: Start Menu, desktop hover preview, Calendar popup, Notification panel, Volume popup, Upload progress, Welcome screen, Keyboard Shortcuts help, PWA prompt, Error boundary, and notification toasts.
+- Red active controls were adjusted so red is used as accent/border while text stays high-contrast white.
+- Shared interaction feedback primitives were added in `src/index.css`: `os-interactive`, `os-focus-ring`, `os-row-hover`, `os-surface-soft`, and `os-surface-raised`. These establish a reusable baseline for hover lift, press feedback, focus visibility, and row interaction.
+- `Button` and `AppShell` primitives now use the shared interaction/focus utilities, and shared app table rows inherit `os-row-hover`.
+- The CSS fallback theme now defaults to Generative Studio red/orange values instead of the old Star Citizen cyan/blue values, preventing blue flashes before the persisted theme loads.
+- Weather and Task Manager received the first app-level interaction pass: old raw white/cyan/black alpha surfaces were replaced with OS ink/line tokens, active states use brand red with readable white text, and cards/rows now respond with shared hover feedback.
+- Settings, Feedback, and AboutOS had remaining high-traffic blue/white-alpha controls replaced with token-backed borders, brand accents, and shared interaction states.
+
+Still pending:
+
+- About app editing remains undefined until final email, Generative Studio URL, and public labels are confirmed.
+- Taskbar/start icon configuration is not exposed in Settings or Admin Panel yet.
+- Milestones still need the future V2 daily-update/content strategy, but the current UI cleanup pass is actioned.
+- App animations and transitions need a focused pass after the current surface cleanup. The new shared interaction utilities are the baseline for that pass.
+- Older legacy app screens still contain raw white-alpha border classes and should be converted incrementally as each app receives its next design pass.
+- Active shell token cleanup is currently actioned for the surfaces listed above; future cleanup should focus on remaining app-specific screens such as Browser, legacy Portfolio/Skills/Resume, detailed File Explorer file-type viewers, and older CV/About edit forms.

@@ -1,23 +1,39 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
+import { muiIconCatalog, muiIconCategories } from '../lib/muiIconCatalog';
+import { AppIcon } from '../lib/AppIcon';
 import {
-  collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc,
+  collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, getDoc, setDoc,
 } from 'firebase/firestore';
 import { ref, listAll, getMetadata, deleteObject } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
 import { App } from '../types';
-import { AppShell, AppBody, AppSidebar, AppContent, AppCard, appInputClass } from './ui/AppShell';
+import {
+  AppShell,
+  AppBody,
+  AppSidebar,
+  AppContent,
+  AppCard,
+  appInputClass,
+  appSelectClass,
+  appTableBodyClass,
+  appTableClass,
+  appTableHeaderClass,
+  appTableRowClass,
+} from './ui/AppShell';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
 import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
 import { ContextMenu } from './ContextMenu';
 import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
 import { cn } from '../lib/utils';
+import { mergeNewReadsBySlug, parseReadsCsv } from '../lib/reads';
+import { useAuthStore } from '../store/authStore';
 
-type AdminTab = 'overview' | 'apps' | 'backgrounds' | 'milestones' | 'feedback' | 'gallery';
+type AdminTab = 'overview' | 'apps' | 'backgrounds' | 'milestones' | 'reads' | 'feedback' | 'gallery';
 
 interface FeedbackItem {
   id: string;
@@ -32,6 +48,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   apps: 'Apps',
   backgrounds: 'Backgrounds',
   milestones: 'Milestones',
+  reads: 'Reads',
   feedback: 'Feedback',
   gallery: 'Visitor Gallery',
 };
@@ -41,6 +58,7 @@ const TAB_ICONS: Record<AdminTab, keyof typeof Icons> = {
   apps: 'Grid3x3',
   backgrounds: 'Image',
   milestones: 'Calendar',
+  reads: 'BookOpen',
   feedback: 'MessageSquare',
   gallery: 'GalleryHorizontal',
 };
@@ -59,6 +77,7 @@ export function AdminPanel() {
     adminEditTargetAppId, setAdminEditTarget,
   } = useDesktopStore();
   const { profile, addMilestone, updateMilestone, removeMilestone } = useUserStore();
+  const { isAdmin } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [highlightedAppId, setHighlightedAppId] = useState<string | null>(null);
@@ -72,6 +91,15 @@ export function AdminPanel() {
   const [editingApp, setEditingApp] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [appPublishStatus, setAppPublishStatus] = useState<{
+    state: 'idle' | 'publishing' | 'success' | 'error';
+    message: string;
+  }>({ state: 'idle', message: '' });
+  const [readImportTarget, setReadImportTarget] = useState('reads');
+  const [readImportStatus, setReadImportStatus] = useState<{
+    state: 'idle' | 'parsing' | 'success' | 'error';
+    message: string;
+  }>({ state: 'idle', message: '' });
 
   const [formData, setFormData] = useState<Partial<App>>({
     name: '', icon: 'square', type: 'component', component: '', url: '',
@@ -81,6 +109,10 @@ export function AdminPanel() {
     description: '',
     media: [],
   });
+  const [iconTab, setIconTab] = useState<'browse' | 'upload'>('browse');
+  const [iconSearch, setIconSearch] = useState('');
+  const [iconCategory, setIconCategory] = useState('All');
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
 
   // Milestone state
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
@@ -165,34 +197,24 @@ export function AdminPanel() {
     await deleteDoc(doc(db, 'os-feedback', id));
   };
 
-  const iconOptions = [
-    'folder', 'globe', 'calculator', 'file-text', 'cloud', 'activity', 'heart',
-    'github', 'user', 'briefcase', 'code', 'terminal', 'image', 'video',
-    'music', 'book', 'mail', 'phone', 'settings', 'star', 'search', 'chrome',
-    'link', 'radio', 'zap', 'trello', 'figma', 'shopping-cart',
-  ];
-
-  const iconLibrary = [
-    { name: 'GitHub', icon: 'github', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTgiIGhlaWdodD0iOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00OC44NTQgMEMyMS44MzkgMCAwIDIyIDAgNDkuMjE3YzAgMjEuNzU2IDEzLjk5MyA0MC4xNzIgMzMuNDA1IDQ2LjY5IDIuNDI3LjQ5IDMuMzE2LTEuMDU5IDMuMzE2LTIuMzYyIDAtMS4xNDEtLjA4LTUuMDUyLS4wOC05LjEyNy0xMy41OSAyLjkzNC0xNi40Mi01Ljg2Ny0xNi40Mi01Ljg2Ny0yLjE4NC01LjcwNC01LjQyLTcuMTctNS40Mi03LjE3LTQuNDQ4LTMuMDE1LjMyNC0zLjAxNS4zMjQtMy4wMTUgNC45MzQuMzI2IDcuNTIzIDUuMDUyIDcuNTIzIDUuMDUyIDQuMzY3IDcuNDk2IDExLjQwNCA1LjM3OCAxNC4yMzUgNC4wNzQuNDA0LTMuMTc4IDEuNjk5LTUuMzc4IDMuMDc0LTYuNi0xMC44MzktMS4xNDEtMjIuMjQzLTUuMzc4LTIyLjI0My0yNC4yODMgMC01LjM3OCAxLjk0LTkuNzc4IDUuMDE0LTEzLjItLjQ4NS0xLjIyMi0yLjE4NC02LjI3NS40ODYtMTMuMDM4IDAgMCA0LjEyNS0xLjMwNCAxMy40MjYgNS4wNTJhNDYuOTcgNDYuOTcgMCAwIDEgMTIuMjE0LTEuNjNjNC4xMjUgMCA4LjMzLjU3MSAxMi4yMTMgMS42MyA5LjMwMi02LjM1NiAxMy40MjctNS4wNTIgMTMuNDI3LTUuMDUyIDIuNjcgNi43NjMuOTcgMTEuODE2LjQ4NSAxMy4wMzggMy4xNTUgMy40MjIgNS4wMTUgNy44MjIgNS4wMTUgMTMuMiAwIDE4LjkwNS0xMS40MDQgMjMuMDYtMjIuMzI0IDI0LjI4MyAxLjc4IDEuNTQ4IDMuMzE2IDQuNDgxIDMuMzE2IDkuMTI2IDAgNi42LS4wOCAxMS44OTctLjA4IDEzLjUyNiAwIDEuMzA0Ljg5IDIuODUzIDMuMzE2IDIuMzY0IDE5LjQxMi02LjUyIDMzLjQwNS0yNC45MzUgMzMuNDA1LTQ2LjY5MUM5Ny43MDcgMjIgNzUuNzg4IDAgNDguODU0IDB6IiBmaWxsPSIjZmZmIi8+PC9zdmc+' },
-    { name: 'LinkedIn', icon: 'linkedin', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwLjQ0NyAyMC40NTJoLTMuNTU0di01LjU2OWMwLTEuMzI4LS4wMjctMy4wMzctMS44NTItMy4wMzctMS44NTMgMC0yLjEzNiAxLjQ0NS0yLjEzNiAyLjkzOXY1LjY2N0g5LjM1MVY5aDMuNDE0djEuNTYxaC4wNDZjLjQ3Ny0uOSAxLjYzNy0xLjg1IDMuMzctMS44NSAzLjYwMSAwIDQuMjY3IDIuMzcgNC4yNjcgNS40NTV2Ni4yODZ6TTUuMzM3IDcuNDMzYTIuMDYyIDIuMDYyIDAgMCAxLTIuMDYzLTIuMDY1IDIuMDY0IDIuMDY0IDAgMSAxIDIuMDYzIDIuMDY1em0xLjc4MiAxMy4wMTlIMy41NTVWOWgzLjU2NHYxMS40NTJ6TTIyLjIyNSAwSDEuNzcxQy43OTIgMCAwIC43NzQgMCAxLjcyOXYyMC41NDJDMCAyMy4yMjcuNzkyIDI0IDEuNzcxIDI0aDIwLjQ1MUMyMy4yIDI0IDI0IDIzLjIyNyAyNCAyMi4yNzFWMS43MjlDMjQgLjc3NCAyMy4yIDAgMjIuMjIyIDBoLjAwM3oiIGZpbGw9IiMwMDc3QjUiLz48L3N2Zz4=' },
-    { name: 'Twitter/X', icon: 'twitter', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE4LjkwMSAxLjE1M2gzLjY4bC04LjA0IDkuMTlMMjQgMjIuODQ2aC03LjQwNmwtNS44LTcuNTg0LTYuNjM4IDcuNTg0SC40NzRsOC42LTkuODNMMCAxLjE1NGg3LjU5NGw1LjI0MyA2LjkzMlpNMTcuNjEgMjAuNjQ0aDIuMDM5TDYuNDg2IDMuMjRINC4yOThaIiBmaWxsPSIjZmZmIi8+PC9zdmc+' },
-    { name: 'YouTube', icon: 'youtube', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIzLjQ5OCA2LjE4NmExMy4wNjUgMTMuMDY1IDAgMCAwLTIuNTE5LTQuNzI1QzE5LjUwMi4zMjUgMTguMDg1LjA0OCAxNC44NTcgMGMtMy4yMDYuMDQ4LTQuNjIxLjMyNS02LjA5OSAxLjQ2MWExMy4wNjUgMTMuMDY1IDAgMCAwLTIuNTE5IDQuNzI1QzUuNzY4IDcuNjk0IDUuNjk1IDkuNDk5IDUuNjk1IDEyYzAgMi41MDEuMDczIDQuMzA2LjU0NCA1LjgxNGExMy4wNjUgMTMuMDY1IDAgMCAwIDIuNTE5IDQuNzI1YzEuNDc4IDEuMTM2IDIuODkzIDEuNDEzIDYuMDk5IDEuNDYxIDMuMjI4LS4wNDggNC42NDUtLjMyNSA2LjEyMS0xLjQ2MWExMy4wNjUgMTMuMDY1IDAgMCAwIDIuNTE5LTQuNzI1Yy40NzEtMS41MDguNTQ0LTMuMzEzLjU0NC01LjgxNCAwLTIuNTAxLS4wNzMtNC4zMDYtLjU0NC01LjgxNHpNOS41NDUgMTUuNTY4VjguNDMybDYuNTQ1IDMuNTY4LTYuNTQ1IDMuNTY4eiIgZmlsbD0iI0ZGMDAwMCIvPjwvc3ZnPg==' },
-    { name: 'Discord', icon: 'message-circle', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIwLjMxNyA0LjQ5MmExOS44OTEgMTkuNzkgMCAwIDAtNC45MDUtMS41MzguMTI0LjEyNCAwIDAgMC0uMTMxLjA2MmMtLjIxMS4zNzUtLjQ0NS43NjQtLjYwOCAxLjEwN2E4LjMzNiAxOC40MTcgMCAwIDAtNS41MTYgMCA2LjQ2NiAxMy4zODUgMCAwIDAtLjYxNy0xLjEwNy4xMjkuMTI5IDAgMCAwLS4xMzEtLjA2MiAxOS44MzggMTkuNzg3IDAgMCAwLTQuOTA0IDEuNTM4LjExNy4xMTcgMCAwIDAtLjA1NC4wNDZDLjM1IDguNzk4LS4yMSAxMi45NDEuMDY2IDE3LjAzOGEuMTM3LjEzNyAwIDAgMCAuMDUyLjA5NCAyMC4wNiAxOS45OSAwIDAgMCA2LjAzOCAzLjA1MS4xMy4xMyAwIDAgMCAuMTQtLjA0NmMuMzg2LS41MjcuNzMtMS4wODEgMS4wMjktMS42NThhLjEyNi4xMjYgMCAwIDAtLjA2OS0uMTc2IDEzLjE3IDEzLjA4NiAwIDAgMS0xLjg3OS0uODk1LjEyNy4xMjcgMCAwIDEtLjAxMi0uMjExYy4xMjYtLjA5NS4yNTItLjE5My4zNzMtLjI5MmEuMTI0LjEyNCAwIDAgMSAuMTMtLjAxOGM5LjkzNiA0LjUzNiAxMi40NjcgNC41MzYgMTUuNzY3IDBhLjEyNC4xMjQgMCAwIDEgLjEzMS4wMTdjLjEyLjEuMjQ3LjE5OC4zNzQuMjkzYS4xMjcuMTI3IDAgMCAxLS4wMTEuMjExIDEyLjM3IDEyLjI4OCAwIDAgMS0xLjg4Ljg5NC4xMjcuMTI3IDAgMCAwLS4wNjguMTc3Yy4zMDMuNTc2LjY0OCAxLjEzIDEuMDI5IDEuNjU3YS4xMjYuMTI2IDAgMCAwIC4xNC4wNDcgMTkuOTYzIDE5Ljk1IDAgMCAwIDYuMDUzLTMuMDUxLjEyOS4xMjkgMCAwIDAgLjA1Mi0uMDkzYy4zMzEtNC43MzMtLjU1NS04LjgzNi0yLjM1Mi0xMi40OGEuMS4xIDAgMCAwLS4wNTMtLjA0N3pNOC4wMiAxNC4zMzRjLS43ODMgMC0xLjQyOS0uNzE5LTEuNDI5LTEuNjAyIDAtLjg4My42My0xLjYwMiAxLjQyOS0xLjYwMi44MDYgMCAxLjQ0NC43MjYgMS40MjkgMS42MDIgMCAuODgzLS42MyAxLjYwMi0xLjQyOSAxLjYwMnptNy45NzUgMGMtLjc4MyAwLTEuNDI5LS43MTktMS40MjktMS42MDIgMC0uODgzLjYzLTEuNjAyIDEuNDI5LTEuNjAyLjgwNiAwIDEuNDQ0LjcyNiAxLjQyOSAxLjYwMiAwIC44ODMtLjYyMyAxLjYwMi0xLjQyOSAxLjYwMnoiIGZpbGw9IiM1ODY1RjIiLz48L3N2Zz4=' },
-    { name: 'Spotify', icon: 'music', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEyIDI0QzUuMzczIDI0IDAgMTguNjI3IDAgMTJTNS4zNzMgMCAxMiAwczEyIDUuMzczIDEyIDEyLTUuMzczIDEyLTEyIDEyem01LjAxLTEzLjY4MWE1NS40NyA1NS40NyAwIDAgMC0xMC4wMi0uNThjLS4xODkgMC0uMzY3LjAwNC0uNTQ1LjAxYS4yNy4yNyAwIDAgMC0uMjU3LjI3Mi4yNjguMjY4IDAgMCAwIC4yNTguMjdoLjAwMWMuMTcyLS4wMDYuMzQzLS4wMDkuNTE0LS4wMDlhNTYuMDY1IDU2LjA2NSAwIDAgMSA5LjkyNy41NzJjLjE1Mi4wMjIuMjkzLS4wNzkuMzE1LS4yMjguMDIyLS4xNS0uMDc5LS4yOS0uMjI4LS4zMTJ6bS40NyAyLjY1YTU4LjI4MyA1OC4yODMgMCAwIDAtMTEuNTMtLjg1NGMtLjE1NCAwLS4yNzkuMTI1LS4yNzkuMjc5YS4yNzguMjc4IDAgMCAwIC4yNzkuMjc5IDU3LjcyMyA1Ny43MjMgMCAwIDEgMTEuNDE0Ljg0NS4yNzkuMjc5IDAgMCAwIC4zMTQtLjIzOS4yNzkuMjc5IDAgMCAwLS4yMzgtLjMxNHptLjY5MyAyLjgxNWMtMy41My0uODE3LTguMzM5LTEuMDk1LTExLjQ4NC0uNzAzYS4yOTQuMjk0IDAgMSAxLS4xMTctLjU3N2MzLjI1OC0uNDA1IDguMjU3LS4xMTcgMTEuOTg1Ljc4YS4yOTUuMjk1IDAgMSAxLS4xNDcuNTc0bC0uMjM3LS4wNzR6IiBmaWxsPSIjMUVENzYwIi8+PC9zdmc+' },
-    { name: 'VS Code', icon: 'code', customIcon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTIzLjE1IDIuNTg3TDE4LjIxLjIxYTEuNDk0IDEuNDk0IDAgMCAwLTEuNzA1LjI5bC05LjQ2IDguNjMtNC4xMi0zLjEyOGEuOTk5Ljk5OSAwIDAgMC0xLjI3Ni4wNTdMLjMyNyA3LjI2MUExIDEgMCAwIDAgLjMyNiA4Ljc0TDMuODk5IDEyIC4zMjYgMTUuMjZhMSAxIDAgMCAwIC4wMDEgMS40NzlMMS42NSAxOC4xYS45OTkuOTk5IDAgMCAwIDEuMjc2LjA1N2w0LjEyLTMuMTI4IDkuNDYgOC42M2ExLjQ5MiAxLjQ5MiAwIDAgMCAxLjcwNC4yOWw0Ljk0Mi0yLjM3N0ExLjUgMS41IDAgMCAwIDI0IDIwLjA2VjMuOTM5YTEuNSAxLjUgMCAwIDAtLjg1LTEuMzUyem0tNS4xNDYgMTQuODYxTDEwLjgyNiAxMmw3LjE3OC01LjQ0OHYxMC44OTZ6IiBmaWxsPSIjMDBBQ0VFIi8+PC9zdmc+' },
-  ];
 
   const resetForm = () => {
     setFormData({ name: '', icon: 'square', type: 'component', component: '', url: '', pinnedToTaskbar: false, pinnedToDesktop: true, desktopPosition: { x: 50, y: 50 }, defaultSize: { width: 800, height: 600 }, description: '', media: [] });
     setEditingApp(null);
     setShowAddForm(false);
+    setIconSearch('');
+    setIconCategory('All');
+    setIconTab('browse');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return;
+    setAppPublishStatus({ state: 'publishing', message: editingApp ? 'Publishing app update...' : 'Publishing new app...' });
+
+    let result;
     if (editingApp) {
-      updateApp(editingApp, formData);
+      result = await updateApp(editingApp, formData);
     } else {
       const newApp: App = {
         id: formData.name.toLowerCase().replace(/\s+/g, '-'),
@@ -204,9 +226,15 @@ export function AdminPanel() {
         description: formData.description || '',
         media: formData.media || [],
       };
-      addApp(newApp);
+      result = await addApp(newApp);
     }
-    resetForm();
+
+    if (result.success) {
+      setAppPublishStatus({ state: 'success', message: editingApp ? 'App update published globally.' : 'App published globally.' });
+      resetForm();
+    } else {
+      setAppPublishStatus({ state: 'error', message: result.error || 'App publish failed.' });
+    }
   };
 
   const handleEdit = (app: App) => { setFormData({ ...app, media: app.media || [] }); setEditingApp(app.id); setShowAddForm(true); };
@@ -220,31 +248,55 @@ export function AdminPanel() {
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) { const reader = new FileReader(); reader.onload = (ev) => importConfig(ev.target?.result as string); reader.readAsText(file); }
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        setAppPublishStatus({ state: 'publishing', message: 'Publishing imported app config...' });
+        const result = await importConfig(ev.target?.result as string);
+        setAppPublishStatus(result.success
+          ? { state: 'success', message: 'Imported app config published globally.' }
+          : { state: 'error', message: result.error || 'Import failed.' });
+      };
+      reader.readAsText(file);
+    }
   };
 
   const extractAppNameFromURL = (url: string): string => {
     try { const h = new URL(url).hostname.replace('www.', '').split('.')[0]; return h.charAt(0).toUpperCase() + h.slice(1); } catch { return 'New App'; }
   };
 
-  const handleQuickAdd = () => {
+  const handleQuickAdd = async () => {
     if (!quickURL.trim()) return;
     let url = quickURL.trim();
     if (!url.startsWith('http')) url = 'https://' + url;
     const appName = extractAppNameFromURL(url);
-    addApp({ id: `${appName.toLowerCase()}-${Date.now()}`, name: appName, icon: 'globe', type: 'iframe', url, pinnedToTaskbar: true, pinnedToDesktop: true, desktopPosition: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 }, defaultSize: { width: 1000, height: 700 }, description: `Iframe: ${url}` });
-    setQuickURL(''); setShowQuickAdd(false);
+    setAppPublishStatus({ state: 'publishing', message: 'Publishing quick app...' });
+    const result = await addApp({ id: `${appName.toLowerCase()}-${Date.now()}`, name: appName, icon: 'globe', type: 'iframe', url, pinnedToTaskbar: true, pinnedToDesktop: true, desktopPosition: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 }, defaultSize: { width: 1000, height: 700 }, description: `Iframe: ${url}` });
+    if (result.success) {
+      setAppPublishStatus({ state: 'success', message: 'Quick app published globally.' });
+      setQuickURL(''); setShowQuickAdd(false);
+    } else {
+      setAppPublishStatus({ state: 'error', message: result.error || 'Quick app publish failed.' });
+    }
   };
 
-  const handleBulkImport = () => {
+  const handleBulkImport = async () => {
     if (!bulkURLs.trim()) return;
-    bulkURLs.split('\n').filter(l => l.trim()).forEach((line, i) => {
+    const newApps: App[] = bulkURLs.split('\n').filter(l => l.trim()).map((line, i) => {
       const parts = line.split('|').map(p => p.trim());
       let url = parts[0]; const name = parts[1] || extractAppNameFromURL(url); const icon = parts[2] || 'globe';
       if (!url.startsWith('http')) url = 'https://' + url;
-      addApp({ id: `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${i}`, name, icon, type: 'iframe', url, pinnedToTaskbar: true, pinnedToDesktop: true, desktopPosition: { x: 50 + i * 30, y: 50 + i * 30 }, defaultSize: { width: 1000, height: 700 }, description: `Iframe: ${url}` });
+      return { id: `${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${i}`, name, icon, type: 'iframe', url, pinnedToTaskbar: true, pinnedToDesktop: true, desktopPosition: { x: 50 + i * 30, y: 50 + i * 30 }, defaultSize: { width: 1000, height: 700 }, description: `Iframe: ${url}` };
     });
-    setBulkURLs(''); setShowBulkImport(false);
+
+    setAppPublishStatus({ state: 'publishing', message: `Publishing ${newApps.length} apps...` });
+    const result = await importConfig(JSON.stringify([...apps, ...newApps]));
+    if (result.success) {
+      setAppPublishStatus({ state: 'success', message: `${newApps.length} apps published globally.` });
+      setBulkURLs(''); setShowBulkImport(false);
+    } else {
+      setAppPublishStatus({ state: 'error', message: result.error || 'Bulk app publish failed.' });
+    }
   };
 
   const handleURLPreview = (url: string) => {
@@ -252,11 +304,6 @@ export function AdminPanel() {
     let u = url.trim();
     if (!u.startsWith('http')) u = 'https://' + u;
     setPreviewURL(u);
-  };
-
-  const getIcon = (iconName: string) => {
-    const Icon = (Icons as any)[iconName.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')] || Icons.Square;
-    return Icon;
   };
 
   const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,10 +361,107 @@ export function AdminPanel() {
     }
   };
 
+  const handleIconImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingIcon(true);
+    try {
+      const result = await uploadFile(file, {
+        folder: 'app-icons',
+        maxSizeMB: 2,
+        allowedTypes: ['image/*'],
+        onProgress: () => {},
+      });
+      if (result.url && !result.error) {
+        setFormData(prev => ({ ...prev, customIcon: result.url }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUploadingIcon(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleReadsCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isAdmin) {
+      setReadImportStatus({
+        state: 'error',
+        message: 'Sign in as the superuser before importing reads.',
+      });
+      e.target.value = '';
+      return;
+    }
+
+    const targetDocument = readImportTarget.trim() || 'reads';
+    setReadImportStatus({ state: 'parsing', message: `Reading ${file.name}...` });
+
+    try {
+      const csvText = await file.text();
+      const importedReads = parseReadsCsv(csvText);
+      if (importedReads.length === 0) {
+        setReadImportStatus({
+          state: 'error',
+          message: 'No valid reads were found. The CSV must include Slug and Title columns.',
+        });
+        return;
+      }
+
+      const contentRef = doc(db, 'os-site_content', targetDocument);
+      const docSnap = await getDoc(contentRef);
+      const existingReads = docSnap.exists() && Array.isArray(docSnap.data().data)
+        ? docSnap.data().data
+        : [];
+      const { mergedReads, newReads, duplicateCount } = mergeNewReadsBySlug(existingReads, importedReads);
+
+      if (newReads.length === 0) {
+        setReadImportStatus({
+          state: 'success',
+          message: `No new reads added. ${duplicateCount} ${duplicateCount === 1 ? 'read already exists' : 'reads already exist'} in ${targetDocument}.`,
+        });
+        return;
+      }
+
+      await setDoc(contentRef, {
+        data: mergedReads,
+        updated_at: new Date().toISOString(),
+        last_import: {
+          fileName: file.name,
+          importedCount: importedReads.length,
+          addedCount: newReads.length,
+          duplicateCount,
+          importedAt: new Date().toISOString(),
+        },
+      }, { merge: true });
+
+      setReadImportStatus({
+        state: 'success',
+        message: `Added ${newReads.length} new ${newReads.length === 1 ? 'read' : 'reads'} to ${targetDocument}. ${duplicateCount} already existed.`,
+      });
+    } catch (err: any) {
+      setReadImportStatus({
+        state: 'error',
+        message: err.message || 'CSV import failed.',
+      });
+    } finally {
+      e.target.value = '';
+    }
+  };
+
   if (!isAdminMode) return null;
 
   const pendingCount = feedbackItems.filter(f => f.status === 'pending').length;
   const filteredFeedback = feedbackFilter === 'all' ? feedbackItems : feedbackItems.filter(f => f.status === feedbackFilter);
+
+  // ── MUI icon filter (for the app form panel) ────────────────────────────────
+  const _allMuiNames = Object.keys(muiIconCatalog);
+  const filteredMuiIcons = (iconCategory === 'All'
+    ? _allMuiNames
+    : muiIconCategories.find(c => c.label === iconCategory)?.names ?? _allMuiNames
+  ).filter(n => !iconSearch || n.toLowerCase().includes(iconSearch.toLowerCase()));
 
   // ── Stats for overview ──────────────────────────────────────────────────────
   const stats = [
@@ -334,18 +478,32 @@ export function AdminPanel() {
           {/* Sidebar */}
           <AppSidebar>
             <SystemRowGroup context="chrome">Admin</SystemRowGroup>
-            {(['overview', 'apps', 'backgrounds', 'milestones', 'feedback', 'gallery'] as AdminTab[]).map((tab) => {
+            {(['overview', 'apps', 'backgrounds', 'milestones', 'reads', 'feedback', 'gallery'] as AdminTab[]).map((tab) => {
               const IconComp = Icons[TAB_ICONS[tab]] as React.ComponentType<{ className?: string }>;
+              const isActive = activeTab === tab;
               return (
-                <SystemRow
-                  key={tab}
-                  label={TAB_LABELS[tab]}
-                  icon={<IconComp className="w-4 h-4" />}
-                  context="chrome"
-                  selected={activeTab === tab}
-                  onClick={() => setActiveTab(tab)}
-                  badge={tab === 'feedback' && pendingCount > 0 ? String(pendingCount) : undefined}
-                />
+                <div key={tab} className="relative">
+                  {isActive && (
+                    <motion.div
+                      layoutId="admin-sidebar-active"
+                      className="absolute left-0 top-1 bottom-1 z-10 w-[3px] rounded-r-full bg-primary-400"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <SystemRow
+                    label={TAB_LABELS[tab]}
+                    icon={<IconComp className={cn('w-4 h-4 transition-colors', isActive ? 'text-primary-400' : 'text-white/40')} />}
+                    context="chrome"
+                    selected={isActive}
+                    accentRail={false}
+                    className={cn(
+                      'transition-all duration-200',
+                      isActive ? 'bg-os-ink-800 text-white' : 'text-white/60 hover:bg-os-ink-800/60',
+                    )}
+                    onClick={() => setActiveTab(tab)}
+                    badge={tab === 'feedback' && pendingCount > 0 ? String(pendingCount) : undefined}
+                  />
+                </div>
               );
             })}
 
@@ -403,6 +561,7 @@ export function AdminPanel() {
                     {[
                       { label: 'Manage Apps', tab: 'apps' as AdminTab, icon: 'Grid3x3' as keyof typeof Icons },
                       { label: 'Add Milestone', tab: 'milestones' as AdminTab, icon: 'Plus' as keyof typeof Icons },
+                      { label: 'Import Reads', tab: 'reads' as AdminTab, icon: 'BookOpen' as keyof typeof Icons },
                       { label: 'Review Feedback', tab: 'feedback' as AdminTab, icon: 'MessageSquare' as keyof typeof Icons, badge: pendingCount },
                       { label: 'Upload Background', tab: 'backgrounds' as AdminTab, icon: 'Image' as keyof typeof Icons },
                     ].map(({ label, tab, icon, badge }) => {
@@ -426,8 +585,9 @@ export function AdminPanel() {
 
             {/* ── Apps ────────────────────────────────────────────────── */}
             {activeTab === 'apps' && (
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col h-full">
+                {/* Header bar */}
+                <div className="flex items-center gap-2 px-5 py-3 shrink-0 border-b border-os-line-dark">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Apps <span className="text-os-text-inverse/35 font-normal">({apps.length})</span></h2>
                   <button onClick={() => { setShowQuickAdd(!showQuickAdd); setShowAddForm(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showQuickAdd ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Zap className="w-3.5 h-3.5" /> Quick Add
@@ -435,209 +595,281 @@ export function AdminPanel() {
                   <button onClick={() => { setShowBulkImport(!showBulkImport); setShowAddForm(false); setShowQuickAdd(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showBulkImport ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Package className="w-3.5 h-3.5" /> Bulk
                   </button>
-                  <button onClick={() => { setShowAddForm(!showAddForm); setShowQuickAdd(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
-                    <Icons.Plus className="w-3.5 h-3.5" /> Add App
+                  <button onClick={() => { if (showAddForm) { resetForm(); } else { setShowAddForm(true); setShowQuickAdd(false); setShowBulkImport(false); } }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                    <Icons.Plus className="w-3.5 h-3.5" /> {editingApp ? 'Editing' : 'Add App'}
                   </button>
                 </div>
 
-                <AnimatePresence>
-                  {showQuickAdd && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                      <AppCard className="p-4 space-y-3">
-                        <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Zap className="w-3.5 h-3.5" /> Quick Add from URL</h3>
-                        <input type="text" value={quickURL} onChange={(e) => setQuickURL(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()} placeholder="https://example.com" autoFocus className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
-                        <div className="flex gap-2">
-                          <button onClick={handleQuickAdd} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Plus className="w-3.5 h-3.5" /> Add App</button>
-                          {quickURL && <button onClick={() => handleURLPreview(quickURL)} className="px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse/60 transition-colors"><Icons.Eye className="w-3.5 h-3.5" /></button>}
+                {/* Status strip */}
+                {appPublishStatus.message && (
+                  <div className={cn(
+                    'px-5 py-2 shrink-0 text-xs border-b border-os-line-dark',
+                    appPublishStatus.state === 'success'
+                      ? 'bg-green-500/10 text-green-200/80'
+                      : appPublishStatus.state === 'error'
+                        ? 'bg-red-500/10 text-red-200/80'
+                        : 'bg-os-ink-900 text-os-text-inverse/50'
+                  )}>
+                    {appPublishStatus.message}
+                  </div>
+                )}
+
+                {/* Body: scrollable table left + slide-out form right */}
+                <div className="flex-1 flex min-h-0 overflow-hidden">
+                  {/* Left column */}
+                  <div className="flex-1 overflow-y-auto min-w-0">
+                    <AnimatePresence>
+                      {showQuickAdd && (
+                        <motion.div key="quick-add" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="p-4 pb-0">
+                            <AppCard className="p-4 space-y-3">
+                              <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Zap className="w-3.5 h-3.5" /> Quick Add from URL</h3>
+                              <input type="text" value={quickURL} onChange={(e) => setQuickURL(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()} placeholder="https://example.com" autoFocus className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              <div className="flex gap-2">
+                                <button onClick={handleQuickAdd} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Plus className="w-3.5 h-3.5" /> Add App</button>
+                                {quickURL && <button onClick={() => handleURLPreview(quickURL)} className="px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse/60 transition-colors"><Icons.Eye className="w-3.5 h-3.5" /></button>}
+                              </div>
+                            </AppCard>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {showBulkImport && (
+                        <motion.div key="bulk-import" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="p-4 pb-0">
+                            <AppCard className="p-4 space-y-3">
+                              <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Package className="w-3.5 h-3.5" /> Bulk Import</h3>
+                              <p className="text-xs text-os-text-inverse/35">One URL per line. Format: <code className="bg-os-ink-800 px-1 rounded">URL | Name | Icon</code></p>
+                              <textarea value={bulkURLs} onChange={(e) => setBulkURLs(e.target.value)} rows={5} placeholder={"https://example.com\nhttps://site.com | My App | globe"} className={cn(appInputClass, 'px-3 py-2 text-xs w-full resize-none font-mono')} />
+                              <button onClick={handleBulkImport} className="flex items-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Package className="w-3.5 h-3.5" /> Import All</button>
+                            </AppCard>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* App table */}
+                    <div className="p-4">
+                      <div className={appTableClass}>
+                        <div className={cn(appTableHeaderClass, 'grid-cols-12')}>
+                          <div className="col-span-4">Name</div>
+                          <div className="col-span-2">Type</div>
+                          <div className="col-span-2">Taskbar</div>
+                          <div className="col-span-2">Desktop</div>
+                          <div className="col-span-2">Actions</div>
                         </div>
-                      </AppCard>
-                    </motion.div>
-                  )}
+                        <div className={appTableBodyClass}>
+                          {apps.map((app) => (
+                            <div key={app.id} className={cn(appTableRowClass, 'grid-cols-12 group', highlightedAppId === app.id && 'bg-primary-500/15 ring-1 ring-inset ring-primary-500/30')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
+                              <div className="col-span-4 flex items-center gap-2 min-w-0">
+                                <AppIcon icon={app.icon} customIcon={app.customIcon} className="w-4 h-4 text-os-text-inverse/35 flex-shrink-0" />
+                                <span className="text-sm text-os-text-inverse truncate">{app.name}</span>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-[10px] px-1.5 py-0.5 bg-os-ink-900 text-os-text-inverse/60 rounded">{app.type}</span>
+                              </div>
+                              <div className="col-span-2">
+                                {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                              </div>
+                              <div className="col-span-2">
+                                {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                              </div>
+                              <div className="col-span-2 flex gap-1">
+                                <button onClick={() => handleEdit(app)} className="p-1.5 rounded hover:bg-os-ink-900 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors" title="Edit"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={async () => {
+                                  setAppPublishStatus({ state: 'publishing', message: `Removing ${app.name} globally...` });
+                                  const result = await removeApp(app.id);
+                                  setAppPublishStatus(result.success
+                                    ? { state: 'success', message: `${app.name} removed globally.` }
+                                    : { state: 'error', message: result.error || 'Remove failed.' });
+                                }} className="p-1.5 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                  {showBulkImport && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                      <AppCard className="p-4 space-y-3">
-                        <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Package className="w-3.5 h-3.5" /> Bulk Import</h3>
-                        <p className="text-xs text-os-text-inverse/35">One URL per line. Format: <code className="bg-os-ink-800 px-1 rounded">URL | Name | Icon</code></p>
-                        <textarea value={bulkURLs} onChange={(e) => setBulkURLs(e.target.value)} rows={5} placeholder={"https://example.com\nhttps://site.com | My App | globe"} className={cn(appInputClass, 'px-3 py-2 text-xs w-full resize-none font-mono')} />
-                        <button onClick={handleBulkImport} className="flex items-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Package className="w-3.5 h-3.5" /> Import All</button>
-                      </AppCard>
-                    </motion.div>
-                  )}
-
-                  {showAddForm && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                      <AppCard className="p-4">
-                        <h3 className="text-xs font-semibold text-os-text-inverse/60 mb-4">{editingApp ? 'Edit App' : 'New App'}</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-3">
+                  {/* Right: slide-out form panel */}
+                  <AnimatePresence>
+                    {showAddForm && (
+                      <motion.div
+                        key="app-form-panel"
+                        initial={{ width: 0 }}
+                        animate={{ width: 380 }}
+                        exit={{ width: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="shrink-0 overflow-hidden border-l border-os-line-dark"
+                      >
+                        <div className="w-[380px] h-full overflow-y-auto p-5">
+                          <h3 className="text-xs font-semibold text-os-text-inverse/60 mb-4">{editingApp ? 'Edit App' : 'New App'}</h3>
+                          <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Name */}
                             <div>
                               <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Name *</label>
                               <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="My App" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                             </div>
-                            <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Icon</label>
-                              <select value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')}>
-                                {iconOptions.map((ico) => <option key={ico} value={ico}>{ico}</option>)}
-                              </select>
-                            </div>
-                          </div>
 
-                          {/* Icon Library */}
-                          <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-2">Icon Library</label>
-                            <div className="grid grid-cols-7 gap-1.5">
-                              {iconLibrary.map((lib) => (
-                                <button key={lib.name} type="button" title={lib.name} onClick={() => setFormData({ ...formData, customIcon: lib.customIcon })} className={cn('p-2 rounded border-2 transition-all flex items-center justify-center', formData.customIcon === lib.customIcon ? 'border-primary-500/40 bg-primary-500/15' : 'border-os-line-dark bg-os-ink-900 hover:border-os-line-dark')}>
-                                  <img src={lib.customIcon} alt={lib.name} className="w-6 h-6 object-contain" />
-                                </button>
-                              ))}
-                              {formData.customIcon && (
-                                <button type="button" onClick={() => setFormData({ ...formData, customIcon: undefined })} className="p-2 rounded border-2 border-red-500/30 bg-red-500/10 hover:bg-os-ink-800 transition-all flex items-center justify-center" title="Clear custom icon">
-                                  <Icons.X className="w-4 h-4 text-red-400" />
-                                </button>
+                            {/* Icon */}
+                            <div>
+                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-2">Icon</label>
+
+                              {/* Preview + mode tabs */}
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-9 h-9 rounded-lg bg-os-ink-900 border border-os-line-dark flex items-center justify-center flex-shrink-0">
+                                  <AppIcon icon={formData.icon || 'square'} customIcon={formData.customIcon} className="w-5 h-5 text-white/70" />
+                                </div>
+                                <div className="flex gap-1 rounded bg-os-ink-900 border border-os-line-dark p-0.5">
+                                  <button type="button" onClick={() => setIconTab('browse')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'browse' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Browse</button>
+                                  <button type="button" onClick={() => setIconTab('upload')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'upload' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Upload Image</button>
+                                </div>
+                                {(formData.customIcon || (formData.icon || '').startsWith('mui:')) && (
+                                  <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto text-[11px] text-red-400/60 hover:text-red-400 transition-colors">Clear</button>
+                                )}
+                              </div>
+
+                              {iconTab === 'browse' && (
+                                <div className="space-y-2">
+                                  <div className="flex gap-2">
+                                    <select value={iconCategory} onChange={e => setIconCategory(e.target.value)} className={cn(appSelectClass, 'px-2 py-1.5 text-xs flex-none w-32')}>
+                                      <option value="All">All</option>
+                                      {muiIconCategories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
+                                    </select>
+                                    <input value={iconSearch} onChange={e => setIconSearch(e.target.value)} placeholder="Search icons…" className={cn(appInputClass, 'px-2.5 py-1.5 text-xs flex-1')} />
+                                  </div>
+                                  <div className="grid grid-cols-8 gap-0.5 max-h-44 overflow-y-auto rounded border border-os-line-dark bg-os-ink-900 p-1.5">
+                                    {filteredMuiIcons.length === 0 && (
+                                      <div className="col-span-8 py-4 text-center text-[11px] text-os-text-inverse/30">No icons match</div>
+                                    )}
+                                    {filteredMuiIcons.map(name => {
+                                      const selected = formData.icon === `mui:${name}`;
+                                      return (
+                                        <button key={name} type="button" title={name}
+                                          onClick={() => setFormData({ ...formData, icon: `mui:${name}`, customIcon: undefined })}
+                                          className={cn('p-1.5 rounded flex items-center justify-center transition-colors',
+                                            selected ? 'bg-primary-500/20 text-primary-400' : 'text-os-text-inverse/50 hover:bg-os-ink-800 hover:text-os-text-inverse/80'
+                                          )}>
+                                          <AppIcon icon={`mui:${name}`} className="h-4 w-4" />
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  {formData.icon?.startsWith('mui:') && (
+                                    <p className="text-[10px] text-os-text-inverse/30">Selected: {formData.icon.slice(4)}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {iconTab === 'upload' && (
+                                <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploadingIcon ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-primary-500/40 hover:bg-os-ink-900/60')}>
+                                  {isUploadingIcon ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
+                                  <span className="text-xs text-os-text-inverse/40">{formData.customIcon ? 'Replace icon image' : 'Upload icon image'}</span>
+                                  <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, SVG · max 2 MB</span>
+                                  <input type="file" accept="image/*" onChange={handleIconImageUpload} className="hidden" disabled={isUploadingIcon} />
+                                </label>
                               )}
                             </div>
-                          </div>
 
-                          <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Type</label>
-                            <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')}>
-                              <option value="component">React Component</option>
-                              <option value="iframe">IFrame URL</option>
-                              <option value="static">Static Content</option>
-                            </select>
-                          </div>
-
-                          {formData.type === 'component' && (
+                            {/* Type */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Component Name</label>
-                              <input type="text" value={formData.component} onChange={(e) => setFormData({ ...formData, component: e.target.value })} placeholder="MyComponent" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Type</label>
+                              <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} className={cn(appSelectClass, 'px-3 py-2 text-sm w-full')}>
+                                <option value="component">React Component</option>
+                                <option value="iframe">Embedded Site (iframe)</option>
+                                <option value="link">External Link (new tab)</option>
+                                <option value="static">Static Content</option>
+                              </select>
+                              {formData.type === 'link' && (
+                                <p className="mt-1 text-[10px] text-os-text-inverse/30">Opens the URL in a new browser tab — no window is created.</p>
+                              )}
                             </div>
-                          )}
 
-                          {formData.type === 'iframe' && (
-                            <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">URL *</label>
-                              <input type="url" value={formData.url} onChange={(e) => setFormData({ ...formData, url: e.target.value })} placeholder="https://example.com" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
-                            </div>
-                          )}
-
-                          <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Description</label>
-                            <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Brief description" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-3">
+                            {formData.type === 'component' && (
                               <div>
-                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">Preview Media</label>
-                                <p className="text-[11px] text-os-text-inverse/35">Screenshots and videos for the desktop hover preview.</p>
+                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Component Name</label>
+                                <input type="text" value={formData.component} onChange={(e) => setFormData({ ...formData, component: e.target.value })} placeholder="MyComponent" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
-                              <label className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', isUploading ? 'opacity-50 cursor-not-allowed bg-os-ink-900 border-os-line-dark text-os-text-inverse/35' : 'cursor-pointer bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
-                                {isUploading ? <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icons.Upload className="w-3.5 h-3.5" />}
-                                Upload
-                                <input type="file" accept="image/*,video/*" multiple onChange={handleAppMediaUpload} className="hidden" disabled={isUploading} />
+                            )}
+
+                            {(formData.type === 'iframe' || formData.type === 'link') && (
+                              <div>
+                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">URL *</label>
+                                <input type="url" value={formData.url} onChange={(e) => setFormData({ ...formData, url: e.target.value })} placeholder="https://example.com" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              </div>
+                            )}
+
+                            {/* Description */}
+                            <div>
+                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Description</label>
+                              <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Brief description" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                            </div>
+
+                            {/* Pin toggles */}
+                            <div className="flex gap-5">
+                              <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
+                                <input type="checkbox" checked={formData.pinnedToTaskbar} onChange={(e) => setFormData({ ...formData, pinnedToTaskbar: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
+                                Pin to Taskbar
+                              </label>
+                              <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
+                                <input type="checkbox" checked={formData.pinnedToDesktop} onChange={(e) => setFormData({ ...formData, pinnedToDesktop: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
+                                Pin to Desktop
                               </label>
                             </div>
 
-                            {(formData.media?.length || 0) > 0 && (
-                              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                {formData.media?.map((item) => (
-                                  <div key={item.id} className="group relative overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900">
-                                    {item.type === 'video' ? (
-                                      <video src={item.url} muted playsInline className="aspect-video w-full object-cover" />
-                                    ) : (
-                                      <img src={item.url} alt={item.name || ''} className="aspect-video w-full object-cover" />
-                                    )}
-                                    <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-background-floating px-2 py-1 text-[10px] text-os-text-inverse">
-                                      {item.type === 'video' ? <Icons.Video className="w-3 h-3 shrink-0" /> : <Icons.Image className="w-3 h-3 shrink-0" />}
-                                      <span className="truncate">{item.name || item.type}</span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((media) => media.id !== item.id) }))}
-                                      className="absolute right-1 top-1 rounded bg-background-floating p-1 text-os-text-inverse opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100"
-                                      title="Remove media"
-                                    >
-                                      <Icons.X className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                ))}
+                            {/* Window size */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Width (px)</label>
+                                <input type="number" value={formData.defaultSize?.width} onChange={(e) => setFormData({ ...formData, defaultSize: { width: parseInt(e.target.value) || 800, height: formData.defaultSize?.height ?? 600 } })} min={300} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
-                            )}
-                          </div>
-
-                          <div className="flex gap-6">
-                            <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
-                              <input type="checkbox" checked={formData.pinnedToTaskbar} onChange={(e) => setFormData({ ...formData, pinnedToTaskbar: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
-                              Pin to Taskbar
-                            </label>
-                            <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
-                              <input type="checkbox" checked={formData.pinnedToDesktop} onChange={(e) => setFormData({ ...formData, pinnedToDesktop: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
-                              Pin to Desktop
-                            </label>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Width (px)</label>
-                              <input type="number" value={formData.defaultSize?.width} onChange={(e) => setFormData({ ...formData, defaultSize: { width: parseInt(e.target.value) || 800, height: formData.defaultSize?.height ?? 600 } })} min={300} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              <div>
+                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Height (px)</label>
+                                <input type="number" value={formData.defaultSize?.height} onChange={(e) => setFormData({ ...formData, defaultSize: { width: formData.defaultSize?.width ?? 800, height: parseInt(e.target.value) || 600 } })} min={200} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              </div>
                             </div>
+
+                            {/* Preview Media */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Height (px)</label>
-                              <input type="number" value={formData.defaultSize?.height} onChange={(e) => setFormData({ ...formData, defaultSize: { width: formData.defaultSize?.width ?? 800, height: parseInt(e.target.value) || 600 } })} min={200} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
+                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1">Preview Media</label>
+                              <p className="text-[11px] text-os-text-inverse/30 mb-2">Screenshots and videos shown on desktop hover.</p>
+                              <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploading ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-primary-500/40 hover:bg-os-ink-900/60')}>
+                                {isUploading ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
+                                <span className="text-xs text-os-text-inverse/40">Click to upload screenshots or video</span>
+                                <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, MP4 · max 25 MB each</span>
+                                <input type="file" accept="image/*,video/*" multiple onChange={handleAppMediaUpload} className="hidden" disabled={isUploading} />
+                              </label>
+                              {(formData.media?.length || 0) > 0 && (
+                                <div className="mt-2 grid grid-cols-3 gap-2">
+                                  {formData.media?.map((item) => (
+                                    <div key={item.id} className="group relative overflow-hidden rounded border border-os-line-dark bg-os-ink-900">
+                                      {item.type === 'video' ? (
+                                        <video src={item.url} muted playsInline className="aspect-video w-full object-cover" />
+                                      ) : (
+                                        <img src={item.url} alt={item.name || ''} className="aspect-video w-full object-cover" />
+                                      )}
+                                      <button type="button" onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((m) => m.id !== item.id) }))} className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white/60 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100">
+                                        <Icons.X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                          </div>
 
-                          <div className="flex gap-2 pt-1">
-                            <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded bg-os-ink-800 hover:bg-os-ink-800 border border-os-line-dark text-sm font-medium text-os-text-inverse transition-colors">
-                              {editingApp ? <><Icons.Save className="w-3.5 h-3.5" /> Update</> : <><Icons.Plus className="w-3.5 h-3.5" /> Create</>}
-                            </button>
-                            <button type="button" onClick={resetForm} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-os-text-inverse/60 transition-colors">Cancel</button>
-                          </div>
-                        </form>
-                      </AppCard>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* App list */}
-                <AppCard className="overflow-hidden">
-                  <div className="px-4 py-2.5 grid grid-cols-12 gap-4 border-b border-os-line-dark text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">
-                    <div className="col-span-4">Name</div>
-                    <div className="col-span-2">Type</div>
-                    <div className="col-span-2">Taskbar</div>
-                    <div className="col-span-2">Desktop</div>
-                    <div className="col-span-2">Actions</div>
-                  </div>
-                  <div className="divide-y divide-stroke-secondary">
-                    {apps.map((app) => {
-                      const Icon = getIcon(app.icon);
-                      return (
-                        <div key={app.id} className={cn('px-4 py-2.5 grid grid-cols-12 gap-4 items-center transition-colors group', highlightedAppId === app.id ? 'bg-primary-500/15 ring-1 ring-inset ring-primary-500/30' : 'hover:bg-os-ink-900')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
-                          <div className="col-span-4 flex items-center gap-2 min-w-0">
-                            {app.customIcon ? <img src={app.customIcon} alt={app.name} className="w-4 h-4 object-contain flex-shrink-0" /> : <Icon className="w-4 h-4 text-os-text-inverse/35 flex-shrink-0" />}
-                            <span className="text-sm text-os-text-inverse truncate">{app.name}</span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-[10px] px-1.5 py-0.5 bg-os-ink-900 text-os-text-inverse/60 rounded">{app.type}</span>
-                          </div>
-                          <div className="col-span-2">
-                            {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
-                          </div>
-                          <div className="col-span-2">
-                            {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
-                          </div>
-                          <div className="col-span-2 flex gap-1">
-                            <button onClick={() => handleEdit(app)} className="p-1.5 rounded hover:bg-os-ink-900 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors" title="Edit"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => removeApp(app.id)} className="p-1.5 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
+                            {/* Actions */}
+                            <div className="flex gap-2 pt-1">
+                              <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded bg-os-ink-800 hover:bg-os-ink-700 border border-os-line-dark text-sm font-medium text-os-text-inverse transition-colors">
+                                {editingApp ? <><Icons.Save className="w-3.5 h-3.5" /> Update</> : <><Icons.Plus className="w-3.5 h-3.5" /> Create</>}
+                              </button>
+                              <button type="button" onClick={resetForm} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-os-text-inverse/60 transition-colors">Cancel</button>
+                            </div>
+                          </form>
                         </div>
-                      );
-                    })}
-                  </div>
-                </AppCard>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             )}
 
@@ -723,7 +955,7 @@ export function AdminPanel() {
 
                           <div>
                             <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Category</label>
-                            <select value={milestoneFormData.category} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, category: e.target.value as any })} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')}>
+                            <select value={milestoneFormData.category} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, category: e.target.value as any })} className={cn(appSelectClass, 'px-3 py-2 text-sm w-full')}>
                               <option value="project">Project</option>
                               <option value="achievement">Achievement</option>
                               <option value="education">Education</option>
@@ -888,6 +1120,94 @@ export function AdminPanel() {
             )}
 
             {/* ── Feedback ─────────────────────────────────────────────── */}
+            {activeTab === 'reads' && (
+              <div className="p-6 space-y-4">
+                <div>
+                  <h2 className="text-sm font-semibold text-os-text-inverse mb-1">Reads Import</h2>
+                  <p className="text-xs text-os-text-inverse/35">
+                    Upload the source CSV to add new articles to the Browser Reads shelf. Existing articles are matched by slug and skipped.
+                  </p>
+                </div>
+
+                <AppCard className="p-4 space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">
+                        Target content document
+                      </label>
+                      <div className="flex items-center rounded border border-os-line-dark bg-os-ink-800">
+                        <span className="shrink-0 border-r border-os-line-dark px-3 text-xs text-os-text-inverse/30">
+                          os-site_content /
+                        </span>
+                        <input
+                          value={readImportTarget}
+                          onChange={(event) => setReadImportTarget(event.target.value)}
+                          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-os-text-inverse outline-none placeholder:text-os-text-inverse/25"
+                          placeholder="reads"
+                        />
+                      </div>
+                    </div>
+
+                    <label className={cn(
+                      'flex cursor-pointer items-center justify-center gap-2 rounded border border-os-line-dark bg-os-ink-800 px-4 py-2 text-sm text-os-text-inverse/70 transition-colors hover:bg-os-ink-700 hover:text-os-text-inverse',
+                      (!isAdmin || readImportStatus.state === 'parsing') && 'pointer-events-none opacity-45'
+                    )}>
+                      {readImportStatus.state === 'parsing' ? (
+                        <>
+                          <Icons.Loader2 className="h-4 w-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Icons.Upload className="h-4 w-4" />
+                          Upload CSV
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept=".csv,text/csv"
+                        onChange={handleReadsCsvImport}
+                        className="hidden"
+                        disabled={!isAdmin || readImportStatus.state === 'parsing'}
+                      />
+                    </label>
+                  </div>
+
+                  {!isAdmin && (
+                    <div className="rounded border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200/80">
+                      Reads import requires the superuser account.
+                    </div>
+                  )}
+
+                  {readImportStatus.message && (
+                    <div className={cn(
+                      'rounded border px-3 py-2 text-xs',
+                      readImportStatus.state === 'success'
+                        ? 'border-green-500/25 bg-green-500/10 text-green-200/80'
+                        : readImportStatus.state === 'error'
+                          ? 'border-red-500/25 bg-red-500/10 text-red-200/80'
+                          : 'border-os-line-dark bg-os-ink-900 text-os-text-inverse/50'
+                    )}>
+                      {readImportStatus.message}
+                    </div>
+                  )}
+
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {[
+                      { label: 'Match key', value: 'Slug' },
+                      { label: 'Write mode', value: 'Add new only' },
+                      { label: 'Default target', value: 'reads' },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded border border-os-line-dark bg-os-ink-900 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-[0.08em] text-os-text-inverse/30">{item.label}</p>
+                        <p className="mt-1 text-sm font-medium text-os-text-inverse/75">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </AppCard>
+              </div>
+            )}
+
             {activeTab === 'feedback' && (
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2">

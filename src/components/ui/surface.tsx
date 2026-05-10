@@ -49,11 +49,11 @@ const surfaceVariants = cva(
 
         // Elevated dark panel: dropdowns, date pickers, notification panels
         floating:
-          'bg-black/70 backdrop-blur-md border border-white/[0.10] text-os-text-inverse shadow-os-floating',
+          'bg-os-ink-950/85 backdrop-blur-md border border-os-line-dark-hover text-os-text-inverse shadow-os-floating',
 
         // Inset control area on dark chrome: inputs, inner rows
         inset:
-          'bg-white/[0.08] border border-white/[0.08] text-os-text-inverse/80',
+          'bg-os-ink-800 border border-os-line-dark text-os-text-inverse/80',
 
         // Inset control area on light content: inputs, inner rows
         'inset-light':
@@ -67,35 +67,35 @@ const surfaceVariants = cva(
 
         // Window title bar / OS chrome panels (intentionally opaque)
         window:
-          'bg-os-ink-950 shadow-os-window border border-white/[0.08] overflow-hidden',
+          'bg-os-ink-950 shadow-os-window border border-os-line-dark overflow-hidden',
 
         // In-app floating dialog — heavy blur keeps it readable over glass
         dialog:
-          'bg-black/80 backdrop-blur-md border border-white/[0.08] overflow-hidden',
+          'bg-os-ink-950/90 backdrop-blur-md border border-os-line-dark overflow-hidden',
 
         // Raised card / section container within an app
         panel:
-          'bg-black/30 border border-white/[0.08] hover:border-white/[0.14] hover:bg-black/40',
+          'bg-os-ink-950/45 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-950/60',
 
         // Hoverable card — same as panel but lifts on hover
         card:
-          'bg-black/30 border border-white/[0.08] hover:bg-black/40 hover:border-white/[0.14] hover:translate-y-[-1px]',
+          'bg-os-ink-950/45 border border-os-line-dark hover:bg-os-ink-950/60 hover:border-os-line-dark-hover hover:translate-y-[-1px]',
 
         // Horizontal toolbar / action bar at top of an app
         toolbar:
-          'bg-white/[0.06] border-b border-white/[0.08]',
+          'bg-os-ink-900/70 border-b border-os-line-dark',
 
         // Vertical left-nav panel
         sidebar:
-          'bg-black/50 border-r border-white/[0.08]',
+          'bg-os-ink-950/70 border-r border-os-line-dark',
 
         // Dropdown / context overlay
         popover:
-          'bg-black/70 backdrop-blur-md border border-white/[0.10]',
+          'bg-os-ink-950/85 backdrop-blur-md border border-os-line-dark-hover',
 
         // Text input / select / textarea well
         input:
-          'bg-white/[0.08] border border-white/[0.08] focus-within:border-white/[0.20]',
+          'bg-os-ink-800 border border-os-line-dark focus-within:border-stroke-brand',
 
         // Root app container — transparent, window body provides the blur
         app:
@@ -103,11 +103,11 @@ const surfaceVariants = cva(
 
         // Subtle inline container (no prominent border)
         inline:
-          'bg-white/[0.04] border border-white/[0.06]',
+          'bg-os-ink-900/55 border border-os-line-dark',
 
         // Glass card — same as panel, preferred alias for app surfaces
         glass:
-          'bg-black/30 border border-white/[0.08]',
+          'bg-os-ink-950/45 border border-os-line-dark',
       },
 
       elevation: {
@@ -129,9 +129,9 @@ const surfaceVariants = cva(
       },
 
       border: {
-        default: 'border-b border-white/[0.08]',
+        default: 'border-b border-os-line-dark',
         none: '',
-        all: 'border border-white/[0.08]',
+        all: 'border border-os-line-dark',
         glow: 'border-b border-primary-500/50',
       },
 
@@ -411,10 +411,10 @@ const SurfaceDivider = React.forwardRef<HTMLDivElement, SurfaceDividerProps>(
         gradient
           ? context === 'content'
             ? 'bg-gradient-to-r from-transparent via-os-line-light to-transparent'
-            : 'bg-gradient-to-r from-transparent via-white/[0.08] to-transparent'
+            : 'bg-gradient-to-r from-transparent via-os-line-dark to-transparent'
           : context === 'content'
             ? 'bg-os-line-light'
-            : 'bg-white/[0.07]',
+            : 'bg-os-line-dark',
         className
       )}
       {...props}

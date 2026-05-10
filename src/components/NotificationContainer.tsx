@@ -35,7 +35,7 @@ export function NotificationContainer() {
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="pointer-events-auto"
           >
-            <div className={`relative bg-os-ink-900 border border-white/[0.10] ${getAccentClass(notification.type)} rounded-lg shadow-os-floating p-4 pr-10 min-w-[300px] max-w-[380px]`}>
+            <div className={`relative bg-os-ink-900 border border-os-line-dark ${getAccentClass(notification.type)} rounded-lg shadow-os-floating p-4 pr-10 min-w-[300px] max-w-[380px]`}>
               <div className="flex items-start gap-3">
                 <div className="shrink-0 mt-0.5">{getIcon(notification.type)}</div>
                 <div className="flex-1 min-w-0">
@@ -47,7 +47,7 @@ export function NotificationContainer() {
               </div>
               <button
                 onClick={() => removeNotification(notification.id)}
-                className="absolute top-2 right-2 p-1.5 hover:bg-white/[0.08] rounded transition-colors"
+                className="absolute top-2 right-2 p-1.5 hover:bg-os-ink-800 rounded transition-colors"
                 aria-label="Close notification"
               >
                 <Icons.X className="w-3.5 h-3.5 text-white/40" />

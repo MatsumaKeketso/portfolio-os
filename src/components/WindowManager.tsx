@@ -124,7 +124,7 @@ export function WindowManager() {
           case 'FileViewer':
             return <FileViewer file={window.file} />;
           case 'Browser':
-            return <Browser />;
+            return <Browser initialUrl={window.url} />;
           case 'Weather':
             return <Weather />;
           case 'TaskManager':

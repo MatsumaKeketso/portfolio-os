@@ -55,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="w-full h-full flex items-center justify-center bg-os-ink-950 p-6">
           <div className="max-w-md w-full">
-            <div className="bg-os-ink-950 rounded border border-white/[0.08] shadow-os-window p-6">
+            <div className="bg-os-ink-950 rounded border border-os-line-dark shadow-os-window p-6">
               {/* Icon */}
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 bg-red-500/[0.15] border border-red-500/30 rounded-full flex items-center justify-center">
@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 An unexpected error occurred. Don't worry, your data is safe.
               </p>
 
-              <div className="h-px bg-white/[0.07] mb-4" />
+              <div className="h-px bg-os-line-dark mb-4" />
 
               {/* Error details */}
               {this.state.error && (
@@ -100,7 +100,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </button>
                 <button
                   onClick={this.handleReload}
-                  className="px-4 py-3 bg-white/[0.06] hover:bg-white/[0.10] text-white rounded-lg transition-all flex items-center gap-2"
+                  className="px-4 py-3 bg-os-ink-800 hover:bg-os-ink-700 text-white rounded-lg transition-all flex items-center gap-2"
                 >
                   <Icons.RotateCcw className="w-4 h-4" />
                   Reload
@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Help text */}
-              <div className="mt-4 pt-4 border-t border-white/[0.08]">
+              <div className="mt-4 pt-4 border-t border-os-line-dark">
                 <div className="flex items-center gap-2 text-xs text-white/30">
                   <Icons.Info className="w-4 h-4" />
                   <p>If this persists, try clearing your browser cache</p>

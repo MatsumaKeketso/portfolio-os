@@ -4,16 +4,16 @@
 
 @layer base {
   /* Theme CSS Variables - Set by themeStore */
-  /* Star Citizen Theme - Cyan/Blue/Teal Color Scheme */
+  /* Generative Studio fallback theme. Runtime presets can override these values. */
   :root {
-    --color-primary: 0, 217, 255;
-    --color-secondary: 0, 102, 255;
-    --color-tertiary: 0, 229, 204;
-    --color-accent: 0, 255, 255;
-    --color-primary-hover: 0, 186, 230;
-    --color-secondary-hover: 0, 76, 204;
-    --color-tertiary-hover: 0, 191, 170;
-    --color-accent-hover: 0, 217, 217;
+    --color-primary: 239, 68, 68;
+    --color-secondary: 220, 38, 38;
+    --color-tertiary: 249, 115, 22;
+    --color-accent: 251, 191, 36;
+    --color-primary-hover: 220, 38, 38;
+    --color-secondary-hover: 185, 28, 28;
+    --color-tertiary-hover: 234, 88, 12;
+    --color-accent-hover: 245, 158, 11;
     --border-radius: 0.75rem;
     --spacing-scale: 1;
 
@@ -38,8 +38,8 @@
     --os-canvas: #ffffff;
     --os-canvas-warm: #f7f7f5;
     --os-canvas-raised: #fbfbfa;
-    --os-line-dark: rgba(255, 255, 255, 0.08);
-    --os-line-dark-hover: rgba(255, 255, 255, 0.14);
+    --os-line-dark: rgba(255, 255, 255, 0.055);
+    --os-line-dark-hover: rgba(255, 255, 255, 0.11);
     --os-line-light: #e8e8e5;
     --os-line-light-hover: #d8d8d4;
     --os-text-strong: #171717;
@@ -303,6 +303,131 @@
 }
 
 @layer utilities {
+  .os-interactive {
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .os-interactive:hover {
+    transform: translateY(-1px);
+  }
+
+  .os-interactive:active {
+    transform: translateY(0);
+  }
+
+  .os-focus-ring {
+    outline: none;
+  }
+
+  .os-focus-ring:focus-visible {
+    box-shadow:
+      0 0 0 1px var(--os-line-dark-hover),
+      0 0 0 3px rgba(var(--color-primary), 0.2);
+  }
+
+  .os-surface-soft {
+    background-color: rgb(var(--os-ink-900) / 0.82);
+    border-color: var(--os-line-dark);
+  }
+
+  .os-surface-raised {
+    background-color: rgb(var(--os-ink-800) / 0.72);
+    border-color: var(--os-line-dark-hover);
+  }
+
+  .os-row-hover {
+    transition-property: color, background-color, border-color, transform;
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .os-row-hover:hover {
+    background-color: rgb(var(--os-ink-800) / 0.62);
+  }
+
+  .os-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.46)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+    padding-right: 2.5rem;
+  }
+
+  .read-content {
+    font-size: 0.98rem;
+    line-height: 1.82;
+  }
+
+  .read-content > * + * {
+    margin-top: 1rem;
+  }
+
+  .read-content h1,
+  .read-content h2,
+  .read-content h3,
+  .read-content h4,
+  .read-content h5 {
+    color: var(--os-text-inverse);
+    font-weight: 650;
+    line-height: 1.2;
+    margin-top: 2rem;
+  }
+
+  .read-content h5 {
+    font-size: 1.05rem;
+  }
+
+  .read-content p,
+  .read-content li {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .read-content a {
+    color: rgb(var(--color-primary));
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+
+  .read-content ul,
+  .read-content ol {
+    padding-left: 1.25rem;
+  }
+
+  .read-content ul {
+    list-style: disc;
+  }
+
+  .read-content ol {
+    list-style: decimal;
+  }
+
+  .read-content blockquote {
+    border-left: 2px solid rgb(var(--color-primary));
+    color: rgba(255, 255, 255, 0.76);
+    padding-left: 1rem;
+  }
+
+  .read-content img,
+  .read-content iframe {
+    border: 1px solid var(--os-line-dark);
+    border-radius: 1rem;
+    display: block;
+    margin-top: 1.25rem;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .read-content iframe {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    width: 100%;
+  }
+}
+
+@layer utilities {
   /* Halftone dot hover effect — use on project/preview imagery */
   .halftone-hover {
     position: relative;
@@ -324,6 +449,16 @@
     opacity: 0.8;
   }
   @media (prefers-reduced-motion: reduce) {
+    .os-interactive,
+    .os-row-hover {
+      transition: none;
+    }
+
+    .os-interactive:hover,
+    .os-interactive:active {
+      transform: none;
+    }
+
     .halftone-hover::after {
       transition: none;
     }

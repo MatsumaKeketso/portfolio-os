@@ -59,10 +59,10 @@ export function PWAInstallPrompt() {
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[10002]"
         >
-          <div className="bg-os-ink-950 rounded border border-white/[0.08] shadow-os-floating p-4">
+          <div className="bg-os-ink-950 rounded border border-os-line-dark shadow-os-floating p-4">
             <div className="flex items-start gap-3">
               {/* Icon */}
-              <div className="w-12 h-12 bg-os-ink-800 border border-white/[0.08] rounded flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-os-ink-800 border border-os-line-dark rounded flex items-center justify-center flex-shrink-0">
                 <Icons.Download className="w-6 h-6 text-white/60" />
               </div>
 
@@ -86,7 +86,7 @@ export function PWAInstallPrompt() {
                   </button>
                   <button
                     onClick={handleDismiss}
-                    className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.10] text-white rounded text-sm transition-all"
+                    className="px-4 py-2 bg-os-ink-800 hover:bg-os-ink-700 text-white rounded text-sm transition-all"
                   >
                     Not Now
                   </button>
@@ -96,14 +96,14 @@ export function PWAInstallPrompt() {
               {/* Close button */}
               <button
                 onClick={handleDismiss}
-                className="p-1 hover:bg-white/[0.10] rounded transition-all flex-shrink-0"
+                className="p-1 hover:bg-os-ink-800 rounded transition-all flex-shrink-0"
               >
                 <Icons.X className="w-4 h-4 text-white/40" />
               </button>
             </div>
 
             {/* Features */}
-            <div className="mt-3 pt-3 border-t border-white/[0.08]">
+            <div className="mt-3 pt-3 border-t border-os-line-dark">
               <div className="grid grid-cols-3 gap-2 text-xs text-white/40">
                 <div className="flex items-center gap-1">
                   <Icons.Zap className="w-3 h-3 text-primary-400" />

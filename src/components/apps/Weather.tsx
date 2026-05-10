@@ -125,7 +125,7 @@ export function Weather() {
       case 'cloud':
         return <Icons.Cloud className={cn(iconClass, 'text-white/55')} />;
       case 'cloud-rain':
-        return <Icons.CloudRain className={cn(iconClass, 'text-cyan-300')} />;
+        return <Icons.CloudRain className={cn(iconClass, 'text-primary-300')} />;
       case 'moon':
         return <Icons.Moon className={cn(iconClass, 'text-white/50')} />;
       default:
@@ -156,16 +156,16 @@ export function Weather() {
               <h1 className="mt-1 text-xl font-semibold text-white">Local atmosphere</h1>
             </div>
             <div className="flex items-center gap-2">
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-1 flex">
+              <div className="rounded-xl border border-os-line-dark bg-os-ink-900/80 p-1 flex">
                 {cities.map((city) => (
                   <button
                     key={city.id}
                     onClick={() => setSelectedCityId(city.id)}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                      'os-interactive os-focus-ring px-3 py-1.5 rounded-lg text-xs font-medium',
                       selectedCityId === city.id
-                        ? 'bg-white text-os-ink-950 shadow-sm'
-                        : 'text-white/55 hover:bg-white/[0.07] hover:text-white'
+                        ? 'bg-primary-500 text-white shadow-glow-primary'
+                        : 'text-white/55 hover:bg-os-ink-800 hover:text-white'
                     )}
                   >
                     {city.name.split(',')[0]}
@@ -174,7 +174,7 @@ export function Weather() {
               </div>
               <button
                 onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
-                className="h-9 w-11 rounded-xl border border-white/[0.08] bg-white/[0.04] text-xs font-semibold text-white/70 transition-all hover:bg-white/[0.08] hover:text-white"
+                className="os-interactive os-focus-ring h-9 w-11 rounded-xl border border-os-line-dark bg-os-ink-900/80 text-xs font-semibold text-white/70 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-white"
               >
                 °{unit}
               </button>
@@ -182,7 +182,7 @@ export function Weather() {
           </header>
 
           <main className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)] gap-4">
-            <section className="rounded-[22px] border border-white/[0.10] bg-white/[0.055] overflow-hidden shadow-os-window">
+            <section className="rounded-[22px] border border-os-line-dark bg-os-ink-900/70 overflow-hidden shadow-os-window">
               <div className="relative min-h-[360px] p-6 sm:p-8 flex flex-col justify-between">
                 <div className="absolute inset-0 pointer-events-none opacity-70 bg-[linear-gradient(120deg,rgba(255,255,255,0.08),transparent_38%),radial-gradient(circle_at_70%_45%,rgba(239,68,68,0.22),transparent_34%)]" />
                 <div className="relative flex items-start justify-between gap-6">
@@ -201,7 +201,7 @@ export function Weather() {
                       </div>
                     </div>
                   </div>
-                  <div className="group hidden sm:flex w-36 h-36 rounded-[28px] border border-white/[0.10] bg-white/[0.06] items-center justify-center transition-all hover:bg-white/[0.10] hover:-translate-y-1">
+                  <div className="os-interactive group hidden sm:flex w-36 h-36 rounded-[28px] border border-os-line-dark bg-os-ink-800/50 items-center justify-center hover:border-os-line-dark-hover hover:bg-os-ink-800/80">
                     <WeatherIcon icon="cloud-sun" className="w-24 h-24" />
                   </div>
                 </div>
@@ -214,7 +214,7 @@ export function Weather() {
                   ].map((item) => {
                     const Icon = item.icon;
                     return (
-                      <div key={item.label} className="rounded-2xl border border-white/[0.08] bg-black/[0.16] p-4 transition-all hover:bg-white/[0.07] hover:border-white/[0.16]">
+                      <div key={item.label} className="os-interactive rounded-2xl border border-os-line-dark bg-os-ink-950/40 p-4 hover:border-os-line-dark-hover hover:bg-os-ink-800/60">
                         <Icon className="w-4 h-4 text-primary-300 mb-3" />
                         <p className="text-[10px] uppercase tracking-[0.12em] text-white/35 font-semibold">{item.label}</p>
                         <p className="text-sm font-semibold text-white/85 mt-1">{item.value}</p>
@@ -226,7 +226,7 @@ export function Weather() {
             </section>
 
             <section className="space-y-4">
-              <div className="rounded-[22px] border border-white/[0.10] bg-white/[0.055] p-4">
+              <div className="rounded-[22px] border border-os-line-dark bg-os-ink-900/70 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-semibold text-white/85">Conditions</h2>
                   <Icons.SlidersHorizontal className="w-4 h-4 text-white/35" />
@@ -238,7 +238,7 @@ export function Weather() {
                       <motion.div
                         key={item.label}
                         whileHover={{ y: -3 }}
-                        className="rounded-2xl border border-white/[0.07] bg-black/[0.16] p-4"
+                        className="rounded-2xl border border-os-line-dark bg-os-ink-950/40 p-4 transition-colors hover:border-os-line-dark-hover hover:bg-os-ink-800/55"
                       >
                         <Icon className="w-4 h-4 text-white/45 mb-4" />
                         <p className="text-[10px] uppercase tracking-[0.12em] text-white/30 font-semibold">{item.label}</p>
@@ -249,14 +249,14 @@ export function Weather() {
                 </div>
               </div>
 
-              <div className="rounded-[22px] border border-white/[0.10] bg-white/[0.055] p-4">
+              <div className="rounded-[22px] border border-os-line-dark bg-os-ink-900/70 p-4">
                 <h2 className="mb-3 text-sm font-semibold text-white/85">5 day forecast</h2>
                 <div className="space-y-2">
                   {selectedCity.forecast.map((day) => (
                     <motion.div
                       key={day.day}
                       whileHover={{ x: 3 }}
-                      className="group grid grid-cols-[40px_28px_1fr_auto] items-center gap-3 rounded-xl border border-white/[0.06] bg-black/[0.14] px-3 py-2.5 transition-colors hover:bg-white/[0.06]"
+                      className="group os-row-hover grid grid-cols-[40px_28px_1fr_auto] items-center gap-3 rounded-xl border border-os-line-dark bg-os-ink-950/35 px-3 py-2.5"
                     >
                       <span className="text-xs font-semibold text-white/45">{day.day}</span>
                       <WeatherIcon icon={day.icon} className="w-5 h-5" />
@@ -277,20 +277,20 @@ export function Weather() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
-                className="mt-4 rounded-[22px] border border-white/[0.10] bg-white/[0.055] p-4"
+                className="mt-4 rounded-[22px] border border-os-line-dark bg-os-ink-900/70 p-4"
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-white/85">Hourly</h2>
                   <button
                     onClick={() => setShowHourly(false)}
-                    className="rounded-lg px-2 py-1 text-xs text-white/40 transition-colors hover:bg-white/[0.07] hover:text-white/70"
+                    className="os-interactive os-focus-ring rounded-lg px-2 py-1 text-xs text-white/40 hover:bg-os-ink-800/70 hover:text-white/70"
                   >
                     Hide
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {selectedCity.hourly.map((hour) => (
-                    <div key={hour.time} className="group min-w-[92px] rounded-2xl border border-white/[0.07] bg-black/[0.16] p-4 text-center transition-all hover:bg-white/[0.07] hover:-translate-y-1">
+                    <div key={hour.time} className="group os-interactive min-w-[92px] rounded-2xl border border-os-line-dark bg-os-ink-950/40 p-4 text-center hover:border-os-line-dark-hover hover:bg-os-ink-800/60">
                       <p className="text-xs text-white/40">{hour.time}</p>
                       <WeatherIcon icon={hour.icon} className="mx-auto my-4 w-7 h-7" />
                       <p className="text-lg font-semibold">{convertTemp(hour.temp)}°</p>

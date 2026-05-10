@@ -111,8 +111,8 @@ export default {
             raised: '#fbfbfa',   // Cards and controls
           },
           line: {
-            dark: 'rgba(255,255,255,0.08)',
-            'dark-hover': 'rgba(255,255,255,0.14)',
+            dark: 'var(--os-line-dark)',
+            'dark-hover': 'var(--os-line-dark-hover)',
             light: '#e8e8e5',
             'light-hover': '#d8d8d4',
           },

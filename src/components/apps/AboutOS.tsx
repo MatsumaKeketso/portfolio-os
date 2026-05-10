@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import * as Icons from 'lucide-react';
 import { SystemRow, SystemRowGroup } from '../ui/SystemRow';
 import { AppShell, AppBody, AppSidebar, AppContent } from '../ui/AppShell';
+import { useDesktopStore } from '../../store/desktopStore';
 
 const VERSION = '2.1.0';
 const BUILD_DATE = '2026-05-02';
@@ -32,11 +33,28 @@ const SECTION_LABELS: Record<Section, string> = {
 export function AboutOS() {
   const [activeSection, setActiveSection] = useState<Section>('system');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { apps, openWindow } = useDesktopStore();
 
   const scrollToSection = (section: Section) => {
     setActiveSection(section);
     const el = scrollRef.current?.querySelector(`#about-${section}`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const openCV = () => {
+    const cvApp = apps.find((app) => app.id === 'cv');
+    if (cvApp) openWindow(cvApp);
+  };
+
+  const openInBrowser = (url: string) => {
+    const browserApp = apps.find((app) => app.id === 'browser');
+    if (!browserApp) return;
+    openWindow({
+      ...browserApp,
+      id: `browser-${url}`,
+      name: new URL(url).hostname.replace('www.', ''),
+      url,
+    });
   };
 
   return (
@@ -79,7 +97,7 @@ export function AboutOS() {
                   {STACK.map(({ name, role, icon }) => {
                     const Icon = (Icons as any)[icon] as React.ComponentType<{ className?: string }>;
                     return (
-                      <div key={name} className="flex items-center gap-3 py-2 border-b border-white/[0.06] last:border-0">
+                      <div key={name} className="flex items-center gap-3 py-2 border-b border-os-line-dark last:border-0">
                         <Icon className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
                         <span className="text-xs font-medium text-white/80 w-36">{name}</span>
                         <span className="text-xs text-white/40">{role}</span>
@@ -123,18 +141,25 @@ export function AboutOS() {
                   </p>
                 </div>
                 <div className="mt-4 flex gap-3">
-                  <a
-                    href="https://github.com/MatsumaKeketso"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.08] rounded-md text-xs text-white/70 hover:bg-white/[0.06] transition-colors"
+                  <button
+                    type="button"
+                    onClick={openCV}
+                    className="os-interactive os-focus-ring flex items-center gap-1.5 px-3 py-1.5 border border-os-line-dark rounded-md text-xs text-white/70 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-white"
+                  >
+                    <Icons.UserCheck className="w-3.5 h-3.5" />
+                    Open CV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openInBrowser('https://github.com/MatsumaKeketso')}
+                    className="os-interactive os-focus-ring flex items-center gap-1.5 px-3 py-1.5 border border-os-line-dark rounded-md text-xs text-white/70 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-white"
                   >
                     <Icons.Github className="w-3.5 h-3.5" />
                     GitHub
-                  </a>
+                  </button>
                   <a
                     href="mailto:keketso@genos.dev"
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-white/[0.08] rounded-md text-xs text-white/70 hover:bg-white/[0.06] transition-colors"
+                    className="os-interactive os-focus-ring flex items-center gap-1.5 px-3 py-1.5 border border-os-line-dark rounded-md text-xs text-white/70 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-white"
                   >
                     <Icons.Mail className="w-3.5 h-3.5" />
                     keketso@genos.dev
@@ -154,7 +179,7 @@ export function AboutOS() {
                   </p>
                 </div>
                 <div className="mt-4">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.06] border border-white/[0.08] rounded-md">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-os-ink-900 border border-os-line-dark rounded-md">
                     <Icons.Sparkles className="w-3.5 h-3.5 text-white/70" />
                     <span className="text-xs text-white/80 font-medium">Generative Studio</span>
                   </div>
@@ -177,7 +202,7 @@ export function AboutOS() {
                     { name: 'macOS', note: 'Window management patterns' },
                     { name: 'Star Citizen', note: 'Sci-fi HUD aesthetic' },
                   ].map(({ name, note }) => (
-                    <div key={name} className="flex items-center gap-3 py-2 border-b border-white/[0.06] last:border-0">
+                    <div key={name} className="flex items-center gap-3 py-2 border-b border-os-line-dark last:border-0">
                       <span className="text-xs font-medium text-white/80 w-36">{name}</span>
                       <span className="text-xs text-white/40">{note}</span>
                     </div>
@@ -211,7 +236,7 @@ export function AboutOS() {
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.08]">
+    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-os-line-dark">
       <span className="text-white/50">{icon}</span>
       <h2 className="text-sm font-semibold text-white/80">{title}</h2>
     </div>
@@ -220,7 +245,7 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 py-1.5 border-b border-white/[0.06] last:border-0">
+    <div className="flex items-start gap-3 py-1.5 border-b border-os-line-dark last:border-0">
       <span className="text-xs text-white/30 w-28 flex-shrink-0">{label}</span>
       <span className="text-xs text-white/70">{value}</span>
     </div>

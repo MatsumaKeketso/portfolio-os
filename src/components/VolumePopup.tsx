@@ -43,7 +43,7 @@ export function VolumePopup({ anchor, volume, onChange, onClose }: VolumePopupPr
       exit={{ opacity: 0, y: 8, scale: 0.96 }}
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
       style={{ position: 'fixed', bottom: anchor.bottom, left, width }}
-      className="bg-background-chrome/95 backdrop-blur-md border border-white/[0.08] rounded-2xl shadow-xl shadow-black/50 py-4 z-[10001] flex flex-col items-center gap-3"
+      className="bg-background-chrome/95 backdrop-blur-md border border-os-line-dark rounded-2xl shadow-xl shadow-black/50 py-4 z-[10001] flex flex-col items-center gap-3"
     >
       <span className="text-white/50 text-[11px] font-medium tabular-nums">
         {volume}
@@ -63,7 +63,7 @@ export function VolumePopup({ anchor, volume, onChange, onClose }: VolumePopupPr
 
       <button
         onClick={() => onChange(volume === 0 ? 75 : 0)}
-        className="p-1.5 hover:bg-white/[0.08] rounded-lg text-white/50 hover:text-white transition-colors"
+        className="p-1.5 hover:bg-os-ink-800 rounded-lg text-white/50 hover:text-white transition-colors"
       >
         <VolumeIcon className="w-4 h-4" />
       </button>

@@ -24,11 +24,11 @@ const inputVariants = cva(
       variant: {
         // Dark chrome input (StartMenu, AdminPanel, dark surfaces)
         glass:
-          'bg-os-ink-700 border border-white/[0.08] text-white focus:border-white/[0.20]',
+          'bg-os-ink-700 border border-os-line-dark text-white focus:border-stroke-brand',
 
         // Solid dark input (standard forms on dark surfaces)
         solid:
-          'bg-os-ink-800 border border-white/[0.08] text-white focus:border-white/[0.20]',
+          'bg-os-ink-800 border border-os-line-dark text-white focus:border-stroke-brand',
 
         // Light surface input (CV, Settings content areas)
         light:
@@ -36,7 +36,7 @@ const inputVariants = cva(
 
         // Search variant with left icon space
         search:
-          'bg-os-ink-700 border border-white/[0.08] text-white pl-10 focus:border-white/[0.20]',
+          'bg-os-ink-700 border border-os-line-dark text-white pl-10 focus:border-stroke-brand',
       },
 
       size: {

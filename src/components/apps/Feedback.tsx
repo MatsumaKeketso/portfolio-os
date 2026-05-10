@@ -57,6 +57,7 @@ export function Feedback() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'ratelimit'>('idle');
+  const [submitError, setSubmitError] = useState('');
   const [recentFeedback, setRecentFeedback] = useState<FeedbackItem[]>([]);
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export function Feedback() {
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
+    setSubmitError('');
 
     try {
       await addDoc(collection(db, 'os-feedback'), {
@@ -101,7 +103,9 @@ export function Feedback() {
       setName('');
       setMessage('');
       setTimeout(() => setSubmitStatus('idle'), 4000);
-    } catch {
+    } catch (err: any) {
+      console.error('Feedback submission failed:', err);
+      setSubmitError(err?.message || 'The message could not be saved.');
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -186,9 +190,9 @@ export function Feedback() {
                     type="submit"
                     disabled={isSubmitting || !name.trim() || !message.trim()}
                     className={cn(
-                      'flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors',
-                      'bg-white/[0.10] text-white/80 border border-white/[0.08]',
-                      'hover:bg-white/[0.16] hover:text-white',
+                      'os-interactive os-focus-ring flex items-center gap-2 px-4 py-2 rounded text-sm font-medium',
+                      'bg-os-ink-800 text-white/80 border border-os-line-dark',
+                      'hover:border-os-line-dark-hover hover:bg-os-ink-700 hover:text-white',
                       'disabled:opacity-40 disabled:pointer-events-none'
                     )}
                   >
@@ -222,7 +226,7 @@ export function Feedback() {
                         className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20"
                       >
                         <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                        <p className="text-xs text-red-300">Something went wrong — please try again.</p>
+                        <p className="text-xs text-red-300">{submitError || 'Something went wrong - please try again.'}</p>
                       </motion.div>
                     )}
                     {submitStatus === 'ratelimit' && (
@@ -231,7 +235,7 @@ export function Feedback() {
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.04] border border-white/[0.08]"
+                        className="flex items-center gap-2 p-3 rounded-lg bg-os-ink-900 border border-os-line-dark"
                       >
                         <AlertCircle className="w-4 h-4 text-white/40 shrink-0" />
                         <p className="text-xs text-white/50">Please wait a few minutes before submitting again.</p>

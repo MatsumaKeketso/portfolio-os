@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
 import { App } from '../types';
+import { AppIcon } from '../lib/AppIcon';
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
@@ -83,28 +84,9 @@ export function Taskbar() {
   const pinnedApps = apps.filter(app => app.pinnedToTaskbar);
   const openApps = windows.filter(w => !w.isMinimized);
 
-  const getIcon = (iconName: string) => {
-    const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join('')] || Icons.Square;
-    return Icon;
-  };
-
-  // Render icon - either custom image or lucide icon
-  const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => {
-    if (customIcon) {
-      return (
-        <img
-          src={customIcon}
-          alt=""
-          className={className}
-          style={{ objectFit: 'contain' }}
-        />
-      );
-    }
-    const Icon = getIcon(iconName);
-    return <Icon className={className} />;
-  };
+  const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => (
+    <AppIcon icon={iconName} customIcon={customIcon} className={className} />
+  );
 
   const handleAppButtonContextMenu = (
     e: React.MouseEvent,
@@ -198,7 +180,7 @@ export function Taskbar() {
     // large: p-2 (8px) → inner radius 8px
     const paddingClass = { small: 'p-1', medium: 'p-1.5', large: 'p-2' }[taskbarSize];
 
-    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-background-chrome/80 border border-white/[0.08] shadow-xl shadow-black/50`;
+    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-background-chrome/80 border border-os-line-dark shadow-xl shadow-black/50`;
   };
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
 
@@ -207,7 +189,7 @@ export function Taskbar() {
     .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null;
   return (
     <>
-    <div className={getTaskbarClasses()} onContextMenu={handleTaskbarContextMenu}>
+    <div id="genos-taskbar" className={getTaskbarClasses()} onContextMenu={handleTaskbarContextMenu}>
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
         <div className="relative group">
           <Button
@@ -238,7 +220,7 @@ export function Taskbar() {
             </div>
           </Button>
         </div>
-        <div className={isVertical ? 'h-px w-6 bg-white/[0.08] my-1' : 'w-px h-6 bg-white/[0.08] mx-1'} />
+        <div className={isVertical ? 'h-px w-6 bg-os-line-dark my-1' : 'w-px h-6 bg-os-line-dark mx-1'} />
         {pinnedApps.map((app) => {
           const win = windows.find(w => w.appId === app.id);
           const hasWindow = !!win;
@@ -317,7 +299,7 @@ export function Taskbar() {
         })}
       </div>
 
-      <div className={isVertical ? 'h-px w-6 bg-white/[0.08] my-1' : 'w-px h-5 bg-white/[0.08] mx-2'} />
+      <div className={isVertical ? 'h-px w-6 bg-os-line-dark my-1' : 'w-px h-5 bg-os-line-dark mx-2'} />
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
         {/* Notifications */}
         <button
@@ -332,7 +314,7 @@ export function Taskbar() {
             setShowVolume(false);
             setShowSystemTray(false);
           }}
-          className="relative p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
+          className="relative p-2 hover:bg-os-ink-800 rounded-[10px] transition-colors group"
           title="Notifications"
         >
           <Icons.Bell className={cn(
@@ -353,7 +335,7 @@ export function Taskbar() {
             setShowNotifications(false);
             setShowSystemTray(false);
           }}
-          className="p-2 hover:bg-white/[0.08] rounded-[10px] transition-colors group"
+          className="p-2 hover:bg-os-ink-800 rounded-[10px] transition-colors group"
           title="Volume"
         >
           {volume === 0
@@ -375,9 +357,9 @@ export function Taskbar() {
           }}
           className={cn(
             "rounded-[10px] px-2 py-1.5 transition-all duration-200",
-            "hover:bg-white/[0.08] text-white/80 hover:text-white",
+            "hover:bg-os-ink-800 text-white/80 hover:text-white",
             isVertical ? "text-center" : "text-right",
-            showCalendar && "bg-white/[0.1] text-white"
+            showCalendar && "bg-os-ink-800 text-white"
           )}
         >
           <div className="font-medium tabular-nums text-xs leading-tight">
@@ -399,7 +381,7 @@ export function Taskbar() {
           }}
           className={cn(
             "p-2 rounded-[10px] transition-colors group",
-            showSystemTray ? "bg-white/[0.10]" : "hover:bg-white/[0.08]"
+            showSystemTray ? "bg-os-ink-800" : "hover:bg-os-ink-800"
           )}
           title="System tray"
         >
@@ -471,7 +453,7 @@ export function Taskbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.14 }}
-            className="fixed z-[10009] w-72 rounded-2xl border border-white/[0.10] bg-background-chrome/95 shadow-os-window backdrop-blur-xl p-2"
+            className="fixed z-[10009] w-72 rounded-2xl border border-os-line-dark bg-background-chrome/95 shadow-os-window backdrop-blur-xl p-2"
             style={{
               bottom: calendarAnchor.bottom,
               left: Math.min(Math.max(calendarAnchor.centerX - 144, 12), window.innerWidth - 300),
@@ -488,7 +470,7 @@ export function Taskbar() {
                 return (
                   <div
                     key={item.label}
-                    className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-3 transition-all hover:bg-white/[0.08] hover:border-white/[0.14] hover:-translate-y-0.5"
+                    className="rounded-xl border border-os-line-dark bg-os-ink-900/55 p-3 transition-all hover:bg-os-ink-800 hover:border-os-line-dark-hover hover:-translate-y-0.5"
                   >
                     <Icon className="w-4 h-4 text-white/60 mb-3" />
                     <div className="text-xs font-medium text-white/80">{item.label}</div>
@@ -502,7 +484,7 @@ export function Taskbar() {
                 window.dispatchEvent(new Event('genos:open-shortcuts'));
                 setShowSystemTray(false);
               }}
-              className="mt-2 w-full rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-3 text-left transition-all hover:bg-white/[0.08] hover:border-white/[0.14] flex items-center gap-3"
+              className="mt-2 w-full rounded-xl border border-os-line-dark bg-os-ink-900/55 px-3 py-3 text-left transition-all hover:bg-os-ink-800 hover:border-os-line-dark-hover flex items-center gap-3"
             >
               <div className="w-8 h-8 rounded-lg bg-primary-500/15 border border-primary-500/25 flex items-center justify-center">
                 <Icons.Keyboard className="w-4 h-4 text-primary-300" />

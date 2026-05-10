@@ -1,253 +1,165 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { UserProfile } from '../store/userStore';
 import { Button } from './ui/button';
+import { cn } from '../lib/utils';
 
 interface MilestoneCardProps {
   milestone: UserProfile['milestones'][0];
 }
 
+const categoryConfig = {
+  achievement: { icon: Icons.Trophy, label: 'Achievement', className: 'text-amber-200 bg-amber-500/10 border-amber-500/20' },
+  project: { icon: Icons.Rocket, label: 'Project', className: 'text-primary-200 bg-primary-500/10 border-primary-500/20' },
+  education: { icon: Icons.GraduationCap, label: 'Education', className: 'text-violet-200 bg-violet-500/10 border-violet-500/20' },
+  career: { icon: Icons.Briefcase, label: 'Career', className: 'text-emerald-200 bg-emerald-500/10 border-emerald-500/20' },
+  personal: { icon: Icons.Heart, label: 'Personal', className: 'text-rose-200 bg-rose-500/10 border-rose-500/20' },
+  other: { icon: Icons.Star, label: 'Other', className: 'text-os-text-inverse/60 bg-os-ink-800 border-os-line-dark' },
+};
+
 export function MilestoneCard({ milestone }: MilestoneCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>('');
-
-  // Category icons and colors
-  const categoryConfig = {
-    achievement: { icon: Icons.Trophy, color: 'from-yellow-400 to-amber-400', glow: 'yellow-400' },
-    project: { icon: Icons.Rocket, color: 'from-cyan-400 to-blue-400', glow: 'cyan-400' },
-    education: { icon: Icons.GraduationCap, color: 'from-purple-400 to-pink-400', glow: 'purple-400' },
-    career: { icon: Icons.Briefcase, color: 'from-green-400 to-emerald-400', glow: 'green-400' },
-    personal: { icon: Icons.Heart, color: 'from-red-400 to-rose-400', glow: 'red-400' },
-    other: { icon: Icons.Star, color: 'from-slate-400 to-gray-400', glow: 'slate-400' },
-  };
-
-  const config = categoryConfig[milestone.category];
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const config = categoryConfig[milestone.category] ?? categoryConfig.other;
   const CategoryIcon = config.icon;
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
+  const date = new Date(milestone.date);
+  const formattedDate = date.toLocaleDateString('en-ZA', {
+    day: '2-digit',
+    month: 'short',
+  });
 
   return (
     <>
-      <motion.div
-        className="milestone-card group relative cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-      >
-        {/* Card background with Star Citizen styling */}
-        <div
-          className="relative bg-os-ink-900 border border-white/[0.08] overflow-hidden rounded"
+      <article className="group overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900 transition-colors hover:border-os-line-dark-hover">
+        <button
+          type="button"
+          onClick={() => setIsExpanded((value) => !value)}
+          className="w-full p-3 text-left"
         >
-          {/* Holographic grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.02] pointer-events-none"
-            style={{
-              backgroundImage: `
-                linear-gradient(to right, cyan 1px, transparent 1px),
-                linear-gradient(to bottom, cyan 1px, transparent 1px)
-              `,
-              backgroundSize: '10px 10px'
-            }}
-          />
-
-          {/* Top accent line with category color */}
-          <div className={`h-0.5 bg-gradient-to-r ${config.color}`} />
-
-          {/* Card content */}
-          <div className="relative p-4">
-            {/* Header */}
-            <div className="flex items-start gap-3 mb-3">
-              {/* Category icon with glow */}
-              <div className="relative flex-shrink-0 mt-1">
-                <div className={`absolute inset-0 opacity-30`} />
-                <div className={`relative w-8 h-8 rounded bg-gradient-to-br ${config.color} flex items-center justify-center`}>
-                  <CategoryIcon className="w-4 h-4 text-white" />
-                </div>
-              </div>
-
-              {/* Title and date */}
-              <div className="flex-1 min-w-0">
-                <h4 className="text-white font-semibold text-sm leading-tight mb-1 group-hover:text-white/80 transition-colors">
-                  {milestone.title}
-                </h4>
-                <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-wide">
-                  <Icons.Calendar className="w-3 h-3" />
-                  <span>{formatDate(milestone.date)}</span>
-                  {milestone.featured && (
-                    <>
-                      <span className="text-cyan-400/30">•</span>
-                      <span className="text-yellow-400/70 flex items-center gap-1">
-                        <Icons.Star className="w-3 h-3 fill-current" />
-                        Featured
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Expand indicator */}
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex-shrink-0"
-              >
-                <Icons.ChevronDown className="w-4 h-4 text-white/40" />
-              </motion.div>
+          <div className="mb-3 flex items-start gap-3">
+            <div className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border', config.className)}>
+              <CategoryIcon className="h-4 w-4" />
             </div>
 
-            {/* Description preview */}
-            <p className={`text-white/50 text-xs leading-relaxed ${
-              isExpanded ? '' : 'line-clamp-2'
-            }`}>
-              {milestone.description}
-            </p>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
+                <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-os-text-inverse/35">
+                  {formattedDate}
+                </span>
+                {milestone.featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200">
+                    <Icons.Star className="h-2.5 w-2.5 fill-current" />
+                    Featured
+                  </span>
+                )}
+              </div>
+              <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-os-text-inverse">
+                {milestone.title}
+              </h4>
+            </div>
 
-            {/* Expanded content */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-3">
-                    {/* Images */}
-                    {milestone.images && milestone.images.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icons.Image className="w-3 h-3 text-white/30" />
-                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
-                            Media
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {milestone.images.map((img, idx) => (
-                            <div
-                              key={idx}
-                              className="relative aspect-video rounded overflow-hidden border border-white/[0.10] hover:border-white/[0.20] transition-colors cursor-pointer group/img"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedImage(img);
-                                setShowImageModal(true);
-                              }}
-                            >
-                              <img
-                                src={img}
-                                alt={`${milestone.title} ${idx + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-cyan-400/0 group-hover/img:bg-cyan-400/10 transition-colors flex items-center justify-center">
-                                <Icons.Maximize2 className="w-4 h-4 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Links */}
-                    {milestone.links && milestone.links.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icons.Link className="w-3 h-3 text-white/30" />
-                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
-                            Links
-                          </span>
-                        </div>
-                        <div className="space-y-1.5">
-                          {milestone.links.map((link, idx) => (
-                            <a
-                              key={idx}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors group/link"
-                            >
-                              <Icons.ExternalLink className="w-3 h-3" />
-                              <span className="group-hover/link:underline">{link.label}</span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {milestone.tags && milestone.tags.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icons.Tag className="w-3 h-3 text-white/30" />
-                          <span className="text-[10px] text-white/30 uppercase tracking-wide">
-                            Tags
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {milestone.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 text-[10px] text-white/50 bg-white/[0.04] border border-white/[0.10] rounded uppercase tracking-wide"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Corner accents */}
-            <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white/[0.20]" />
-            <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white/[0.20]" />
+            <motion.span
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.16 }}
+              className="mt-1 shrink-0 text-os-text-inverse/35"
+            >
+              <Icons.ChevronDown className="h-4 w-4" />
+            </motion.span>
           </div>
 
-          {/* Hover overlay */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-white/[0.02]" />
-        </div>
-      </motion.div>
+          <p className={cn('text-xs leading-5 text-os-text-inverse/55', !isExpanded && 'line-clamp-3')}>
+            {milestone.description || 'No description added.'}
+          </p>
+        </button>
 
-      {/* Image modal */}
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-3 border-t border-os-line-dark px-3 pb-3 pt-3">
+                {milestone.images && milestone.images.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {milestone.images.slice(0, 4).map((image, index) => (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        onClick={() => setSelectedImage(image)}
+                        className="group/image relative overflow-hidden rounded-md border border-os-line-dark bg-os-ink-950"
+                      >
+                        <img src={image} alt={`${milestone.title} ${index + 1}`} className="aspect-video w-full object-cover transition-transform duration-300 group-hover/image:scale-105" />
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover/image:bg-black/35">
+                          <Icons.Maximize2 className="h-4 w-4 text-white opacity-0 transition-opacity group-hover/image:opacity-80" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {milestone.tags && milestone.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {milestone.tags.map((tag) => (
+                      <span key={tag} className="rounded border border-os-line-dark bg-os-ink-950 px-2 py-0.5 text-[10px] text-os-text-inverse/45">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {milestone.links && milestone.links.length > 0 && (
+                  <div className="space-y-1.5">
+                    {milestone.links.map((link) => (
+                      <a
+                        key={`${link.label}-${link.url}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 rounded-md border border-os-line-dark bg-os-ink-950 px-2.5 py-2 text-xs text-os-text-inverse/55 transition hover:text-os-text-inverse"
+                      >
+                        <Icons.ExternalLink className="h-3.5 w-3.5 text-primary-300" />
+                        <span className="truncate">{link.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </article>
+
       <AnimatePresence>
-        {showImageModal && (
+        {selectedImage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-[20000] flex items-center justify-center p-4"
-            onClick={() => setShowImageModal(false)}
+            className="fixed inset-0 z-[20000] flex items-center justify-center bg-background-overlay p-4"
+            onClick={() => setSelectedImage(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-[90vh]"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.16 }}
+              className="relative max-h-[90vh] max-w-5xl overflow-hidden rounded-xl border border-os-line-dark bg-background-chrome shadow-os-window"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div className="relative rounded-lg overflow-hidden border border-white/[0.12]">
-                <img
-                  src={selectedImage}
-                  alt="Expanded view"
-                  className="max-w-full max-h-[85vh] object-contain"
-                />
-                <Button
-                  onClick={() => setShowImageModal(false)}
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4"
-                >
-                  <Icons.X className="w-5 h-5" />
-                </Button>
-              </div>
+              <img src={selectedImage} alt="Expanded milestone media" className="max-h-[86vh] max-w-full object-contain" />
+              <Button
+                onClick={() => setSelectedImage(null)}
+                variant="ghost"
+                size="icon"
+                className="absolute right-3 top-3 bg-background-chrome/80"
+              >
+                <Icons.X className="h-4 w-4" />
+              </Button>
             </motion.div>
           </motion.div>
         )}

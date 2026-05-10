@@ -103,7 +103,7 @@ AppSidebar.displayName = 'AppSidebar'
 
 export const AppContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex-1 overflow-auto', className)} {...props} />
+    <div ref={ref} className={cn('flex-1 overflow-auto pb-[var(--window-cutout-bottom,0px)]', className)} {...props} />
   )
 )
 AppContent.displayName = 'AppContent'
@@ -152,6 +152,30 @@ AppCard.displayName = 'AppCard'
 
 export const appInputClass =
   'bg-os-ink-800 border border-os-line-dark text-os-text-inverse placeholder:text-os-text-inverse/25 rounded focus:outline-none focus:border-stroke-brand transition-colors'
+
+export const appSelectClass =
+  'os-select os-focus-ring bg-os-ink-800 border border-os-line-dark text-os-text-inverse rounded focus:outline-none focus:border-stroke-brand transition-colors'
+
+export const appInteractiveClass =
+  'os-interactive os-focus-ring'
+
+export const appIconButtonClass =
+  'os-interactive os-focus-ring rounded-md text-os-text-inverse/55 hover:bg-os-ink-800/70 hover:text-os-text-inverse'
+
+export const appSoftButtonClass =
+  'os-interactive os-focus-ring rounded-md border border-os-line-dark bg-os-ink-900 text-os-text-inverse/65 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse'
+
+export const appTableClass =
+  'overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900'
+
+export const appTableHeaderClass =
+  'grid gap-4 border-b border-os-line-dark bg-os-ink-950/70 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/40'
+
+export const appTableBodyClass =
+  'divide-y divide-os-line-dark'
+
+export const appTableRowClass =
+  'os-row-hover grid gap-4 items-center px-4 py-2.5'
 
 // ---------------------------------------------------------------------------
 // AppDivider — thin 1px separator between sections

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
+import { AppIcon } from '../lib/AppIcon';
 import { cn } from '../lib/utils';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
@@ -32,8 +33,23 @@ export function Window({ window, children }: WindowProps) {
   const [snapZone, setSnapZone] = useState<'left' | 'right' | 'top' | null>(null);
   const [_preMaximizeState, setPreMaximizeState] = useState<{ position: { x: number; y: number }; size: { width: number; height: number } } | null>(null);
   const [titleBarMenu, setTitleBarMenu] = useState<{ x: number; y: number } | null>(null);
+  const [taskbarBounds, setTaskbarBounds] = useState<{
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [viewportSize, setViewportSize] = useState({
+    width: typeof globalThis.window === 'undefined' ? 0 : globalThis.window.innerWidth,
+    height: typeof globalThis.window === 'undefined' ? 0 : globalThis.window.innerHeight,
+  });
 
   const {
+    apps,
+    windows,
+    systemPreferences,
     closeWindow,
     minimizeWindow,
     maximizeWindow,
@@ -42,32 +58,53 @@ export function Window({ window, children }: WindowProps) {
     bringToFront
   } = useDesktopStore();
 
-  const getIcon = (iconName: string) => {
-    const Icon = (Icons as any)[iconName.split('-').map((word: string) =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join('')] || Icons.Square;
-    return Icon;
-  };
+  useEffect(() => {
+    const updateViewportSize = () => {
+      setViewportSize({
+        width: globalThis.window.innerWidth,
+        height: globalThis.window.innerHeight,
+      });
+    };
+    updateViewportSize();
+    globalThis.window.addEventListener('resize', updateViewportSize);
+    return () => globalThis.window.removeEventListener('resize', updateViewportSize);
+  }, []);
 
-  // Render icon - either custom image or lucide icon
-  const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => {
-    if (customIcon) {
-      return (
-        <img
-          src={customIcon}
-          alt=""
-          className={className}
-          style={{ objectFit: 'contain' }}
-        />
-      );
-    }
-    const Icon = getIcon(iconName);
-    return <Icon className={className} />;
-  };
+  useEffect(() => {
+    if (!window.isMaximized) return;
+    const taskbar = document.getElementById('genos-taskbar');
+    if (!taskbar) return;
+
+    const updateBounds = () => {
+      const rect = taskbar.getBoundingClientRect();
+      setTaskbarBounds({
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+      });
+    };
+
+    updateBounds();
+    const resizeObserver = new ResizeObserver(updateBounds);
+    resizeObserver.observe(taskbar);
+    globalThis.window.addEventListener('resize', updateBounds);
+
+    return () => {
+      resizeObserver.disconnect();
+      globalThis.window.removeEventListener('resize', updateBounds);
+    };
+  }, [window.isMaximized]);
+
+  const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => (
+    <AppIcon icon={iconName} customIcon={customIcon} className={className} />
+  );
 
   useEffect(() => {
     const SNAP_THRESHOLD = 20; // pixels from edge to trigger snap
-    const TASKBAR_HEIGHT = 72; // floating island: 12px bottom gap + 48px height + 12px clearance
+    const TASKBAR_HEIGHT = 56; // floating island clearance for snapped windows
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && !window.isMaximized) {
@@ -214,8 +251,68 @@ export function Window({ window, children }: WindowProps) {
 
   if (window.isMinimized) return null;
 
+  const openTaskbarWindowCount = windows.filter((w) => !w.isMinimized && !apps.some((app) => app.id === w.appId && app.pinnedToTaskbar)).length;
+  const taskbarIconCount = apps.filter((app) => app.pinnedToTaskbar).length + openTaskbarWindowCount;
+  const estimatedTaskbarWidth = Math.max(260, 154 + taskbarIconCount * 44);
+  const isBottomTaskbar = systemPreferences.taskbarPosition === 'bottom';
+  const showTaskbarCutout = window.isMaximized && isBottomTaskbar;
+  const viewportWidth = viewportSize.width || 1;
+  const viewportHeight = viewportSize.height || 1;
+  const taskbarGap = 8;
+  const taskbarRadius = 16;
+  const cutoutRadius = taskbarRadius + taskbarGap;
+  const fallbackCutoutWidth = estimatedTaskbarWidth + taskbarGap * 2;
+  const fallbackCutoutHeight = 52 + 12 + taskbarGap;
+  const cutoutLeft = Math.max(
+    0,
+    taskbarBounds ? Math.floor(taskbarBounds.left - taskbarGap) : viewportWidth / 2 - fallbackCutoutWidth / 2,
+  );
+  const cutoutRight = Math.min(
+    viewportWidth,
+    taskbarBounds ? Math.ceil(taskbarBounds.right + taskbarGap) : viewportWidth / 2 + fallbackCutoutWidth / 2,
+  );
+  const cutoutTop = Math.max(
+    0,
+    taskbarBounds ? Math.floor(taskbarBounds.top - taskbarGap) : viewportHeight - fallbackCutoutHeight,
+  );
+  const taskbarCutoutWidth = cutoutRight - cutoutLeft;
+  const cutoutHeight = viewportHeight - cutoutTop;
+  const roundedCutoutPath = [
+    `M 0 0`,
+    `H ${viewportWidth}`,
+    `V ${viewportHeight}`,
+    `H ${cutoutRight + cutoutRadius}`,
+    `Q ${cutoutRight} ${viewportHeight} ${cutoutRight} ${viewportHeight - cutoutRadius}`,
+    `V ${cutoutTop + cutoutRadius}`,
+    `Q ${cutoutRight} ${cutoutTop} ${cutoutRight - cutoutRadius} ${cutoutTop}`,
+    `H ${cutoutLeft + cutoutRadius}`,
+    `Q ${cutoutLeft} ${cutoutTop} ${cutoutLeft} ${cutoutTop + cutoutRadius}`,
+    `V ${viewportHeight - cutoutRadius}`,
+    `Q ${cutoutLeft} ${viewportHeight} ${cutoutLeft - cutoutRadius} ${viewportHeight}`,
+    `H 0`,
+    `Z`,
+  ].join(' ');
+  const isCenteredReadingWindow = window.appId === 'cv';
+  const readingWindowWidth = Math.min(980, Math.max(320, viewportWidth - 32));
+  const readingWindowHeight = Math.max(520, viewportHeight - 96);
+
   const windowStyle = window.isMaximized
-    ? { left: 0, top: 0, width: '100%', height: 'calc(100% - 72px)' }
+    ? isCenteredReadingWindow
+      ? {
+        left: `${Math.max(16, (viewportWidth - readingWindowWidth) / 2)}px`,
+        top: '12px',
+        width: `${readingWindowWidth}px`,
+        height: `${readingWindowHeight}px`,
+      }
+      : {
+        left: 0,
+        top: 0,
+        width: '100vw',
+        height: '100vh',
+        clipPath: showTaskbarCutout
+          ? `path("${roundedCutoutPath}")`
+          : undefined,
+      }
     : {
       left: `${window.position.x}px`,
       top: `${window.position.y}px`,
@@ -241,18 +338,22 @@ export function Window({ window, children }: WindowProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 16 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute flex flex-col rounded-lg overflow-hidden bg-background-chrome shadow-os-window"
+      className={cn(
+        'absolute flex flex-col overflow-hidden bg-background-chrome shadow-os-window border border-os-line-dark',
+        window.isMaximized && !isCenteredReadingWindow ? 'rounded-none' : 'rounded-lg',
+      )}
       style={{
         ...windowStyle,
         zIndex: window.zIndex,
+        ['--window-cutout-bottom' as string]: showTaskbarCutout && !isCenteredReadingWindow ? `${cutoutHeight}px` : '0px',
         boxShadow: '0 24px 60px rgba(0,0,0,0.40), 0 2px 8px rgba(0,0,0,0.28)',
       }}
       onMouseDown={() => bringToFront(window.id)}
+      data-os-window="true"
     >
       <div
         ref={windowRef}
         className="flex-1 flex flex-col overflow-hidden bg-background-chrome"
-        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
       >
         {/* Title bar — always dark OS chrome */}
         <div
@@ -260,8 +361,7 @@ export function Window({ window, children }: WindowProps) {
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
           onContextMenu={handleTitleBarContextMenu}
-          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-background-chrome"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-background-chrome border-b border-os-line-dark"
         >
           <div className="flex items-center gap-2 min-w-0">
             {renderIcon(window.icon, window.customIcon, 'w-[14px] h-[14px] text-white/40 flex-shrink-0')}
@@ -274,13 +374,13 @@ export function Window({ window, children }: WindowProps) {
           <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
             <button
               onClick={() => minimizeWindow(window.id)}
-              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-white/[0.08] hover:text-white/80 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-os-ink-800 hover:text-white/80 transition-colors"
             >
               <Icons.Minus className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => maximizeWindow(window.id)}
-              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-white/[0.08] hover:text-white/80 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-os-ink-800 hover:text-white/80 transition-colors"
             >
               {window.isMaximized
                 ? <Icons.Minimize2 className="w-3 h-3" />
@@ -300,6 +400,21 @@ export function Window({ window, children }: WindowProps) {
           {children}
         </div>
 
+        {showTaskbarCutout && !isCenteredReadingWindow && (
+          <div
+            className="pointer-events-none fixed bottom-0 z-[1] border border-b-0 border-os-line-dark bg-os-ink-950/20 shadow-[0_-18px_50px_rgba(0,0,0,0.30)]"
+            style={{
+              left: `${cutoutLeft}px`,
+              width: `${taskbarCutoutWidth}px`,
+              height: `${cutoutHeight}px`,
+              borderTopLeftRadius: `${cutoutRadius}px`,
+              borderTopRightRadius: `${cutoutRadius}px`,
+              borderBottomLeftRadius: `${cutoutRadius}px`,
+              borderBottomRightRadius: `${cutoutRadius}px`,
+            }}
+          />
+        )}
+
         {/* Resize handle */}
         {!window.isMaximized && (
           <div
@@ -308,7 +423,7 @@ export function Window({ window, children }: WindowProps) {
           >
             <div className={cn(
               'absolute bottom-1 right-1 w-2.5 h-2.5 border-r-2 border-b-2 transition-colors',
-              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-white/[0.16] group-hover:border-white/[0.32]',
+              isContent ? 'border-black/20 group-hover:border-black/40' : 'border-os-line-dark-hover group-hover:border-stroke-brand',
             )} />
           </div>
         )}
@@ -330,13 +445,13 @@ export function Window({ window, children }: WindowProps) {
       {isDragging && snapZone && (
         <div className="fixed inset-0 pointer-events-none z-[9996]">
           {snapZone === 'left' && (
-            <div className="absolute left-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
+            <div className="absolute left-0 top-0 bottom-14 w-1/2 bg-os-ink-950/20 border-2 border-os-line-dark-hover border-dashed" />
           )}
           {snapZone === 'right' && (
-            <div className="absolute right-0 top-0 bottom-[72px] w-1/2 bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
+            <div className="absolute right-0 top-0 bottom-14 w-1/2 bg-os-ink-950/20 border-2 border-os-line-dark-hover border-dashed" />
           )}
           {snapZone === 'top' && (
-            <div className="absolute left-0 right-0 top-0 bottom-[72px] bg-white/[0.06] border-2 border-white/[0.16] border-dashed" />
+            <div className="absolute left-0 right-0 top-0 bottom-14 bg-os-ink-950/20 border-2 border-os-line-dark-hover border-dashed" />
           )}
         </div>
       )}

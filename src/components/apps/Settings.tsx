@@ -7,7 +7,8 @@ import { useNotificationStore } from '../../store/notificationStore';
 import { Button } from '../ui/button';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgress } from '../UploadProgress';
-import { AppShell } from '../ui/AppShell';
+import { AppShell, appSelectClass } from '../ui/AppShell';
+import { cn } from '../../lib/utils';
 
 type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 
@@ -16,7 +17,7 @@ export function Settings() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [, setIsUploading] = useState(false);
   const { profile, error, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const {
     openWindow,
     apps,
@@ -34,6 +35,9 @@ export function Settings() {
   } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const panelClass = 'bg-os-ink-900 rounded-lg p-6 border border-os-line-dark';
+  const rowClass = 'flex items-center gap-3 p-4 bg-os-ink-950/70 border border-os-line-dark rounded-lg transition-colors';
+  const selectClass = cn(appSelectClass, 'w-full px-4 py-2 text-sm cursor-pointer');
 
   // Watch for store errors
   useEffect(() => {
@@ -94,6 +98,7 @@ export function Settings() {
 
     try {
       const result = await uploadFile(file, {
+        folder: 'backgrounds',
         maxSizeMB: 5,
         allowedTypes: ['image/*'],
         onProgress: (progress) => {
@@ -221,7 +226,7 @@ export function Settings() {
   return (
     <AppShell>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/[0.08]">
+      <div className="px-6 py-4 border-b border-os-line-dark">
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <Icons.Settings className="w-6 h-6" />
           Settings
@@ -230,7 +235,7 @@ export function Settings() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 px-6 py-3 border-b border-white/[0.08] overflow-x-auto">
+      <div className="flex gap-2 px-6 py-3 border-b border-os-line-dark overflow-x-auto">
         <Button
           variant={activeTab === 'profile' ? 'soft-system-primary' : 'ink-ghost'}
           size="sm"
@@ -274,7 +279,7 @@ export function Settings() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 pb-[calc(1.5rem+var(--window-cutout-bottom,0px))]">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Upload Progress */}
           {uploadProgress.length > 0 && (
@@ -287,9 +292,9 @@ export function Settings() {
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <>
-              {isAuthenticated ? (
+              {isAdmin ? (
                 <>
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
                     <p className="text-white/40 text-sm mb-4">
                       Update your basic information quickly here, or open the About Me app for full profile editing.
@@ -301,7 +306,7 @@ export function Settings() {
                           type="text"
                           value={quickEdit.name}
                           onChange={(e) => setQuickEdit({ ...quickEdit, name: e.target.value })}
-                          className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white"
+                          className="w-full bg-os-ink-800 border border-os-line-dark rounded px-4 py-2 text-white outline-none focus:border-stroke-brand transition-colors"
                         />
                       </div>
                       <div>
@@ -310,7 +315,7 @@ export function Settings() {
                           type="text"
                           value={quickEdit.title}
                           onChange={(e) => setQuickEdit({ ...quickEdit, title: e.target.value })}
-                          className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white"
+                          className="w-full bg-os-ink-800 border border-os-line-dark rounded px-4 py-2 text-white outline-none focus:border-stroke-brand transition-colors"
                         />
                       </div>
                       <div className="flex gap-3">
@@ -326,7 +331,7 @@ export function Settings() {
                     </div>
                   </div>
 
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <div className="flex items-start gap-4">
                       <Icons.Info className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
                       <div>
@@ -340,7 +345,7 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08] text-center">
+                <div className={cn(panelClass, 'text-center')}>
                   <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
                   <p className="text-white/40 text-sm">
@@ -355,7 +360,7 @@ export function Settings() {
           {activeTab === 'appearance' && (
             <>
               {/* Background Management */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white flex items-center gap-2">
                     <Icons.Image className="w-5 h-5" />
@@ -384,7 +389,7 @@ export function Settings() {
                       key={bg.id}
                       className={`group relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedBackgroundId === bg.id
                         ? 'border-primary-400 ring-2 ring-primary-400/50'
-                        : 'border-white/[0.16] hover:border-white/[0.32]'
+                        : 'border-os-line-dark hover:border-os-line-dark-hover'
                         }`}
                       onClick={() => handleBackgroundSelect(bg.id)}
                     >
@@ -433,7 +438,7 @@ export function Settings() {
               </div>
 
               {/* Display Settings */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Type className="w-5 h-5" />
                   Display Settings
@@ -444,7 +449,7 @@ export function Settings() {
                     <select
                       value={preferences.fontSize}
                       onChange={(e) => setPreferences({ ...preferences, fontSize: e.target.value as 'sm' | 'md' | 'lg' })}
-                      className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white"
+                      className={selectClass}
                     >
                       <option value="sm" className="bg-black/30">Small</option>
                       <option value="md" className="bg-black/30">Medium</option>
@@ -460,7 +465,7 @@ export function Settings() {
                         type="color"
                         value={preferences.accentColor || '#667eea'}
                         onChange={(e) => setPreferences({ ...preferences, accentColor: e.target.value })}
-                        className="w-16 h-10 rounded border border-white/[0.16] cursor-pointer"
+                        className="w-16 h-10 rounded border border-os-line-dark cursor-pointer"
                       />
                       <span className="text-white/60 text-sm">
                         {preferences.accentColor || '#667eea'}
@@ -476,7 +481,7 @@ export function Settings() {
                 </div>
               </div>
 
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <div className="flex items-start gap-4">
                   <Icons.Sparkles className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
                   <div>
@@ -495,7 +500,7 @@ export function Settings() {
           {activeTab === 'system' && (
             <>
               {/* Taskbar Settings */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Layout className="w-5 h-5" />
                   Taskbar Settings
@@ -504,7 +509,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Position</label>
                     <select
-                      className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
+                      className={selectClass}
                       value={systemPreferences.taskbarPosition}
                       onChange={(e) => {
                         setTaskbarPosition(e.target.value as any);
@@ -527,7 +532,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Taskbar Size</label>
                     <select
-                      className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
+                      className={selectClass}
                       value={systemPreferences.taskbarSize}
                       onChange={(e) => {
                         setTaskbarSize(e.target.value as any);
@@ -546,7 +551,7 @@ export function Settings() {
                     <p className="text-white/40 text-xs mt-1">Adjust taskbar height/width</p>
                   </div>
 
-                  <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-pointer hover:bg-white/[0.06] transition-all">
+                  <label className={cn(rowClass, 'cursor-pointer hover:bg-os-ink-800')}>
                     <input
                       type="checkbox"
                       checked={systemPreferences.autoHideTaskbar}
@@ -563,7 +568,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Maximize2 className="w-4 h-4 text-blue-400" />
+                        <Icons.Maximize2 className="w-4 h-4 text-primary-400" />
                         <span className="text-white font-medium">Auto-hide Taskbar</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -575,7 +580,7 @@ export function Settings() {
               </div>
 
               {/* Desktop Settings */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Monitor className="w-5 h-5" />
                   Desktop Settings
@@ -584,7 +589,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Icon Size</label>
                     <select
-                      className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white cursor-pointer"
+                      className={selectClass}
                       value={systemPreferences.iconSize}
                       onChange={(e) => {
                         setIconSize(e.target.value as any);
@@ -606,7 +611,7 @@ export function Settings() {
                   <div>
                     <label className="text-white text-sm mb-2 block">Icon Arrangement</label>
                     <select
-                      className="w-full bg-white/[0.08] border border-white/[0.08] rounded px-4 py-2 text-white"
+                      className={cn(selectClass, 'cursor-not-allowed opacity-60')}
                       defaultValue="manual"
                       disabled
                     >
@@ -617,7 +622,7 @@ export function Settings() {
                     <p className="text-white/40 text-xs mt-1">Coming soon: Control how icons are arranged</p>
                   </div>
 
-                  <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-not-allowed opacity-50">
+                  <label className={cn(rowClass, 'cursor-not-allowed opacity-50')}>
                     <input
                       type="checkbox"
                       defaultChecked={false}
@@ -638,13 +643,13 @@ export function Settings() {
               </div>
 
               {/* Performance Settings */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Zap className="w-5 h-5" />
                   Performance & Effects
                 </h3>
                 <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-pointer hover:bg-white/[0.06] transition-all">
+                  <label className={cn(rowClass, 'cursor-pointer hover:bg-os-ink-800')}>
                     <input
                       type="checkbox"
                       checked={systemPreferences.windowAnimations}
@@ -661,7 +666,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Wind className="w-4 h-4 text-cyan-400" />
+                        <Icons.Wind className="w-4 h-4 text-primary-400" />
                         <span className="text-white font-medium">Window Animations</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -670,7 +675,7 @@ export function Settings() {
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-not-allowed opacity-50">
+                  <label className={cn(rowClass, 'cursor-not-allowed opacity-50')}>
                     <input
                       type="checkbox"
                       defaultChecked={true}
@@ -688,7 +693,7 @@ export function Settings() {
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-not-allowed opacity-50">
+                  <label className={cn(rowClass, 'cursor-not-allowed opacity-50')}>
                     <input
                       type="checkbox"
                       defaultChecked={false}
@@ -709,7 +714,7 @@ export function Settings() {
               </div>
 
               {/* Startup Apps */}
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Icons.Power className="w-5 h-5" />
                   Startup Applications
@@ -718,14 +723,14 @@ export function Settings() {
                   Configure which applications open automatically when GenOS starts
                 </p>
                 <div className="space-y-2 opacity-50">
-                  <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Icons.Folder className="w-4 h-4 text-blue-400" />
+                      <Icons.Folder className="w-4 h-4 text-primary-400" />
                       <span className="text-white text-sm">File Explorer</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
                       <Icons.User className="w-4 h-4 text-purple-400" />
                       <span className="text-white text-sm">About Me</span>
@@ -736,9 +741,9 @@ export function Settings() {
                 </div>
               </div>
 
-              <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+              <div className={panelClass}>
                 <div className="flex items-start gap-4">
-                  <Icons.Settings className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                  <Icons.Settings className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">System Customization Available</h4>
                     <p className="text-white/60 text-sm leading-relaxed mb-2">
@@ -756,15 +761,15 @@ export function Settings() {
           {/* Privacy Tab */}
           {activeTab === 'privacy' && (
             <>
-              {isAuthenticated ? (
+              {isAdmin ? (
                 <>
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
                     <p className="text-white/40 text-sm mb-4">
                       Control what contact information is publicly visible on your portfolio.
                     </p>
                     <div className="space-y-4">
-                      <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-pointer hover:bg-white/[0.06] transition-all">
+                      <label className={cn(rowClass, 'cursor-pointer hover:bg-os-ink-800')}>
                         <input
                           type="checkbox"
                           checked={preferences.showEmail}
@@ -773,7 +778,7 @@ export function Settings() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Icons.Mail className="w-4 h-4 text-blue-400" />
+                            <Icons.Mail className="w-4 h-4 text-primary-400" />
                             <span className="text-white font-medium">Show Email Address</span>
                           </div>
                           <p className="text-white/40 text-xs mt-1">
@@ -782,7 +787,7 @@ export function Settings() {
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 p-4 bg-black/30 rounded-lg cursor-pointer hover:bg-white/[0.06] transition-all">
+                      <label className={cn(rowClass, 'cursor-pointer hover:bg-os-ink-800')}>
                         <input
                           type="checkbox"
                           checked={preferences.showPhone}
@@ -807,7 +812,7 @@ export function Settings() {
                     </div>
                   </div>
 
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <div className="flex items-start gap-4">
                       <Icons.ShieldCheck className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
                       <div>
@@ -821,7 +826,7 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08] text-center">
+                <div className={cn(panelClass, 'text-center')}>
                   <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
                   <p className="text-white/40 text-sm">
@@ -835,9 +840,9 @@ export function Settings() {
           {/* Data Tab */}
           {activeTab === 'data' && (
             <>
-              {isAuthenticated ? (
+              {isAdmin ? (
                 <>
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.Download className="w-5 h-5" />
                       Export Profile
@@ -851,7 +856,7 @@ export function Settings() {
                     </Button>
                   </div>
 
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.Upload className="w-5 h-5" />
                       Import Profile
@@ -876,7 +881,7 @@ export function Settings() {
                     </p>
                   </div>
 
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                       <Icons.RotateCcw className="w-5 h-5" />
                       Reset Profile
@@ -893,7 +898,7 @@ export function Settings() {
                     </p>
                   </div>
 
-                  <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08]">
+                  <div className={panelClass}>
                     <div className="flex items-start gap-4">
                       <Icons.AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
                       <div>
@@ -907,7 +912,7 @@ export function Settings() {
                   </div>
                 </>
               ) : (
-                <div className="bg-white/[0.06] rounded p-6 border border-white/[0.08] text-center">
+                <div className={cn(panelClass, 'text-center')}>
                   <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
                   <p className="text-white/40 text-sm">
