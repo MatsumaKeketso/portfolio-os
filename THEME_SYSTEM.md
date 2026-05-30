@@ -1,439 +1,163 @@
-# PortfolioOS Theme System
+# GenOS Theme System
 
-## Overview
+> This file describes the **runtime theme layer** — how presets switch the brand colors and a few semantic tokens at runtime. For the full design system (primitive tokens, OS tokens, AppShell contract, primitives), see [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md). That doc takes precedence; this file only covers the theme preset mechanism.
 
-PortfolioOS now has a centralized design system similar to Material-UI (MUI) and Ant Design (ANTD). All styling decisions are made in one place, ensuring consistency across the entire application.
+## What the theme layer actually does
+
+The theme layer is a thin runtime override on top of the static OS design tokens. It does **not** control most of the OS surface language — chrome, canvas, line, text, and ink tokens are defined statically in `src/index.css` and are not theme-variable. The theme layer is responsible for:
+
+1. The four brand color channels (`primary`, `secondary`, `tertiary`, `accent`) that flow through the brand semantic tokens.
+2. The few semantic tokens that should shift with a preset (`bg-brand-solid`, `fg-brand`, `stroke-brand`, etc.).
+3. Border radius, spacing density, and icon style global preferences.
+
+If you want to change a surface color, a border treatment, or a text tone for every theme, do it in `src/index.css` or `tailwind.config.js`, not in a theme preset. Presets exist so visitors can pick a brand palette without us shipping nine different design systems.
 
 ## Architecture
 
 ```
 src/
+├── index.css                       # primitive + OS + semantic CSS variables (Layer 1–2)
 ├── theme/
-│   ├── theme.ts          # Central theme configuration
-│   ├── ThemeProvider.tsx # React context provider
-│   ├── helpers.ts        # Theme utility functions
-│   └── index.ts          # Public API exports
+│   ├── theme.ts                    # static TS theme object: spacing, shadows, z-index, component defaults
+│   ├── ThemeProvider.tsx           # React context provider
+│   ├── helpers.ts                  # getColor / getSpacing / getShadow / etc.
+│   └── index.ts                    # public API
+└── store/themeStore.ts             # runtime preset store — overrides Layer 2 brand vars + radius/spacing
 ```
 
-## Quick Start
+## Default theme
 
-### 1. Using the Theme in Components
+The default preset is **Generative Studio** — red brand colors (`#ef4444`, `#dc2626`, `#f97316`, `#fbbf24`). It is the first entry in the preset list and the fallback both at startup and when CSS variables haven't loaded yet.
 
-```tsx
-import { useTheme } from '../theme';
+Earlier docs described Star Citizen cyan as the default. That changed in session 3 (2026-05-05). Anywhere a doc shows `#667eea` blue, `glass.dark`, or a "blue → purple gradient" — that is legacy. The current direction uses Generative Studio red routed through `--color-bg-brand-*` and `--color-fg-brand` semantic tokens.
 
-function MyComponent() {
-  const { theme } = useTheme();
+## Available presets
 
-  return (
-    <div style={{
-      backgroundColor: theme.palette.primary.main,
-      padding: theme.spacing.md,
-      borderRadius: theme.borderRadius.lg,
-      boxShadow: theme.shadows.window,
-    }}>
-      Content
-    </div>
-  );
-}
+| Preset | Primary | Use case |
+|---|---|---|
+| **Generative Studio** (default) | red `#ef4444` | the brand default |
+| **Product Mono** | ink `#111111` + emerald accent | clean dashboard tone |
+| **Star Citizen** | cyan `#00d9ff` | legacy/sci-fi look |
+| **Ocean Blue / Forest Green / Purple Haze / Sunset Orange / Monochrome / Cyberpunk** | varied | legacy color variants |
+
+All presets live in `src/store/themeStore.ts`. Adding a new preset means adding an entry to the preset list — do not introduce a new component variant per theme.
+
+## CSS variables a preset can override
+
+A preset is expected to set:
+
+```css
+--color-primary: R, G, B            /* brand main */
+--color-secondary: R, G, B
+--color-tertiary: R, G, B
+--color-accent: R, G, B
+--color-primary-hover: R, G, B      /* derived ~10% darker */
 ```
 
-### 2. Using Theme Helpers
+Plus the brand semantic tokens (in dark mode the preset may also adjust `--color-bg-brand-subtle*` and `--color-bg-brand-solid-focus`).
 
-```tsx
-import { getColor, getSpacing, getShadow } from '../theme/helpers';
+A preset **must not** override:
+- `--os-ink-*`, `--os-canvas`, `--os-canvas-*`, `--os-line-*`, `--os-text-*` — these are the static OS surface system.
+- `--primitive-gray-*` — the raw color ladder.
+- `--os-type-*` and `--os-font-*` — typography is system-wide.
 
-function MyComponent() {
-  return (
-    <div style={{
-      backgroundColor: getColor('primary.main'),
-      padding: getSpacing('md'),
-      boxShadow: getShadow('window'),
-    }}>
-      Content
-    </div>
-  );
-}
+## Border radius, spacing, icon style
+
+These are global preferences set via `data-*` attributes on `<html>`, not via CSS variables:
+
+```html
+<html data-border-radius="md" data-spacing="normal" data-icon-style="default">
 ```
 
-### 3. Using Component Defaults
+Options:
+
+| `data-border-radius` | Effect |
+|---|---|
+| `none` / `sm` / `md` / `lg` / `xl` | overrides `.window`, `.rounded`, `.rounded-lg`, `.rounded-xl` globally |
+
+| `data-spacing` | Effect |
+|---|---|
+| `compact` / `normal` / `comfortable` | scales `.p-*` and `.gap-*` via `--spacing-multiplier` |
+
+| `data-icon-style` | Effect |
+|---|---|
+| `default` (8px radius) / `rounded` (circle) / `sharp` (0 radius) | applies to `.desktop-icon`, `.app-icon` |
+
+These are set from the Settings app and persisted by `themeStore`/`desktopStore`.
+
+## Using the theme in components
+
+Most components should **not** call `useTheme()`. They should use Tailwind utilities that resolve to semantic tokens:
 
 ```tsx
-import { theme } from '../theme';
-
-// Get default props for Button
-const buttonDefaults = theme.components.Button.defaultProps;
-// { variant: 'primary', size: 'md' }
-
-// Get Button variant styles
-const primaryButton = theme.components.Button.variants.primary;
-// { base: 'bg-gradient-to-r...', hover: 'from-blue-700...', ... }
-```
-
-## Theme Structure
-
-### Colors
-
-```tsx
-theme.palette.primary.main     // '#667eea' - Brand blue
-theme.palette.secondary.main   // '#764ba2' - Brand purple
-theme.palette.success.main     // '#10b981' - Green
-theme.palette.error.main       // '#ef4444' - Red
-theme.palette.glass.dark       // 'rgba(17, 24, 39, 0.95)' - Glass dark
-```
-
-### Typography
-
-```tsx
-theme.typography.fontFamily.sans // System font stack
-theme.typography.fontSize.base   // '1rem' (16px)
-theme.typography.fontWeight.bold // 700
-```
-
-### Spacing
-
-```tsx
-theme.spacing.xs   // '0.5rem' (8px)
-theme.spacing.md   // '1rem' (16px)
-theme.spacing.xl   // '2rem' (32px)
-
-// Component-specific
-theme.spacing.component.windowChrome  // '2.5rem' (40px)
-theme.spacing.component.taskbar       // '3rem' (48px)
-```
-
-### Shadows
-
-```tsx
-theme.shadows.md            // Standard elevation
-theme.shadows.window        // Window shadow
-theme.shadows.glass         // Glass-morphism shadow
-theme.shadows.glow.blue     // Blue glow effect
-```
-
-### Border Radius
-
-```tsx
-theme.borderRadius.sm   // '0.25rem' (4px)
-theme.borderRadius.md   // '0.5rem' (8px)
-theme.borderRadius.lg   // '0.75rem' (12px)
-```
-
-### Z-Index
-
-```tsx
-theme.zIndex.window         // 1000
-theme.zIndex.taskbar        // 10000
-theme.zIndex.modal          // 15000
-theme.zIndex.tooltip        // 20000
-```
-
-### Transitions
-
-```tsx
-theme.transitions.duration.fast      // '100ms'
-theme.transitions.duration.normal    // '150ms'
-theme.transitions.easing.easeInOut   // 'cubic-bezier(...)'
-```
-
-### Backdrop Blur
-
-```tsx
-theme.blur.glass        // '40px'
-theme.blur.glassHeavy   // '64px'
-```
-
-## Component Defaults
-
-Each component has centralized default values and variants:
-
-### Button
-
-```tsx
-theme.components.Button = {
-  defaultProps: {
-    variant: 'primary',
-    size: 'md',
-  },
-
-  variants: {
-    primary: {
-      base: 'bg-gradient-to-r from-blue-600 to-purple-600...',
-      hover: 'from-blue-700 to-purple-700',
-      shadow: 'shadow-md hover:shadow-glow-blue',
-    },
-    // ... other variants
-  },
-
-  sizes: {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  },
-}
-```
-
-### Input
-
-```tsx
-theme.components.Input = {
-  defaultProps: {
-    variant: 'glass',
-    size: 'md',
-  },
-
-  variants: {
-    glass: {
-      base: 'bg-gray-700/50 border border-gray-600/50...',
-      focus: 'border-blue-500 ring-1 ring-blue-500',
-    },
-    // ... other variants
-  },
-}
-```
-
-### Card
-
-```tsx
-theme.components.Card = {
-  defaultProps: {
-    variant: 'window',
-    padding: 'md',
-    rounded: 'lg',
-  },
-
-  variants: {
-    window: {
-      base: 'bg-gray-900/95 backdrop-blur-xl...',
-      shadow: 'shadow-window',
-    },
-    // ... other variants
-  },
-}
-```
-
-### Window
-
-```tsx
-theme.components.Window = {
-  chrome: {
-    height: '2.5rem',
-    background: 'bg-gray-800/80',
-  },
-
-  glow: {
-    enabled: true,
-    color: 'rgba(102, 126, 234, 0.8)',
-    size: 250,
-  },
-}
-```
-
-## Customizing the Theme
-
-### Option 1: Modify theme.ts Directly
-
-```tsx
-// src/theme/theme.ts
-export const theme = {
-  palette: {
-    primary: {
-      main: '#YOUR_COLOR', // Change brand color
-    },
-  },
-  // ... rest of theme
-};
-```
-
-### Option 2: Provide Custom Theme to Provider
-
-```tsx
-// src/App.tsx
-import { ThemeProvider } from './theme';
-
-const customTheme = {
-  palette: {
-    primary: {
-      main: '#YOUR_COLOR',
-    },
-  },
-};
-
-function App() {
-  return (
-    <ThemeProvider customTheme={customTheme}>
-      <Desktop />
-    </ThemeProvider>
-  );
-}
-```
-
-## Helper Functions
-
-### getColor(path)
-Get a color from the theme palette:
-```tsx
-getColor('primary.main')     // '#667eea'
-getColor('glass.dark')       // 'rgba(17, 24, 39, 0.95)'
-```
-
-### getSpacing(size)
-Get a spacing value:
-```tsx
-getSpacing('md')   // '1rem'
-getSpacing('xl')   // '2rem'
-```
-
-### getShadow(name)
-Get a shadow value:
-```tsx
-getShadow('window')      // Window shadow
-getShadow('glow.blue')   // Blue glow
-```
-
-### getBorderRadius(size)
-Get border radius:
-```tsx
-getBorderRadius('lg')   // '0.75rem'
-```
-
-### getZIndex(layer)
-Get z-index value:
-```tsx
-getZIndex('modal')    // 15000
-getZIndex('taskbar')  // 10000
-```
-
-### getComponentDefaults(component)
-Get component default props:
-```tsx
-getComponentDefaults('Button')
-// { variant: 'primary', size: 'md' }
-```
-
-## Best Practices
-
-### ✅ DO
-
-1. **Use theme values instead of hardcoding**
-   ```tsx
-   // Good
-   <div style={{ color: theme.palette.primary.main }}>
-
-   // Bad
-   <div style={{ color: '#667eea' }}>
-   ```
-
-2. **Use helper functions for cleaner code**
-   ```tsx
-   // Good
-   const color = getColor('primary.main');
-
-   // Also good
-   const { theme } = useTheme();
-   const color = theme.palette.primary.main;
-   ```
-
-3. **Reference component defaults**
-   ```tsx
-   // Good
-   const defaults = theme.components.Button.defaultProps;
-   ```
-
-### ❌ DON'T
-
-1. **Don't hardcode colors, spacing, or other design values**
-   ```tsx
-   // Bad
-   <div className="bg-blue-600 p-4 rounded-lg">
-   ```
-
-2. **Don't duplicate style definitions**
-   ```tsx
-   // Bad - define in theme instead
-   const buttonStyle = { padding: '8px 16px' };
-   ```
-
-3. **Don't use magic numbers**
-   ```tsx
-   // Bad
-   <div style={{ zIndex: 10000 }}>
-
-   // Good
-   <div style={{ zIndex: theme.zIndex.taskbar }}>
-   ```
-
-## Migration Guide
-
-### Converting Existing Components
-
-**Before:**
-```tsx
-<button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-  Click me
+// Preferred — semantic Tailwind utility
+<button className="bg-brand-solid hover:bg-brand-solid-hover text-fg-on-primary">
+  Save
 </button>
+
+// Also preferred — OS chrome utility
+<div className="bg-os-ink-900 border border-os-line-dark text-os-text-inverse">
+  …
+</div>
 ```
 
-**After:**
+The `useTheme()` hook is only needed when a component reads spacing, shadows, z-index, or component defaults from `src/theme/theme.ts`:
+
 ```tsx
 import { useTheme } from '../theme';
 
-function MyComponent() {
+function FloatingPanel() {
   const { theme } = useTheme();
-  const styles = theme.components.Button.variants.primary;
-
-  return (
-    <button className={`${styles.base} ${styles.hover}`}>
-      Click me
-    </button>
-  );
+  return <div style={{ zIndex: theme.zIndex.tooltip }}>…</div>;
 }
 ```
 
-Or better yet, use the existing Button component:
+Or use the helpers:
+
 ```tsx
-import { Button } from '../components/ui/button';
+import { getZIndex, getSpacing } from '../theme/helpers';
 
-function MyComponent() {
-  return <Button variant="primary">Click me</Button>;
-}
+<div style={{ zIndex: getZIndex('tooltip'), padding: getSpacing('md') }} />
 ```
 
-## Current Component Status
+## Component defaults
 
-### ✅ Using Centralized Theme
-- Button (8 variants)
-- Input (4 variants)
-- Card (5 variants)
+`src/theme/theme.ts` defines default `variant`/`size`/`padding` for shared primitives. These are reference values — current components (Button, AppShell, SystemRow) source their variants directly from their own CVA definitions in `src/components/ui/`. The `theme.components.*` object is preserved for future centralization but is not the live source of truth for variant styling.
 
-### 🔄 Partially Migrated
-- Window (structure defined, needs implementation)
-- Taskbar (values defined, needs implementation)
-- DesktopIcon (values defined, needs implementation)
+## Best practices
 
-### ⏳ Needs Migration
-- AdminPanel
-- StartMenu
-- FileExplorer
-- Calculator
-- Notepad
-- Weather
-- Browser
-- About
+### Do
 
-## Benefits
+- Source color from Tailwind utilities that resolve to semantic tokens (`bg-os-ink-900`, `text-fg-brand`, `border-os-line-dark`).
+- Pick the surface role first (chrome/content/floating/inset/media) and reach for the matching primitive.
+- Use `os-type-*` classes or `<Typography>` for type. Use `os-interactive` + `os-focus-ring` for interaction.
+- Use the AppShell contract for every app body (see [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) §The App Contract).
 
-1. **Consistency** - All components use the same design values
-2. **Maintainability** - Change colors/spacing in one place
-3. **Type Safety** - TypeScript enforces theme structure
-4. **Scalability** - Easy to add new components/variants
-5. **Customization** - Users can theme the entire app
-6. **Developer Experience** - Similar to MUI/ANTD, familiar API
+### Don't
 
-## Next Steps
+- Don't hardcode hex (`bg-[#141414]`) or Tailwind palette colors (`bg-blue-500`) for brand intent. Use semantic tokens.
+- Don't override OS ink/canvas/line tokens from a theme preset. Those are system-wide.
+- Don't import from `src/components/ui/card.tsx`, `ui/input.tsx`, or non-`MediaSurface` exports of `ui/surface.tsx`. They are dead-code legacy.
+- Don't add backdrop-blur to draggable window bodies. Drag performance regresses.
+- Don't add magic `z-index` numbers. Use the `theme.zIndex` map.
 
-1. Migrate remaining components to use theme
-2. Add dark/light mode toggle
-3. Add theme presets (Professional, Creative, Minimal)
-4. Export theme configuration tool in AdminPanel
-5. Add CSS custom properties for runtime theme changes
+## Migration from older theme code
+
+If you find code that looks like this:
+
+```tsx
+// Legacy — do not copy
+<div style={{ background: 'rgba(17, 24, 39, 0.95)', backdropFilter: 'blur(40px)' }}>
+<div className="bg-gradient-to-r from-blue-600 to-purple-600">
+<div className="bg-[#141414]">
+```
+
+Migrate to:
+
+```tsx
+<div className="bg-background-floating backdrop-blur-md">           {/* if floating */}
+<div className="bg-brand-solid hover:bg-brand-solid-hover">          {/* if brand button */}
+<div className="bg-background-chrome">                               {/* if chrome */}
+```
+
+For the full migration recipe (toolbar buttons, status pills, inputs, cards), see [docs/DESIGN_SYSTEM.md §Migration Guide](./docs/DESIGN_SYSTEM.md#migration-guide).

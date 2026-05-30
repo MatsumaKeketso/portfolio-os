@@ -112,17 +112,32 @@ export function AboutOS() {
                 <SectionHeader icon={<Icons.Lightbulb className="w-4 h-4" />} title="Concept" />
                 <div className="space-y-3 text-sm text-white/60 leading-relaxed">
                   <p>
-                    GenOS is not a portfolio website with desktop styling. It is Keketso Matsuma's portfolio expressed as an operating system concept.
+                    GenOS is not a portfolio website with desktop styling. It is a working environment where Keketso Matsuma's projects, process, tools, and design decisions can be explored through the logic of a system.
                   </p>
                   <p>
                     The desktop, windows, app model, file explorer, admin panel, theme system, motion language, and interaction patterns are all evidence of the portfolio. The operating system itself is the work.
                   </p>
                   <p>
-                    Projects are launched as apps. CV, skills, and contact live together in a single tabbed surface. The File Explorer includes a public Visitor Gallery. The Admin Panel is a publishing console, not a settings screen.
+                    Projects are launched as apps. CV, skills, and contact live together in a single tabbed surface. Archive includes a public Visitor Gallery. The Admin Panel is a publishing console, not a settings screen.
                   </p>
                   <p>
                     The goal is to make complexity legible — layered but understandable interfaces, motion that explains structure, dense UI that still scans cleanly, systems within systems.
                   </p>
+
+                  <div className="pt-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-3">Design Layers</p>
+                    <div className="space-y-3">
+                      <p>
+                        The operating system form was chosen because it can hold many domains at once without flattening them. Visual design, user experience, data, storage, publishing, permissions, and app behavior all have a place to live.
+                      </p>
+                      <p>
+                        GenOS connects fundamentals like spacing, contrast, rhythm, color theory, and accessibility with deeper systems like persistence, routing, window behavior, and infrastructure. The emotional experience comes from those layers agreeing with each other.
+                      </p>
+                      <p>
+                        Motion is not decoration here; it explains attention. Layout is not only arrangement; it teaches where things belong. The system is built to make complexity feel touchable, understandable, and intentional.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
 

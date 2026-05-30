@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { FileItem, FileSystemState, VISITOR_GALLERY_ID } from '../types';
+import { FileItem, FileSystemState, VISITOR_GALLERY_ID, TRASH_FOLDER_ID } from '../types';
 import { auth, db, storage } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
@@ -121,6 +121,11 @@ interface FileStoreState extends FileSystemState {
   renameFile: (fileId: string, newName: string) => void;
   duplicateFiles: (fileIds: string[]) => void;
 
+  // Trash operations
+  moveToTrash: (fileIds: string[]) => void;
+  restoreFromTrash: (fileIds: string[]) => void;
+  emptyTrash: () => void;
+
   // Selection operations
   setSelectedFiles: (fileIds: string[]) => void;
   addToSelection: (fileId: string) => void;
@@ -143,9 +148,30 @@ export const SYSTEM_FOLDER_IDS = {
   projects: 'folder-projects',
   images: 'folder-images',
   visitorGallery: VISITOR_GALLERY_ID,
+  trash: TRASH_FOLDER_ID,
 } as const;
 
+const isInTrashChain = (files: FileItem[], fileId: string): boolean => {
+  let current = files.find(f => f.id === fileId);
+  while (current) {
+    if (current.id === TRASH_FOLDER_ID) return true;
+    if (current.parentId == null) return false;
+    current = files.find(f => f.id === current!.parentId);
+  }
+  return false;
+};
+
 const defaultFiles: FileItem[] = [
+  {
+    id: 'folder-desktop',
+    name: 'Desktop',
+    type: 'folder',
+    parentId: null,
+    path: '/Desktop',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
   {
     id: 'folder-documents',
     name: 'Documents',
@@ -236,6 +262,16 @@ const defaultFiles: FileItem[] = [
     createdAt: Date.now(),
     modifiedAt: Date.now(),
   },
+  {
+    id: TRASH_FOLDER_ID,
+    name: 'Trash',
+    type: 'folder',
+    parentId: null,
+    path: '/Trash',
+    isProtected: true,
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+  },
 ];
 
 export const useFileStore = create<FileStoreState>((set, get) => {
@@ -278,6 +314,8 @@ export const useFileStore = create<FileStoreState>((set, get) => {
           const loadedFiles = docSnap.data().data as FileItem[];
           // Merge in any new system folders that don't exist yet
           const systemFolders = defaultFiles.filter((f) => f.isProtected);
+          // All default folder IDs that should legitimately sit at parentId: null
+          const systemFolderIdSet = new Set(defaultFiles.filter((f) => f.type === 'folder').map((f) => f.id));
           const merged = mergeFilesById(systemFolders, loadedFiles, localFiles);
           let needsSave = (localFiles?.some((file) => !loadedFiles.find((remote) => remote.id === file.id)) ?? false);
           for (const folder of systemFolders) {
@@ -286,9 +324,17 @@ export const useFileStore = create<FileStoreState>((set, get) => {
               needsSave = true;
             }
           }
-          saveLocalFileBackup(merged);
-          if (needsSave) saveToFirestore(merged);
-          set({ files: merged, isLoading: false });
+          // Migrate any root-level user files (not system folders) into the Desktop folder
+          const finalFiles = merged.map((f) => {
+            if (f.parentId === null && !systemFolderIdSet.has(f.id)) {
+              needsSave = true;
+              return { ...f, parentId: 'folder-desktop' as string | null };
+            }
+            return f;
+          });
+          saveLocalFileBackup(finalFiles);
+          if (needsSave) saveToFirestore(finalFiles);
+          set({ files: finalFiles, isLoading: false });
         } else {
           const merged = mergeFilesById(defaultFiles, localFiles);
           saveToFirestore(merged);
@@ -326,7 +372,7 @@ export const useFileStore = create<FileStoreState>((set, get) => {
       // Cleanup storage for removed files
       filesToRemove.forEach(async (file) => {
         if (
-          (file.type === 'image' || file.type === 'video') &&
+          (file.type === 'image' || file.type === 'video' || file.type === 'audio') &&
           file.dataUrl?.includes('firebasestorage.googleapis.com')
         ) {
           try {
@@ -553,6 +599,72 @@ export const useFileStore = create<FileStoreState>((set, get) => {
         get().copyFilesTo(fileIds, firstFile.parentId);
       }
     },
+
+    moveToTrash: (fileIds) => set((state) => {
+      const now = Date.now();
+      const idSet = new Set(fileIds);
+      const updatedFiles = state.files.map(f => {
+        if (!idSet.has(f.id)) return f;
+        // Don't trash system folders or items already in trash
+        if (f.isProtected || f.id === TRASH_FOLDER_ID) return f;
+        if (isInTrashChain(state.files, f.id)) return f;
+        return {
+          ...f,
+          previousParentId: f.parentId,
+          parentId: TRASH_FOLDER_ID,
+          deletedAt: now,
+          modifiedAt: now,
+        };
+      });
+      saveToFirestore(updatedFiles);
+      return { files: updatedFiles, selectedFileIds: [] };
+    }),
+
+    restoreFromTrash: (fileIds) => set((state) => {
+      const now = Date.now();
+      const idSet = new Set(fileIds);
+      const updatedFiles = state.files.map(f => {
+        if (!idSet.has(f.id)) return f;
+        if (f.parentId !== TRASH_FOLDER_ID) return f;
+        const target = f.previousParentId ?? null;
+        // If the original parent no longer exists, restore to Desktop
+        const targetExists = target === null || state.files.some(o => o.id === target);
+        const restoredParent = targetExists ? target : 'folder-desktop';
+        const { previousParentId: _prev, deletedAt: _del, ...rest } = f;
+        return {
+          ...rest,
+          parentId: restoredParent,
+          modifiedAt: now,
+        };
+      });
+      saveToFirestore(updatedFiles);
+      return { files: updatedFiles, selectedFileIds: [] };
+    }),
+
+    emptyTrash: () => set((state) => {
+      // Collect every item inside Trash (including descendants of trashed folders)
+      const removed = state.files.filter(f => f.id !== TRASH_FOLDER_ID && isInTrashChain(state.files, f.id));
+      const removedIds = new Set(removed.map(f => f.id));
+      const finalFiles = state.files.filter(f => !removedIds.has(f.id));
+
+      // Cleanup storage for media-backed items
+      removed.forEach(async (file) => {
+        if (
+          (file.type === 'image' || file.type === 'video' || file.type === 'audio') &&
+          file.dataUrl?.includes('firebasestorage.googleapis.com')
+        ) {
+          try {
+            const filePath = getFilePathFromUrl(file.dataUrl);
+            if (filePath) await deleteObject(ref(storage, filePath));
+          } catch (err) {
+            console.error('Error deleting file from storage:', err);
+          }
+        }
+      });
+
+      saveToFirestore(finalFiles);
+      return { files: finalFiles, selectedFileIds: [] };
+    }),
 
     // Selection operations
     setSelectedFiles: (fileIds) => set({

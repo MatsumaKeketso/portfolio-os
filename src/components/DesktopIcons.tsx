@@ -1,10 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { useFileStore } from '../store/fileStore';
 import { useDesktopContrast } from '../hooks/useDesktopContrast';
 import { App } from '../types';
 import { AppIcon } from '../lib/AppIcon';
+import { getFileIcon } from '../lib/fileUtils';
+import { openFileWithApp } from '../lib/fileRouter';
+import { DesktopWidgets } from './DesktopWidgets';
 
 interface GridPosition {
   row: number;
@@ -30,13 +34,16 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   const DRAG_THRESHOLD = 5; // pixels to move before starting drag
 
   const { apps, openWindow, reorderApps } = useDesktopStore();
+  const { files, navigateToFolder } = useFileStore();
   const contrastMode = useDesktopContrast();
+  const desktopFiles = useMemo(() => files.filter((f) => f.parentId === 'folder-desktop'), [files]);
   const [draggingAppId, setDraggingAppId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [hoveredApp, setHoveredApp] = useState<App | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredFileId, setHoveredFileId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -191,6 +198,13 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
   // Get apps in their display order (reordered if dragging, then sorted)
   const reorderedApps = getReorderedApps();
   const displayApps = draggingAppId ? reorderedApps : sortApps(reorderedApps);
+  const iconCount = displayApps.length + desktopFiles.length;
+  const occupiedIconColumns = Math.ceil(iconCount / Math.max(1, getGridDimensions().maxRows));
+  const viewportWidth = typeof globalThis.window === 'undefined' ? 1280 : globalThis.window.innerWidth;
+  const hoverContentLeft = Math.min(
+    Math.max(112, occupiedIconColumns * GRID_SIZE + 40),
+    Math.max(112, viewportWidth * 0.34),
+  );
   const previewEase = [0.16, 1, 0.3, 1] as const;
   const previewStageVariants: Variants = {
     hidden: { opacity: 0, y: 16, scale: 0.985 },
@@ -227,6 +241,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     if (!draggingAppId) {
       setHoveredApp(app);
       setHoverPosition(position);
+      setHoveredFileId(null);
     }
   };
 
@@ -235,8 +250,21 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
     setHoverPosition(null);
   };
 
+  const handleFileIconHover = (fileId: string) => {
+    if (!draggingAppId) {
+      setHoveredFileId(fileId);
+      setHoveredApp(null);
+      setHoverPosition(null);
+    }
+  };
+
+  const handleFileIconLeave = () => {
+    setHoveredFileId(null);
+  };
+
   return (
     <div ref={containerRef} className="absolute inset-0 p-4 select-none">
+      <DesktopWidgets />
       {/* Desktop icon preview */}
       <AnimatePresence>
         {hoveredApp && hoverPosition && (() => {
@@ -249,7 +277,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
               className="fixed inset-0 pointer-events-none"
-              style={{ zIndex: 5 }}
+              style={{ zIndex: 65 }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500/18 via-background-chrome/28 to-secondary-500/18" />
               <div className="absolute inset-0 bg-black/46" />
@@ -287,7 +315,8 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="absolute left-[8vw] right-[8vw] top-[10vh] grid max-h-[78vh] grid-cols-[minmax(320px,0.95fr)_minmax(380px,1.05fr)] gap-8"
+                className="absolute right-[4vw] top-[10vh] grid max-h-[78vh] grid-cols-[minmax(280px,0.95fr)_minmax(340px,1.05fr)] gap-8"
+                style={{ left: hoverContentLeft }}
               >
                 <div className="relative space-y-6 self-center p-2">
                   <motion.div variants={previewItemVariants} className="relative inline-flex h-24 w-24 items-center justify-center">
@@ -395,10 +424,83 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
           )
         })()}
       </AnimatePresence>
+      {desktopFiles.map((file, fileIndex) => {
+        const index = displayApps.length + fileIndex;
+        const gridPos = indexToGridPosition(index);
+        const position = gridToPixels(gridPos);
+        const FileIconComp = getFileIcon(file.name, file.type, file.mimeType);
+        const thumbnailSrc = file.thumbnailUrl || file.previewUrl || file.dataUrl;
+        const isThisFileHovered = hoveredFileId === file.id;
+        const isFileOtherHovered = (hoveredApp !== null) || (hoveredFileId !== null && hoveredFileId !== file.id);
+
+        return (
+          <motion.button
+            key={file.id}
+            style={{
+              position: 'absolute',
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              width: `${ICON_WIDTH}px`,
+              height: `${ICON_HEIGHT}px`,
+              cursor: 'pointer',
+              zIndex: isThisFileHovered ? 80 : isFileOtherHovered ? 8 : 10,
+              transition: 'all 0.2s ease-out',
+            }}
+            animate={{
+              opacity: isFileOtherHovered ? 0.3 : 1,
+              scale: isThisFileHovered ? 1.1 : 1,
+            }}
+            transition={{ duration: 0.2 }}
+            onMouseEnter={() => handleFileIconHover(file.id)}
+            onMouseLeave={handleFileIconLeave}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (file.type === 'folder') {
+                const feApp = apps.find((a) => a.component === 'FileExplorer');
+                if (feApp) { navigateToFolder(file.id); openWindow(feApp); }
+                return;
+              }
+              openFileWithApp(file, openWindow);
+            }}
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg ${
+              contrastMode === 'light'
+                ? 'hover:bg-black/[0.07] active:bg-black/[0.12]'
+                : 'hover:bg-os-ink-800/60 active:bg-os-ink-800'
+            }`}
+          >
+            <div
+              className="flex items-center justify-center"
+              style={{ width: `${SIZES[iconSize].icon * 4 + 8}px`, height: `${SIZES[iconSize].icon * 4 + 8}px` }}
+            >
+              <div
+                className={`${contrastMode === 'light' ? 'text-gray-950 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'text-white drop-shadow-lg'}`}
+                style={{ width: `${SIZES[iconSize].icon * 4}px`, height: `${SIZES[iconSize].icon * 4}px` }}
+              >
+                {file.type === 'image' && thumbnailSrc ? (
+                  <img
+                    src={thumbnailSrc}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full rounded-lg object-cover"
+                  />
+                ) : (
+                  <FileIconComp className="w-full h-full" />
+                )}
+              </div>
+            </div>
+            <span className={`${SIZES[iconSize].text} ${SIZES[iconSize].label} block w-full text-center px-1 ${
+              contrastMode === 'light' ? 'text-gray-950 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'text-white drop-shadow-lg'
+            }`}>
+              {file.name}
+            </span>
+          </motion.button>
+        );
+      })}
       {displayApps.map((app, index) => {
         const isDragging = draggingAppId === app.id;
         const isHovered = hoveredApp?.id === app.id;
-        const isOtherHovered = hoveredApp && hoveredApp.id !== app.id;
+        const isOtherHovered = (hoveredApp && hoveredApp.id !== app.id) || hoveredFileId !== null;
 
         // Calculate position based on index
         const gridPos = indexToGridPosition(index);
@@ -417,7 +519,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               width: `${ICON_WIDTH}px`,
               height: `${ICON_HEIGHT}px`,
               cursor: isDragging ? 'grabbing' : 'pointer',
-              zIndex: isHovered ? 30 : isDragging ? 1000 : isOtherHovered ? 5 : 10,
+              zIndex: isHovered ? 80 : isDragging ? 1000 : isOtherHovered ? 8 : 10,
               transition: isDragging ? 'none' : 'all 0.2s ease-out',
             }}
             animate={{

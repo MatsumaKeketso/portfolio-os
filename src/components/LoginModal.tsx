@@ -154,7 +154,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </Button>
               </div>
               {error && (
-                <p className="mt-2 text-xs text-red-400 flex items-center gap-1">
+                <p className="mt-2 text-xs text-fg-error flex items-center gap-1">
                   <Icons.AlertCircle className="w-3.5 h-3.5" />
                   {error}
                 </p>

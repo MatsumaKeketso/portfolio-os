@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
@@ -18,10 +18,14 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { NotificationContainer } from './NotificationContainer';
 import { Timeline } from './Timeline';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
-import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { ContextMenuItemDef, ContextPermission, resolveAndSort } from '../lib/contextMenuRegistry';
+import { MiniPlayer } from './MiniPlayer';
+import { BootHeaderStrip, WindowHeaderStrip } from './TaskbarStrip';
+import logoWhite from '../assets/png-white-symbol.png';
+import { createThumbnail } from '../lib/imageUtils';
 
-const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
-  sortAndSeparate(defs).map((item) => ({
+const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPermission[]): ContextMenuItem[] =>
+  resolveAndSort(defs, permissions).map((item) => ({
     label: item.label,
     icon: item.icon,
     onClick: item.action,
@@ -33,6 +37,300 @@ const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
 
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
+
+const MOBILE_ABOUT_ITEMS = [
+  { label: 'System', value: 'GenOS' },
+  { label: 'Version', value: '2.1.0' },
+  { label: 'Signal', value: 'A living interface' },
+  { label: 'Builder', value: 'Generative Studio' },
+];
+
+type BootTaskId = 'auth' | 'theme' | 'profile' | 'archive' | 'apps' | 'backgrounds' | 'modules';
+type BootTaskStatus = 'pending' | 'loading' | 'done' | 'error';
+
+type BootTask = {
+  id: BootTaskId;
+  label: string;
+  detail: string;
+  status: BootTaskStatus;
+  durationMs?: number;
+};
+
+const BOOT_TASKS: BootTask[] = [
+  { id: 'auth', label: 'Session', detail: 'Checking access', status: 'pending' },
+  { id: 'theme', label: 'Theme', detail: 'Applying system tokens', status: 'pending' },
+  { id: 'profile', label: 'Profile', detail: 'Loading owner data', status: 'pending' },
+  { id: 'archive', label: 'Archive', detail: 'Mounting files', status: 'pending' },
+  { id: 'apps', label: 'Apps', detail: 'Syncing desktop entries', status: 'pending' },
+  { id: 'backgrounds', label: 'Backgrounds', detail: 'Preparing surfaces', status: 'pending' },
+  { id: 'modules', label: 'Modules', detail: 'Warming core apps', status: 'pending' },
+];
+
+const MIN_BOOT_DURATION_MS = 950;
+const CACHE_HINT_KEY = 'genos_cache_hint_2026_05_10';
+
+const wait = (ms: number) => new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+const warmStartupModules = async () => {
+  await Promise.allSettled([
+    import('./apps/FileExplorer'),
+    import('./apps/Browser'),
+    import('./apps/CV'),
+    import('./apps/AboutOS'),
+    import('./apps/Settings'),
+    import('./apps/ImageViewer'),
+    import('./apps/Music'),
+  ]);
+};
+
+const createDesktopThumbnail = async (file: File): Promise<string | undefined> => {
+  if (!file.type.startsWith('image/')) return undefined;
+  try {
+    return await createThumbnail(file, 360);
+  } catch (error) {
+    console.warn('Failed to create desktop thumbnail:', error);
+    return undefined;
+  }
+};
+
+function DesktopBackground({
+  url,
+  thumbnail,
+  isGradient,
+}: {
+  url?: string;
+  thumbnail?: string;
+  isGradient: boolean;
+}) {
+  const [isLoaded, setIsLoaded] = useState(isGradient || !url);
+
+  useEffect(() => {
+    setIsLoaded(isGradient || !url);
+  }, [isGradient, url]);
+
+  if (!url) {
+    return <div className="absolute inset-0 bg-os-ink-950" />;
+  }
+
+  if (isGradient) {
+    return <div className="absolute inset-0" style={{ background: url }} />;
+  }
+
+  return (
+    <>
+      {thumbnail && (
+        <img
+          src={thumbnail}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center opacity-70 blur-2xl"
+        />
+      )}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950">
+          <div className="h-8 w-8 rounded-full border border-white/10 border-t-primary-400/80 animate-spin" />
+        </div>
+      )}
+      <motion.img
+        key={url}
+        src={url}
+        alt=""
+        draggable={false}
+        initial={{ opacity: 0, scale: 1.015 }}
+        animate={{ opacity: isLoaded ? 1 : 0, scale: isLoaded ? 1 : 1.015 }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        onLoad={() => setIsLoaded(true)}
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
+    </>
+  );
+}
+
+function BootScreen({
+  tasks,
+}: {
+  tasks: BootTask[];
+}) {
+  const completed = tasks.filter((task) => task.status === 'done' || task.status === 'error').length;
+  const progress = Math.round((completed / tasks.length) * 100);
+  const activeTask =
+    tasks.find((task) => task.status === 'loading') ||
+    tasks.find((task) => task.status === 'pending') ||
+    tasks[tasks.length - 1];
+
+  return (
+    <div className="fixed inset-0 overflow-hidden bg-os-ink-950 text-white">
+      <BootHeaderStrip />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--color-primary),0.16),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(var(--color-tertiary),0.08),transparent_38%)]" />
+      <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(circle,rgba(255,255,255,0.72)_1px,transparent_1px)] [background-size:8px_8px]" />
+
+      <div className="relative z-10 flex h-full w-full items-center justify-center px-6 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+          className="flex w-full max-w-[560px] flex-col items-center"
+        >
+          <div className="mb-7 flex flex-col items-center text-center">
+            <img src={logoWhite} alt="" className="mb-5 h-11 w-11 object-contain opacity-95 drop-shadow-[0_0_18px_rgba(255,255,255,0.18)]" />
+            <h1 className="text-6xl font-semibold leading-none tracking-normal text-white md:text-7xl">
+              GenoOS
+            </h1>
+            <p className="mt-3 text-sm font-medium uppercase tracking-[0.22em] text-white/36">
+              Generative OS
+            </p>
+            <p className="mt-6 text-sm text-white/42">
+              {activeTask.detail}
+            </p>
+          </div>
+
+          <div className="w-full">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-os-line-dark to-os-line-dark" />
+              <span className="text-[10px] font-semibold tabular-nums text-white/35">{progress}%</span>
+              <div className="h-px flex-1 bg-gradient-to-l from-transparent via-os-line-dark to-os-line-dark" />
+            </div>
+
+            <div className="mb-4 overflow-hidden rounded-full border border-os-line-dark bg-os-ink-900">
+              <motion.div
+                className="h-1.5 rounded-full bg-gradient-to-r from-primary-500 via-white to-tertiary-500 shadow-[0_0_18px_rgba(var(--color-primary),0.45)]"
+                initial={{ width: '4%' }}
+                animate={{ width: `${Math.max(progress, 8)}%` }}
+                transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+
+            <div className="grid gap-1.5 rounded-2xl border border-os-line-dark bg-background-chrome/72 p-2 shadow-os-window">
+              {tasks.map((task) => {
+                const isDone = task.status === 'done';
+                const isLoading = task.status === 'loading';
+                const isError = task.status === 'error';
+
+                return (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 rounded-lg border border-os-line-dark bg-os-ink-900/62 px-3 py-2"
+                  >
+                    <div
+                      className={[
+                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border',
+                        isDone ? 'border-primary-500/40 bg-primary-500/12 text-primary-300' : '',
+                        isLoading ? 'border-os-line-dark-hover bg-os-ink-800/40 text-os-text-inverse/70' : '',
+                        isError ? 'border-tertiary-500/35 bg-tertiary-500/10 text-tertiary-300' : '',
+                        task.status === 'pending' ? 'border-os-line-dark bg-os-ink-950 text-white/20' : '',
+                      ].join(' ')}
+                    >
+                      {isDone && <Icons.Check className="h-3.5 w-3.5" />}
+                      {isLoading && <Icons.Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      {isError && <Icons.AlertTriangle className="h-3.5 w-3.5" />}
+                      {task.status === 'pending' && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-white/78">{task.label}</p>
+                      <p className="truncate text-[10px] text-white/32">{task.detail}</p>
+                    </div>
+                    {typeof task.durationMs === 'number' && (
+                      <span className="shrink-0 text-[10px] tabular-nums text-white/25">
+                        {task.durationMs}ms
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function MobileAboutSurface() {
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-os-line-dark bg-background-chrome shadow-os-window">
+      <div className="relative flex min-h-11 shrink-0 items-center justify-between overflow-hidden border-b border-os-line-dark bg-background-chrome px-3">
+        <WindowHeaderStrip active />
+        <div className="relative z-10 flex min-w-0 items-center gap-2">
+          <Icons.Monitor className="h-4 w-4 shrink-0 text-primary-400" />
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-medium leading-none text-white/85">About This OS</p>
+            <p className="mt-1 truncate text-[10px] leading-none text-white/35">A quieter door into the system</p>
+          </div>
+        </div>
+        <span className="relative z-10 rounded-md border border-os-line-dark bg-os-ink-900 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-white/40">
+          Locked
+        </span>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(20px+env(safe-area-inset-bottom))] pt-4">
+        <section className="relative overflow-hidden rounded-xl border border-os-line-dark bg-os-ink-950/72 p-4">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full border border-primary-500/20" />
+          <div className="pointer-events-none absolute -right-8 -top-12 h-28 w-28 rounded-full border border-tertiary-500/20" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_10%,rgba(var(--color-primary),0.18),transparent_34%),radial-gradient(circle_at_12%_88%,rgba(var(--color-tertiary),0.12),transparent_34%)]" />
+
+          <div className="relative">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-400">GenOS</p>
+            <h1 className="mt-2 text-2xl font-semibold leading-[1.05] text-white">
+              A small window into a larger machine.
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-white/58">
+              GenOS opens best when there is room to move. Here, it folds itself down to a calmer signal: the intent, the maker, and the studio behind the system.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-3 grid grid-cols-2 gap-2">
+          {MOBILE_ABOUT_ITEMS.map((item) => (
+            <div key={item.label} className="rounded-lg border border-os-line-dark bg-os-ink-900/78 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30">{item.label}</p>
+              <p className="mt-1 text-xs font-medium leading-4 text-white/78">{item.value}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
+          <div className="flex items-center gap-2">
+            <Icons.Lightbulb className="h-4 w-4 text-primary-400" />
+            <h2 className="text-sm font-semibold text-white/85">Concept</h2>
+          </div>
+          <p className="text-sm leading-6 text-white/55">
+            GenOS is an ecosystem of design decisions: motion, layout, color, hierarchy, interaction, and infrastructure shaped into one environment.
+          </p>
+          <p className="text-sm leading-6 text-white/55">
+            The operating system form was chosen for its robustness. It can hold many domains at once: visual design, user experience, code, data, publishing, storage, and the small emotional cues that make a space feel responsive.
+          </p>
+          <p className="text-sm leading-6 text-white/55">
+            The point is connection. Fundamentals like contrast, rhythm, spacing, and color theory meet deeper systems like permissions, persistence, and window behavior. Together, they become a place the user can understand by touching it.
+          </p>
+        </section>
+
+        <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
+          <div className="flex items-center gap-2">
+            <Icons.User className="h-4 w-4 text-primary-400" />
+            <h2 className="text-sm font-semibold text-white/85">Keketso</h2>
+          </div>
+          <p className="text-sm leading-6 text-white/55">
+            Keketso Matsuma builds systems that like to reveal their logic slowly: interfaces with moving parts, patterns that hold under pressure, and tools that feel considered when you touch them.
+          </p>
+        </section>
+
+        <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
+          <div className="flex items-center gap-2">
+            <Icons.Sparkles className="h-4 w-4 text-primary-400" />
+            <h2 className="text-sm font-semibold text-white/85">Generative Studio</h2>
+          </div>
+          <p className="text-sm leading-6 text-white/55">
+            Generative Studio shaped the frame: the OS language, the surfaces, the motion, and the quiet machinery that lets the portfolio behave like a place.
+          </p>
+        </section>
+
+        <div className="mt-3 rounded-xl border border-os-line-dark bg-os-ink-900/70 p-3 text-xs leading-5 text-white/42">
+          For the full room, return on a tablet, laptop, or desktop. This small view is the threshold.
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Desktop() {
   const {
@@ -61,6 +359,11 @@ export function Desktop() {
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
+  const [isSmallDevice, setIsSmallDevice] = useState(false);
+  const [hasBootstrapped, setHasBootstrapped] = useState(false);
+  const [bootTasks, setBootTasks] = useState<BootTask[]>(BOOT_TASKS);
+  const bootStartedRef = useRef(false);
+  const skipNextAuthRefreshRef = useRef(false);
 
   // Auto-hide timeline when a window is maximized
   const hasMaximizedWindow = windows.some(w => w.isMaximized && !w.isMinimized);
@@ -70,27 +373,75 @@ export function Desktop() {
   const { fetchTheme } = useThemeStore();
 
   useEffect(() => {
-    // Check authentication session on mount
-    checkSession();
-    // Fetch profile data from Supabase
-    fetchProfile();
-    // Fetch file system
-    fetchFileSystem();
-    // Fetch apps from Supabase
-    fetchApps();
-    // Fetch backgrounds from Supabase
-    fetchBackgrounds();
-    // Fetch theme from Supabase
-    fetchTheme();
+    const mediaQuery = globalThis.window.matchMedia('(max-width: 767px)');
+    const updateSmallDevice = () => setIsSmallDevice(mediaQuery.matches);
+    updateSmallDevice();
+    mediaQuery.addEventListener('change', updateSmallDevice);
+    return () => mediaQuery.removeEventListener('change', updateSmallDevice);
+  }, []);
+
+  useEffect(() => {
+    if (bootStartedRef.current) return;
+    bootStartedRef.current = true;
+
+    const updateBootTask = (id: BootTaskId, status: BootTaskStatus, detail?: string, durationMs?: number) => {
+      setBootTasks((current) =>
+        current.map((task) =>
+          task.id === id
+            ? { ...task, status, detail: detail ?? task.detail, durationMs: durationMs ?? task.durationMs }
+            : task
+        )
+      );
+    };
+
+    const runBootTask = async (id: BootTaskId, task: () => Promise<void>, doneDetail: string) => {
+      updateBootTask(id, 'loading');
+      const taskStartedAt = performance.now();
+      try {
+        await task();
+        updateBootTask(id, 'done', doneDetail, Math.round(performance.now() - taskStartedAt));
+      } catch (error) {
+        console.error(`Boot task failed: ${id}`, error);
+        updateBootTask(id, 'error', 'Using fallback data', Math.round(performance.now() - taskStartedAt));
+      }
+    };
+
+    const boot = async () => {
+      const startedAt = performance.now();
+
+      await Promise.all([
+        runBootTask('auth', checkSession, 'Session ready'),
+        runBootTask('theme', fetchTheme, 'Theme applied'),
+        runBootTask('profile', fetchProfile, 'Profile ready'),
+        runBootTask('archive', fetchFileSystem, 'Archive mounted'),
+        runBootTask('apps', fetchApps, 'Apps ready'),
+        runBootTask('backgrounds', fetchBackgrounds, 'Background ready'),
+        runBootTask('modules', warmStartupModules, 'Core apps warmed'),
+      ]);
+
+      const elapsed = performance.now() - startedAt;
+      if (elapsed < MIN_BOOT_DURATION_MS) {
+        await wait(MIN_BOOT_DURATION_MS - elapsed);
+      }
+
+      skipNextAuthRefreshRef.current = true;
+      setHasBootstrapped(true);
+    };
+
+    boot();
   }, [checkSession, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, fetchTheme]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!hasBootstrapped || !isAuthenticated) return;
+    if (skipNextAuthRefreshRef.current) {
+      skipNextAuthRefreshRef.current = false;
+      return;
+    }
     fetchProfile();
     fetchFileSystem();
     fetchApps();
     fetchBackgrounds();
-  }, [isAuthenticated, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds]);
+  }, [hasBootstrapped, isAuthenticated, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds]);
 
   useEffect(() => {
     if (!isAdmin) setAdminMode(false);
@@ -113,6 +464,19 @@ export function Desktop() {
       // Better to let user dismiss or have it persist until next action.
     }
   }, [userError, addNotification]);
+
+  useEffect(() => {
+    if (!hasBootstrapped) return;
+    if (localStorage.getItem(CACHE_HINT_KEY) === 'seen') return;
+
+    addNotification({
+      type: 'info',
+      title: 'Seeing an older build?',
+      message: 'Press F12, open Application > Storage, clear site data/cache, close DevTools, then refresh GenOS.',
+      duration: 12000,
+    });
+    localStorage.setItem(CACHE_HINT_KEY, 'seen');
+  }, [hasBootstrapped, addNotification]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -309,17 +673,19 @@ export function Desktop() {
           ? 'image'
           : file.type.startsWith('video/')
             ? 'video'
-            : 'file';
+            : file.type.startsWith('audio/')
+              ? 'audio'
+              : 'file';
 
         let dataUrl = '';
+        const thumbnailUrl = await createDesktopThumbnail(file);
 
-        // Upload media files to Supabase
-        if (fileType === 'image' || fileType === 'video') {
+        if (fileType === 'image' || fileType === 'video' || fileType === 'audio') {
           try {
             const result = await uploadFile(file, {
               folder: 'desktop-uploads',
               maxSizeMB: 100,
-              allowedTypes: ['image/*', 'video/*'],
+              allowedTypes: ['image/*', 'video/*', 'audio/*'],
               onProgress: (progress) => {
                 setUploadProgress((prev) => {
                   const existing = prev.findIndex((p) => p.fileName === progress.fileName);
@@ -344,7 +710,7 @@ export function Desktop() {
         }
 
         // Fallback to base64 if upload fails
-        if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
+        if (!dataUrl && (fileType === 'image' || fileType === 'video' || fileType === 'audio')) {
           const reader = new FileReader();
           reader.onload = (event) => {
             const base64 = event.target?.result as string;
@@ -361,11 +727,12 @@ export function Desktop() {
             id: `file-${Date.now()}-${i}`,
             name: file.name,
             type: fileType,
-            parentId: null,
+            parentId: 'folder-desktop',
             path: `/${file.name}`,
             size: file.size,
             mimeType: file.type,
             dataUrl: urlOrContent,
+            thumbnailUrl,
             createdAt: Date.now(),
             modifiedAt: Date.now(),
           });
@@ -386,27 +753,45 @@ export function Desktop() {
 
   const isGradient = selectedBackground?.url?.startsWith('linear-gradient') || false;
 
+  if (!hasBootstrapped) {
+    return (
+      <BootScreen tasks={bootTasks} />
+    );
+  }
+
+  if (isSmallDevice) {
+    return (
+      <div className="relative h-screen w-screen overflow-hidden bg-os-ink-950 text-white">
+        <div className="absolute inset-0">
+          <DesktopBackground
+            url={selectedBackground?.url}
+            thumbnail={selectedBackground?.thumbnail}
+            isGradient={isGradient}
+          />
+          <div className="absolute inset-0 bg-os-ink-950/78" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(var(--color-primary),0.24),transparent_34%),radial-gradient(circle_at_82%_88%,rgba(var(--color-tertiary),0.18),transparent_38%)]" />
+        </div>
+
+        <div className="relative z-10 flex h-full w-full p-[max(10px,env(safe-area-inset-top))_10px_max(10px,env(safe-area-inset-bottom))]">
+          <MobileAboutSurface />
+        </div>
+
+        <NotificationContainer />
+      </div>
+    );
+  }
+
   return (
     <div
       className="fixed inset-0 overflow-hidden desktop-drop-zone"
       onContextMenu={handleDesktopContextMenu}
     >
-      <div className="absolute inset-0 overflow-hidden bg-[#1e3a8a]">
-        {selectedBackground?.url && (
-          isGradient ? (
-            <div
-              className="absolute inset-0"
-              style={{ background: selectedBackground.url }}
-            />
-          ) : (
-            <img
-              src={selectedBackground.url}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-cover object-center"
-            />
-          )
-        )}
+      <div className="absolute inset-0 overflow-hidden bg-os-ink-950">
+        <DesktopBackground
+          url={selectedBackground?.url}
+          thumbnail={selectedBackground?.thumbnail}
+          isGradient={isGradient}
+        />
       </div>
 
       {isDraggingOver && (
@@ -415,10 +800,14 @@ export function Desktop() {
         </div>
       )}
 
-      <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
-        <div className="flex-1 relative desktop-area flex gap-4 pr-4">
+      <div className="relative h-full flex flex-col overflow-hidden" onContextMenu={handleDesktopContextMenu}>
+        <div className="flex-1 relative desktop-area flex gap-4 overflow-hidden">
           {/* Left side: Desktop Icons and Windows */}
-          <div className="flex-1 relative">
+          {/* overflow-hidden here clips any window whose absolute position
+              extends beyond the container. Without it, un-maximizing while
+              the Timeline re-appears would let off-screen windows push the
+              desktop layout sideways. */}
+          <div className="flex-1 relative min-w-0 overflow-hidden">
             <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
             <WindowManager />
           </div>
@@ -441,6 +830,8 @@ export function Desktop() {
         <div className="taskbar">
           <Taskbar />
         </div>
+
+        <MiniPlayer />
 
 
         {isAdmin && isAdminMode && (
@@ -471,7 +862,14 @@ export function Desktop() {
             <ContextMenu
               x={contextMenu.x}
               y={contextMenu.y}
-              items={toContextMenuItems(getDesktopMenuDefs())}
+              items={toContextMenuItems(
+                getDesktopMenuDefs(),
+                [
+                  'visitor',
+                  ...(isAuthenticated ? ['owner' as ContextPermission] : []),
+                  ...(isAdmin ? ['admin' as ContextPermission] : []),
+                ],
+              )}
               onClose={() => setContextMenu(null)}
             />
           )}
@@ -492,9 +890,9 @@ export function Desktop() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl max-h-[80vh] flex flex-col bg-os-ink-950 rounded-lg border border-white/[0.08] shadow-os-window overflow-hidden"
+                className="w-full max-w-4xl max-h-[80vh] flex flex-col bg-os-ink-950 rounded-lg border border-os-line-dark shadow-os-window overflow-hidden"
               >
-                <div className="shrink-0 px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
+                <div className="shrink-0 px-6 py-4 border-b border-os-line-dark flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-white flex items-center gap-2">
                       <Icons.Image className="w-4 h-4" />
@@ -504,7 +902,7 @@ export function Desktop() {
                   </div>
                   <button
                     onClick={() => setShowBackgroundSelector(false)}
-                    className="p-1.5 hover:bg-white/[0.08] rounded transition-colors"
+                    className="p-1.5 hover:bg-os-ink-800/60 rounded transition-colors"
                   >
                     <Icons.X className="w-4 h-4 text-white/60" />
                   </button>
@@ -524,8 +922,8 @@ export function Desktop() {
                             setShowBackgroundSelector(false);
                           }}
                           className={`relative rounded overflow-hidden border-2 transition-all ${isSelected
-                            ? 'border-white/60 scale-105'
-                            : 'border-white/[0.08] hover:border-white/[0.20]'
+                            ? 'border-os-text-inverse/60 scale-105'
+                            : 'border-os-line-dark hover:border-os-line-dark-hover'
                             }`}
                         >
                           <div
@@ -537,7 +935,7 @@ export function Desktop() {
                               backgroundPosition: 'center'
                             }}
                           />
-                          <div className="bg-os-ink-900 p-2.5 border-t border-white/[0.08]">
+                          <div className="bg-os-ink-900 p-2.5 border-t border-os-line-dark">
                             <div className="flex items-center justify-between">
                               <h3 className="text-white text-xs font-medium truncate">{bg.name}</h3>
                               {isSelected && <Icons.Check className="w-3.5 h-3.5 text-white/60 flex-shrink-0 ml-2" />}

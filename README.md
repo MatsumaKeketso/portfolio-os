@@ -34,9 +34,9 @@
 
 - 🖥️ **Full Desktop Environment** - Windows, taskbar, start menu, and desktop icons
 - 📁 **Virtual File System** - Complete file management with Firebase Storage integration
-- 🎨 **Product Mono Design System** - Clean, professional default aesthetic
+- 🎨 **Generative Studio Theme** - Red-led system identity with tokenized surfaces
 - 🔐 **Authentication System** - Secure admin access via Firebase Auth
-- 📱 **12 Built-in Applications** - From file explorer to portfolio showcase
+- 📱 **Built-in Applications** - Archive, CV, Browser, media viewers, and system utilities
 - ⚡ **Real-time Database** - All data persisted to Firebase Firestore with automatic sync
 - 🎯 **Progressive Web App** - Installable with offline support
 - ♿ **Accessibility** - Keyboard shortcuts and ARIA labels
@@ -67,8 +67,10 @@
 
 ### Theming & Customization
 
-- **8 Theme Presets:**
-  - Star Citizen (default) - Cyan and deep blue
+- **Theme Presets:**
+  - Generative Studio (default) - Red-led system identity
+  - Product Mono - Clean black chrome and neutral surfaces
+  - Star Citizen - Cyan and deep blue
   - Ocean Blue - Sky and cyan tones
   - Forest Green - Natural greens
   - Purple Haze - Purple and fuchsia
@@ -342,15 +344,15 @@ User Action → Store Update → Debounced Save → Firestore/Storage
 
 ## 📱 Applications
 
-GenOS includes 12 built-in applications:
+GenOS includes built-in system, portfolio, and media applications:
 
-### 1. **File Explorer** 📁
+### 1. **Archive** 📁
 - Complete file management system
 - Grid/list view modes
 - Multi-select operations
 - Drag-and-drop support
 - Search and sort functionality
-- File preview for documents and images
+- File routing for images, videos, audio, PDFs, text, and fallback downloads
 - Firebase Storage integration for media
 
 ### 2. **Portfolio Browser** 🌐
@@ -384,11 +386,10 @@ GenOS includes 12 built-in applications:
 - Portfolio project status
 - Resource usage
 
-### 7. **About** 👤
-- Personal bio and information
-- Featured projects showcase
-- Social media links
-- Technology stack display
+### 7. **About This OS** 👤
+- System concept, build notes, Keketso, and Generative Studio context
+- Links into CV and relevant external surfaces
+- Does not duplicate the full CV
 
 ### 8. **Settings** ⚙️
 5 tabs for complete customization:
@@ -398,34 +399,19 @@ GenOS includes 12 built-in applications:
 - **Privacy** - Contact visibility controls
 - **Data** - Export/import profile, reset
 
-### 9. **Resume** 📄
-- Professional CV display
-- Experience timeline
-- Education history
-- Certifications showcase
-- Download option
+### 9. **CV** 📄
+- Profile, experience, skills, projects, contact, and files in one tabbed surface
+- Uses profile/CV data from Firebase-backed stores
+- Keeps project apps as the deeper portfolio layer
 
-### 10. **Portfolio** 🎨
-- Project showcase with filtering
-- Search functionality
-- Technology tags
-- Status indicators (In Progress, Completed, Archived)
-- Featured projects highlight
-- Project images and links
+### 10. **Media Apps** 🎧
+- Music, PDF Reader, Video Player, and Image Viewer
+- Archive routes files into purpose-built apps instead of one generic viewer
+- Music playback can continue through the floating mini player
 
-### 11. **Skills** 💻
-- Categorized skill display
-- Proficiency levels with visual bars
-- Years of experience
-- Technology icons
-- Skill search and filter
-
-### 12. **Contact** 📧
-- Contact information display
-- Social media links
-- Email and phone (respects privacy settings)
-- Location information
-- Direct contact actions
+### Legacy Apps
+- Resume, Portfolio, Skills, Contact, About, and Weather may remain loadable for compatibility.
+- They are not the preferred first-level portfolio model.
 
 ### Adding Custom Apps
 
@@ -748,7 +734,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📊 Project Stats
 
 - **Components:** 37 React components
-- **Applications:** 12 built-in apps
+- **Applications:** Built-in system, portfolio, browser, and media apps
 - **Themes:** 8 presets + custom
 - **Backgrounds:** 15+ options
 - **Keyboard Shortcuts:** 15+ combinations

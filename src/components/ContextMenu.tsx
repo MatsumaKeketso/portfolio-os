@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Typography } from './ui/Typography';
 
 export interface ContextMenuItem {
   label: string;
@@ -87,12 +88,12 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
             disabled={item.disabled}
             className={cn(
               'flex items-center justify-between gap-3 w-full px-3 py-[7px] text-left select-none',
-              'text-[13px] font-medium leading-[18px]',
+              'os-type-menu-title',
               'transition-colors duration-75',
               item.disabled
                 ? 'opacity-40 pointer-events-none text-white/50'
                 : item.danger
-                  ? 'text-red-400 hover:bg-red-500/[0.12] hover:text-red-300'
+                  ? 'text-fg-error hover:bg-error-subtle hover:text-fg-error'
                   : 'text-white/80 hover:bg-os-ink-800 hover:text-white',
             )}
           >
@@ -101,16 +102,16 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
                 <Icon
                   className={cn(
                     'w-[15px] h-[15px] flex-shrink-0',
-                    item.danger ? 'text-red-400/70' : 'text-white/35',
+                    item.danger ? 'text-fg-error/70' : 'text-white/35',
                   )}
                 />
               )}
-              <span className="truncate">{item.label}</span>
+              <Typography as="span" variant="menuTitle" truncate>{item.label}</Typography>
             </span>
             {item.shortcut && (
-              <span className="text-[11px] text-white/25 flex-shrink-0 ml-4">
+              <Typography as="span" variant="caption" tone="inverseFaint" className="flex-shrink-0 ml-4">
                 {item.shortcut}
-              </span>
+              </Typography>
             )}
           </button>
         );

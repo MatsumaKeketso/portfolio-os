@@ -19,7 +19,15 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(yarn typecheck *)",
-      "Bash(yarn add *)"
+      "Bash(yarn add *)",
+      "PowerShell(head *)",
+      "Bash(firebase deploy *)",
+      "Bash(powershell -Command \"\\(Get-Content -Raw 'src/components/apps/About.tsx'\\) -replace 'bg-white/\\\\[0\\\\.04\\\\]', 'bg-os-ink-800/40' -replace 'bg-white/\\\\[0\\\\.06\\\\]', 'bg-os-ink-800/60' -replace 'bg-white/\\\\[0\\\\.08\\\\]', 'bg-os-ink-800/80' -replace 'border-white/\\\\[0\\\\.08\\\\]', 'border-os-line-dark' | Set-Content -NoNewline 'src/components/apps/About.tsx'\")",
+      "PowerShell(.\\\\node_modules\\\\.bin\\\\tsc.cmd --noEmit -p tsconfig.app.json)",
+      "Bash(npm ci *)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|esbuild|vite' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize)",
+      "Bash(npm list *)",
+      "Bash(tsc --noEmit -p tsconfig.app.json)"
     ]
   }
 }

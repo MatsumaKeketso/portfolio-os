@@ -10,11 +10,11 @@ interface MilestoneCardProps {
 }
 
 const categoryConfig = {
-  achievement: { icon: Icons.Trophy, label: 'Achievement', className: 'text-amber-200 bg-amber-500/10 border-amber-500/20' },
+  achievement: { icon: Icons.Trophy, label: 'Achievement', className: 'text-fg-warning bg-warning-subtle border-stroke-warning/40' },
   project: { icon: Icons.Rocket, label: 'Project', className: 'text-primary-200 bg-primary-500/10 border-primary-500/20' },
-  education: { icon: Icons.GraduationCap, label: 'Education', className: 'text-violet-200 bg-violet-500/10 border-violet-500/20' },
-  career: { icon: Icons.Briefcase, label: 'Career', className: 'text-emerald-200 bg-emerald-500/10 border-emerald-500/20' },
-  personal: { icon: Icons.Heart, label: 'Personal', className: 'text-rose-200 bg-rose-500/10 border-rose-500/20' },
+  education: { icon: Icons.GraduationCap, label: 'Education', className: 'text-fg-info bg-info-subtle border-stroke-info/40' },
+  career: { icon: Icons.Briefcase, label: 'Career', className: 'text-fg-success bg-success-subtle border-stroke-success/40' },
+  personal: { icon: Icons.Heart, label: 'Personal', className: 'text-fg-error bg-error-subtle border-stroke-error/40' },
   other: { icon: Icons.Star, label: 'Other', className: 'text-os-text-inverse/60 bg-os-ink-800 border-os-line-dark' },
 };
 
@@ -49,7 +49,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                   {formattedDate}
                 </span>
                 {milestone.featured && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-stroke-warning/40 bg-warning-subtle px-1.5 py-0.5 text-[10px] font-medium text-fg-warning">
                     <Icons.Star className="h-2.5 w-2.5 fill-current" />
                     Featured
                   </span>

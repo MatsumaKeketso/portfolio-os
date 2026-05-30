@@ -6,7 +6,7 @@ import { AppIcon } from '../lib/AppIcon';
 import {
   collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, getDoc, setDoc,
 } from 'firebase/firestore';
-import { ref, listAll, getMetadata, deleteObject } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useDesktopStore } from '../store/desktopStore';
 import { useUserStore } from '../store/userStore';
@@ -28,7 +28,7 @@ import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
 import { uploadFile, uploadFiles, UploadProgress as UploadProgressType } from '../lib/uploadUtils';
 import { UploadProgress } from './UploadProgress';
 import { ContextMenu } from './ContextMenu';
-import { ContextMenuItemDef, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { ContextMenuItemDef, resolveAndSort } from '../lib/contextMenuRegistry';
 import { cn } from '../lib/utils';
 import { mergeNewReadsBySlug, parseReadsCsv } from '../lib/reads';
 import { useAuthStore } from '../store/authStore';
@@ -132,10 +132,9 @@ export function AdminPanel() {
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'pending' | 'approved' | 'hidden'>('pending');
 
   // Gallery state
-  interface GalleryImage { path: string; url: string; name: string; size: number; timeCreated: string; }
+  interface GalleryImage { id: string; url: string; name: string; storagePath: string; status: 'pending' | 'approved' | 'rejected'; uploadedAt: any; }
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState(false);
-  const [galleryError, setGalleryError] = useState<string | null>(null);
+  const [galleryFilter, setGalleryFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
 
   useEffect(() => {
     if (adminEditTargetAppId) {
@@ -146,39 +145,13 @@ export function AdminPanel() {
     }
   }, [adminEditTargetAppId, setAdminEditTarget]);
 
-  const loadGalleryImages = async () => {
-    setGalleryLoading(true);
-    setGalleryError(null);
-    try {
-      const galleryRef = ref(storage, 'visitor-gallery');
-      const result = await listAll(galleryRef);
-      const items = await Promise.all(
-        result.items.map(async (item) => {
-          const [url, meta] = await Promise.all([
-            import('firebase/storage').then(({ getDownloadURL }) => getDownloadURL(item)),
-            getMetadata(item),
-          ]);
-          return {
-            path: item.fullPath,
-            url,
-            name: item.name,
-            size: meta.size,
-            timeCreated: meta.timeCreated,
-          };
-        })
-      );
-      items.sort((a, b) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
-      setGalleryImages(items);
-    } catch (err: any) {
-      setGalleryError(err.message ?? 'Failed to load gallery');
-    } finally {
-      setGalleryLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (activeTab === 'gallery') loadGalleryImages();
-  }, [activeTab]);
+    const q = query(collection(db, 'os-gallery'), orderBy('uploadedAt', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      setGalleryImages(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as GalleryImage[]);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, 'os-feedback'), orderBy('timestamp', 'desc'));
@@ -195,6 +168,16 @@ export function AdminPanel() {
   const handleFeedbackDelete = async (id: string) => {
     if (!confirm('Delete this feedback entry permanently?')) return;
     await deleteDoc(doc(db, 'os-feedback', id));
+  };
+
+  const handleGalleryStatus = async (id: string, status: 'approved' | 'rejected') => {
+    await updateDoc(doc(db, 'os-gallery', id), { status });
+  };
+
+  const handleGalleryDelete = async (id: string, storagePath: string) => {
+    if (!confirm('Delete this image permanently?')) return;
+    try { await deleteObject(ref(storage, storagePath)); } catch {}
+    await deleteDoc(doc(db, 'os-gallery', id));
   };
 
 
@@ -455,6 +438,8 @@ export function AdminPanel() {
 
   const pendingCount = feedbackItems.filter(f => f.status === 'pending').length;
   const filteredFeedback = feedbackFilter === 'all' ? feedbackItems : feedbackItems.filter(f => f.status === feedbackFilter);
+  const galleryPendingCount = galleryImages.filter(g => g.status === 'pending').length;
+  const filteredGallery = galleryFilter === 'all' ? galleryImages : galleryImages.filter(g => g.status === galleryFilter);
 
   // ── MUI icon filter (for the app form panel) ────────────────────────────────
   const _allMuiNames = Object.keys(muiIconCatalog);
@@ -501,7 +486,11 @@ export function AdminPanel() {
                       isActive ? 'bg-os-ink-800 text-white' : 'text-white/60 hover:bg-os-ink-800/60',
                     )}
                     onClick={() => setActiveTab(tab)}
-                    badge={tab === 'feedback' && pendingCount > 0 ? String(pendingCount) : undefined}
+                    badge={
+                      (tab === 'feedback' && pendingCount > 0) ? String(pendingCount) :
+                      (tab === 'gallery' && galleryPendingCount > 0) ? String(galleryPendingCount) :
+                      undefined
+                    }
                   />
                 </div>
               );
@@ -605,9 +594,9 @@ export function AdminPanel() {
                   <div className={cn(
                     'px-5 py-2 shrink-0 text-xs border-b border-os-line-dark',
                     appPublishStatus.state === 'success'
-                      ? 'bg-green-500/10 text-green-200/80'
+                      ? 'bg-success-subtle text-fg-success'
                       : appPublishStatus.state === 'error'
-                        ? 'bg-red-500/10 text-red-200/80'
+                        ? 'bg-error-subtle text-fg-error'
                         : 'bg-os-ink-900 text-os-text-inverse/50'
                   )}>
                     {appPublishStatus.message}
@@ -669,10 +658,10 @@ export function AdminPanel() {
                                 <span className="text-[10px] px-1.5 py-0.5 bg-os-ink-900 text-os-text-inverse/60 rounded">{app.type}</span>
                               </div>
                               <div className="col-span-2">
-                                {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                                {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
                               </div>
                               <div className="col-span-2">
-                                {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-green-400" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                                {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
                               </div>
                               <div className="col-span-2 flex gap-1">
                                 <button onClick={() => handleEdit(app)} className="p-1.5 rounded hover:bg-os-ink-900 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors" title="Edit"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
@@ -682,7 +671,7 @@ export function AdminPanel() {
                                   setAppPublishStatus(result.success
                                     ? { state: 'success', message: `${app.name} removed globally.` }
                                     : { state: 'error', message: result.error || 'Remove failed.' });
-                                }} className="p-1.5 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                                }} className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             </div>
                           ))}
@@ -725,7 +714,7 @@ export function AdminPanel() {
                                   <button type="button" onClick={() => setIconTab('upload')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'upload' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Upload Image</button>
                                 </div>
                                 {(formData.customIcon || (formData.icon || '').startsWith('mui:')) && (
-                                  <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto text-[11px] text-red-400/60 hover:text-red-400 transition-colors">Clear</button>
+                                  <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto text-[11px] text-fg-error/60 hover:text-fg-error transition-colors">Clear</button>
                                 )}
                               </div>
 
@@ -848,7 +837,7 @@ export function AdminPanel() {
                                       ) : (
                                         <img src={item.url} alt={item.name || ''} className="aspect-video w-full object-cover" />
                                       )}
-                                      <button type="button" onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((m) => m.id !== item.id) }))} className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white/60 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100">
+                                      <button type="button" onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((m) => m.id !== item.id) }))} className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white/60 opacity-0 transition-opacity hover:text-fg-error group-hover:opacity-100">
                                         <Icons.X className="w-3 h-3" />
                                       </button>
                                     </div>
@@ -907,7 +896,7 @@ export function AdminPanel() {
                             {isSelected && <Icons.Check className="w-4 h-4 text-primary-400 flex-shrink-0" />}
                           </div>
                           {!isDefault && (
-                            <button onClick={(e) => { e.stopPropagation(); removeBackground(bg.id); }} className="absolute top-2 right-2 p-1 rounded bg-background-floating hover:bg-red-500/10 text-os-text-inverse/60 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                            <button onClick={(e) => { e.stopPropagation(); removeBackground(bg.id); }} className="absolute top-2 right-2 p-1 rounded bg-background-floating hover:bg-error-subtle text-os-text-inverse/60 hover:text-fg-error opacity-0 group-hover:opacity-100 transition-all">
                               <Icons.Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -1038,7 +1027,7 @@ export function AdminPanel() {
                                 {milestoneFormData.images.map((img, idx) => (
                                   <div key={idx} className="relative group">
                                     <img src={img} alt="" className="w-full aspect-video object-cover rounded border border-os-line-dark" />
-                                    <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))} className="absolute top-1 right-1 p-0.5 rounded bg-background-floating hover:bg-red-500/10 text-os-text-inverse hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                                    <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))} className="absolute top-1 right-1 p-0.5 rounded bg-background-floating hover:bg-error-subtle text-os-text-inverse hover:text-fg-error opacity-0 group-hover:opacity-100 transition-all">
                                       <Icons.X className="w-3 h-3" />
                                     </button>
                                   </div>
@@ -1059,7 +1048,7 @@ export function AdminPanel() {
                               <div key={idx} className="flex gap-2 mb-2">
                                 <input type="text" value={link.label} onChange={(e) => { const l = [...milestoneFormData.links]; l[idx].label = e.target.value; setMilestoneFormData({ ...milestoneFormData, links: l }); }} placeholder="Label" className={cn(appInputClass, 'px-3 py-2 text-sm flex-1')} />
                                 <input type="url" value={link.url} onChange={(e) => { const l = [...milestoneFormData.links]; l[idx].url = e.target.value; setMilestoneFormData({ ...milestoneFormData, links: l }); }} placeholder="URL" className={cn(appInputClass, 'px-3 py-2 text-sm flex-1')} />
-                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))} className="p-2 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))} className="p-2 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             ))}
                           </div>
@@ -1094,10 +1083,10 @@ export function AdminPanel() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="text-sm font-semibold text-os-text-inverse">{m.title}</h4>
-                              {m.featured && <Icons.Star className="w-3.5 h-3.5 text-yellow-300 fill-current" />}
+                              {m.featured && <Icons.Star className="w-3.5 h-3.5 text-fg-warning fill-current" />}
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className={cn('text-[10px] px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-primary-500/15 text-primary-400' : m.category === 'achievement' ? 'bg-yellow-500/10 text-yellow-300' : m.category === 'education' ? 'bg-blue-500/10 text-blue-300' : m.category === 'career' ? 'bg-green-500/10 text-green-400' : m.category === 'personal' ? 'bg-red-500/10 text-red-400' : 'bg-os-ink-800 text-os-text-inverse/60')}>{m.category}</span>
+                              <span className={cn('text-[10px] px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-primary-500/15 text-primary-400' : m.category === 'achievement' ? 'bg-warning-subtle text-fg-warning' : m.category === 'education' ? 'bg-info-subtle text-fg-info' : m.category === 'career' ? 'bg-success-subtle text-fg-success' : m.category === 'personal' ? 'bg-error-subtle text-fg-error' : 'bg-os-ink-800 text-os-text-inverse/60')}>{m.category}</span>
                               <span className="text-xs text-os-text-inverse/35">{new Date(m.date).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             </div>
                             {m.description && <p className="text-xs text-os-text-inverse/60 mb-2">{m.description}</p>}
@@ -1109,7 +1098,7 @@ export function AdminPanel() {
                           </div>
                           <div className="flex gap-1 flex-shrink-0">
                             <button onClick={() => { setEditingMilestone(m.id); setMilestoneFormData({ title: m.title, description: m.description, date: m.date, category: m.category, images: m.images || [], links: m.links || [], tags: m.tags || [], featured: m.featured || false }); setShowMilestoneForm(true); }} className="p-1.5 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => { if (confirm('Delete this milestone?')) removeMilestone(m.id); }} className="p-1.5 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { if (confirm('Delete this milestone?')) removeMilestone(m.id); }} className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </div>
                       </AppCard>
@@ -1174,7 +1163,7 @@ export function AdminPanel() {
                   </div>
 
                   {!isAdmin && (
-                    <div className="rounded border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200/80">
+                    <div className="rounded border border-stroke-warning/40 bg-warning-subtle px-3 py-2 text-xs text-fg-warning">
                       Reads import requires the superuser account.
                     </div>
                   )}
@@ -1183,9 +1172,9 @@ export function AdminPanel() {
                     <div className={cn(
                       'rounded border px-3 py-2 text-xs',
                       readImportStatus.state === 'success'
-                        ? 'border-green-500/25 bg-green-500/10 text-green-200/80'
+                        ? 'border-stroke-success/40 bg-success-subtle text-fg-success'
                         : readImportStatus.state === 'error'
-                          ? 'border-red-500/25 bg-red-500/10 text-red-200/80'
+                          ? 'border-stroke-error/40 bg-error-subtle text-fg-error'
                           : 'border-os-line-dark bg-os-ink-900 text-os-text-inverse/50'
                     )}>
                       {readImportStatus.message}
@@ -1237,7 +1226,7 @@ export function AdminPanel() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-sm font-medium text-os-text-inverse">{item.name}</span>
-                              <span className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', item.status === 'approved' ? 'bg-green-500/10 text-green-400' : item.status === 'hidden' ? 'bg-os-ink-900 text-os-text-inverse/35' : 'bg-yellow-500/10 text-yellow-300')}>{item.status}</span>
+                              <span className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', item.status === 'approved' ? 'bg-success-subtle text-fg-success' : item.status === 'hidden' ? 'bg-os-ink-900 text-os-text-inverse/35' : 'bg-warning-subtle text-fg-warning')}>{item.status}</span>
                               <span className="text-[10px] text-os-text-inverse/25 ml-auto">
                                 {item.timestamp?.toDate?.().toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) ?? '—'}
                               </span>
@@ -1246,12 +1235,12 @@ export function AdminPanel() {
                           </div>
                           <div className="flex gap-1 flex-shrink-0 mt-0.5">
                             {item.status !== 'approved' && (
-                              <button onClick={() => handleFeedbackStatus(item.id, 'approved')} title="Approve" className="p-1.5 rounded hover:bg-green-500/10 text-os-text-inverse/35 hover:text-green-400 transition-colors"><Icons.Check className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleFeedbackStatus(item.id, 'approved')} title="Approve" className="p-1.5 rounded hover:bg-success-subtle text-os-text-inverse/35 hover:text-fg-success transition-colors"><Icons.Check className="w-3.5 h-3.5" /></button>
                             )}
                             {item.status !== 'hidden' && (
                               <button onClick={() => handleFeedbackStatus(item.id, 'hidden')} title="Hide" className="p-1.5 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors"><Icons.EyeOff className="w-3.5 h-3.5" /></button>
                             )}
-                            <button onClick={() => handleFeedbackDelete(item.id)} title="Delete" className="p-1.5 rounded hover:bg-red-500/10 text-os-text-inverse/35 hover:text-red-400 transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => handleFeedbackDelete(item.id)} title="Delete" className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </div>
                       </AppCard>
@@ -1266,58 +1255,48 @@ export function AdminPanel() {
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">
-                    Visitor Gallery <span className="text-os-text-inverse/35 font-normal">({galleryImages.length})</span>
+                    Gallery Moderation
+                    {galleryPendingCount > 0 && <span className="ml-2 text-[10px] bg-primary-500/15 text-primary-400 px-1.5 py-0.5 rounded-full">{galleryPendingCount} pending</span>}
                   </h2>
-                  <button
-                    onClick={loadGalleryImages}
-                    disabled={galleryLoading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border border-os-line-dark bg-os-ink-900 hover:bg-os-ink-800 text-os-text-inverse/60 hover:text-os-text-inverse transition-colors disabled:opacity-40"
-                  >
-                    <Icons.RefreshCw className={cn('w-3.5 h-3.5', galleryLoading && 'animate-spin')} />
-                    Refresh
-                  </button>
+                  <div className="flex items-center gap-1 bg-os-ink-900 border border-os-line-dark rounded p-0.5">
+                    {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
+                      <button key={f} onClick={() => setGalleryFilter(f)} className={cn('px-2.5 py-1 rounded text-[10px] font-medium transition-colors capitalize', galleryFilter === f ? 'bg-os-ink-800 text-os-text-inverse' : 'text-os-text-inverse/35 hover:text-os-text-inverse/60')}>
+                        {f}{f !== 'all' && ` (${galleryImages.filter(x => x.status === f).length})`}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {galleryError && (
-                  <div className="px-4 py-3 rounded bg-red-500/10 border border-red-500/30 text-xs text-red-400">{galleryError}</div>
-                )}
-
-                {galleryLoading && galleryImages.length === 0 ? (
-                  <div className="text-center py-12 text-os-text-inverse/25">
-                    <Icons.Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
-                    <p className="text-xs">Loading visitor uploads…</p>
-                  </div>
-                ) : galleryImages.length === 0 ? (
+                {filteredGallery.length === 0 ? (
                   <div className="text-center py-16 text-os-text-inverse/25">
                     <Icons.GalleryHorizontal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No visitor uploads yet.</p>
-                    <p className="text-xs mt-1 text-os-text-inverse/25">Images uploaded to Visitor Gallery appear here.</p>
+                    <p className="text-sm">No {galleryFilter === 'all' ? '' : galleryFilter} uploads.</p>
+                    {galleryFilter === 'all' && <p className="text-xs mt-1">Images uploaded to Visitor Gallery appear here for review.</p>}
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-3">
-                    {galleryImages.map((img) => (
-                      <AppCard key={img.path} className="group relative overflow-hidden p-0">
+                    {filteredGallery.map((img) => (
+                      <AppCard key={img.id} className="relative overflow-hidden p-0">
                         <img src={img.url} alt={img.name} className="w-full aspect-video object-cover" />
-                        <div className="absolute inset-0 bg-background-floating opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                          <div className="flex justify-end">
-                            <button
-                              onClick={async () => {
-                                if (!confirm(`Delete "${img.name}"?`)) return;
-                                try {
-                                  await deleteObject(ref(storage, img.path));
-                                  setGalleryImages(prev => prev.filter(i => i.path !== img.path));
-                                } catch (err: any) {
-                                  alert('Delete failed: ' + err.message);
-                                }
-                              }}
-                              className="p-1.5 rounded bg-background-floating hover:bg-red-500/10 text-os-text-inverse hover:text-red-400 transition-colors"
-                            >
-                              <Icons.Trash2 className="w-3.5 h-3.5" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/85 px-2 py-1.5 flex items-center gap-1.5">
+                          <span className={cn('text-[9px] px-1 py-0.5 rounded font-medium shrink-0', img.status === 'approved' ? 'bg-success-subtle text-fg-success' : img.status === 'rejected' ? 'bg-error-subtle text-fg-error' : 'bg-warning-subtle text-fg-warning')}>
+                            {img.status}
+                          </span>
+                          <p className="text-[10px] text-os-text-inverse/60 truncate flex-1 min-w-0">{img.name}</p>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {img.status !== 'approved' && (
+                              <button onClick={() => handleGalleryStatus(img.id, 'approved')} title="Approve" className="p-1 rounded hover:bg-success-subtle text-os-text-inverse/35 hover:text-fg-success transition-colors">
+                                <Icons.Check className="w-3 h-3" />
+                              </button>
+                            )}
+                            {img.status !== 'rejected' && (
+                              <button onClick={() => handleGalleryStatus(img.id, 'rejected')} title="Reject" className="p-1 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors">
+                                <Icons.X className="w-3 h-3" />
+                              </button>
+                            )}
+                            <button onClick={() => handleGalleryDelete(img.id, img.storagePath)} title="Delete permanently" className="p-1 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors">
+                              <Icons.Trash2 className="w-3 h-3" />
                             </button>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-os-text-inverse truncate">{img.name}</p>
-                            <p className="text-[10px] text-os-text-inverse/35">{(img.size / 1024).toFixed(0)} KB · {new Date(img.timeCreated).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </AppCard>
@@ -1357,7 +1336,8 @@ export function AdminPanel() {
             { id: 'pin-taskbar', label: app.pinnedToTaskbar ? 'Unpin from Taskbar' : 'Pin to Taskbar', icon: app.pinnedToTaskbar ? Icons.PinOff : Icons.Pin, group: 'organize', action: () => { updateApp(app.id, { pinnedToTaskbar: !app.pinnedToTaskbar }); setAppContextMenu(null); } },
             { id: 'delete', label: 'Delete', icon: Icons.Trash2, group: 'danger', danger: true, action: () => { removeApp(app.id); setAppContextMenu(null); } },
           ];
-          const items = sortAndSeparate(defs).map((d) => ({ label: d.label, icon: d.icon, onClick: d.action, disabled: d.disabled, danger: d.danger, divider: d.divider, shortcut: d.shortcut }));
+          // AdminPanel is admin-only by route — grant 'admin' explicitly so danger items aren't dropped.
+          const items = resolveAndSort(defs, ['admin', 'owner', 'visitor']).map((d) => ({ label: d.label, icon: d.icon, onClick: d.action, disabled: d.disabled, danger: d.danger, divider: d.divider, shortcut: d.shortcut }));
           return <ContextMenu x={x} y={y} items={items} onClose={() => setAppContextMenu(null)} />;
         })()}
       </AnimatePresence>

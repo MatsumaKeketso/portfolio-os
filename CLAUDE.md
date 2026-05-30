@@ -2,6 +2,8 @@
 
 Built by Generative Studio. This is a browser-native OS simulator, not a website with a desktop theme.
 
+**Read this first:** [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) is the canonical reference for tokens, primitives, and the app contract. The "Surface Contract" and "Visual Rules" sections below are the short version — the full reference (token inventory, surface taxonomy, migration guide, current-app audit) lives there.
+
 Current priority handoff: read `docs/CLAUDE_HANDOFF_SYSTEM_UPDATES.md` before continuing implementation. It contains the latest system-wide update brief from the owner.
 
 ---
@@ -100,7 +102,7 @@ The older glass contract below may still describe existing code, but it is no lo
 | Toolbar / action bar | `<AppToolbar>` | `bg-white/[0.06]` |
 | Sidebar / left nav | `<AppSidebar>` | `bg-black/50` |
 | Main content area | `<AppContent>` | transparent |
-| Card / section panel | `<AppCard>` or `<Surface variant="panel">` | `bg-black/30` |
+| Card / section panel | `<AppCard>` | `bg-os-ink-900` + `border-os-line-dark` |
 | Input / select / textarea | `appInputClass` | `bg-white/[0.08]` |
 | Sticky list header | `<AppStickyHeader>` | `bg-black/40 backdrop-blur-sm` |
 | In-app dialog | `<AppModal>` | `bg-black/80 backdrop-blur-md` |
@@ -128,7 +130,7 @@ The older glass contract below may still describe existing code, but it is no lo
 | Component | File | Use for |
 |---|---|---|
 | `<Button>` | `src/components/ui/button.tsx` | All interactive buttons |
-| `<Surface>` | `src/components/ui/surface.tsx` | Semantic surface containers |
+| `<Typography>` | `src/components/ui/Typography.tsx` | Canonical text roles |
 | `<SystemRow>` | `src/components/ui/SystemRow.tsx` | List rows in sidebars and menus |
 | `<AppShell>` etc. | `src/components/ui/AppShell.tsx` | App layout structure |
 | `<ContextMenu>` | `src/components/ContextMenu.tsx` | Right-click menus |

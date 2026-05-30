@@ -37,7 +37,9 @@ service cloud.firestore {
              || collectionId == 'crp-auditLog'
              || collectionId == 'os-site_content'
              || collectionId == 'os-feedback'
-             || collectionId == 'os-users';
+             || collectionId == 'os-users'
+             || collectionId == 'os-comments'
+             || collectionId == 'os-gallery';
     }
 
     // CRM / Business Platform
@@ -114,6 +116,25 @@ service cloud.firestore {
       allow update, delete: if isOsSuperuser();
     }
 
+    // GenOS: Article comments + stats
+    match /os-comments/{slug} {
+      allow read: if true;
+      allow create, update: if true; // view/like increments are public
+      allow delete: if isOsSuperuser();
+
+      match /items/{commentId} {
+        allow read: if resource.data.status == 'visible' || isOsSuperuser();
+        allow create: if request.resource.data.keys().hasOnly(['name', 'message', 'createdAt', 'likes', 'status'])
+                      && request.resource.data.name is string
+                      && request.resource.data.message is string
+                      && request.resource.data.status == 'visible'
+                      && request.resource.data.likes == 0;
+        allow update: if isOsSuperuser()
+                      || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+        allow delete: if isOsSuperuser();
+      }
+    }
+
     match /os-users/{userId} {
       allow read: if isOsSuperuser()
                   || (isAuthed() && request.auth.uid == userId);
@@ -123,6 +144,16 @@ service cloud.firestore {
                             && request.resource.data.app == 'generativeos'
                             && (request.resource.data.role == 'guest' || isOsSuperuser());
       allow delete: if isOsSuperuser();
+    }
+
+    // GenOS: Visitor Gallery moderation
+    match /os-gallery/{imageId} {
+      allow create: if request.resource.data.keys().hasOnly(['url', 'name', 'storagePath', 'status', 'uploadedAt'])
+                    && request.resource.data.url is string
+                    && request.resource.data.name is string
+                    && request.resource.data.status == 'pending';
+      allow read: if resource.data.status == 'approved' || isOsSuperuser();
+      allow update, delete: if isOsSuperuser();
     }
 
     // Other apps in this Firebase project.

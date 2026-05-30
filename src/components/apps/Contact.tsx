@@ -1,8 +1,9 @@
-import * as Icons from 'lucide-react';
+﻿import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
+import { AppShell } from '../ui/AppShell';
 
 export function Contact() {
   const { profile } = useUserStore();
@@ -37,9 +38,9 @@ export function Contact() {
   ];
 
   return (
-    <div className="w-full h-full bg-black/50 flex flex-col">
+    <AppShell className="bg-os-ink-950/50">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/[0.08]">
+      <div className="px-6 py-4 border-b border-os-line-dark">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -62,11 +63,11 @@ export function Contact() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Profile Card */}
-          <div className="bg-black/30 rounded p-8 border border-white/[0.08]">
+          <div className="bg-black/30 rounded p-8 border border-os-line-dark">
             <div className="flex items-start gap-6">
               {/* Photo */}
               {profile.personal.photo ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-white/[0.16]">
+                <div className="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 border-4 border-os-line-dark-hover">
                   <img
                     src={profile.personal.photo}
                     alt={profile.personal.name}
@@ -74,7 +75,7 @@ export function Contact() {
                   />
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-600 to-tertiary-600 flex items-center justify-center flex-shrink-0 border-4 border-white/[0.16]">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-600 to-tertiary-600 flex items-center justify-center flex-shrink-0 border-4 border-os-line-dark-hover">
                   <Icons.User className="w-12 h-12 text-white" />
                 </div>
               )}
@@ -94,7 +95,7 @@ export function Contact() {
           </div>
 
           {/* Contact Methods */}
-          <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
+          <div className="bg-black/30 rounded p-6 border border-os-line-dark">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <Icons.MessageSquare className="w-5 h-5" />
               Direct Contact
@@ -105,7 +106,7 @@ export function Contact() {
               {profile.preferences.showEmail && profile.personal.email ? (
                 <a
                   href={`mailto:${profile.personal.email}`}
-                  className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-all border border-white/[0.08] hover:border-primary-500/50 group"
+                  className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-primary-500/50 group"
                 >
                   <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center group-hover:bg-primary-500/30 transition-all">
                     <Icons.Mail className="w-6 h-6 text-primary-400" />
@@ -117,8 +118,8 @@ export function Contact() {
                   <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-primary-400 transition-colors" />
                 </a>
               ) : (
-                <div className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-lg border border-white/[0.08] opacity-50">
-                  <div className="w-12 h-12 bg-white/[0.08] rounded-lg flex items-center justify-center">
+                <div className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg border border-os-line-dark opacity-50">
+                  <div className="w-12 h-12 bg-os-ink-800/80 rounded-lg flex items-center justify-center">
                     <Icons.Mail className="w-6 h-6 text-white/40" />
                   </div>
                   <div className="flex-1">
@@ -133,20 +134,20 @@ export function Contact() {
               {profile.preferences.showPhone && profile.personal.phone ? (
                 <a
                   href={`tel:${profile.personal.phone}`}
-                  className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-all border border-white/[0.08] hover:border-green-500/50 group"
+                  className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-stroke-success/40 group"
                 >
-                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition-all">
-                    <Icons.Phone className="w-6 h-6 text-green-400" />
+                  <div className="w-12 h-12 bg-success-subtle rounded-lg flex items-center justify-center group-hover:bg-success-subtle transition-all">
+                    <Icons.Phone className="w-6 h-6 text-fg-success" />
                   </div>
                   <div className="flex-1">
                     <div className="text-white/40 text-sm">Phone</div>
                     <div className="text-white font-medium">{profile.personal.phone}</div>
                   </div>
-                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-green-400 transition-colors" />
+                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-fg-success transition-colors" />
                 </a>
               ) : (
-                <div className="flex items-center gap-4 p-4 bg-white/[0.04] rounded-lg border border-white/[0.08] opacity-50">
-                  <div className="w-12 h-12 bg-white/[0.08] rounded-lg flex items-center justify-center">
+                <div className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg border border-os-line-dark opacity-50">
+                  <div className="w-12 h-12 bg-os-ink-800/80 rounded-lg flex items-center justify-center">
                     <Icons.Phone className="w-6 h-6 text-white/40" />
                   </div>
                   <div className="flex-1">
@@ -159,8 +160,8 @@ export function Contact() {
             </div>
 
             {(!profile.preferences.showEmail && !profile.preferences.showPhone) && (
-              <div className="mt-4 p-3 bg-orange-900/20 border border-orange-500/30 rounded-lg">
-                <p className="text-orange-300 text-sm flex items-center gap-2">
+              <div className="mt-4 p-3 bg-warning-subtle border border-stroke-warning/40 rounded-lg">
+                <p className="text-fg-warning text-sm flex items-center gap-2">
                   <Icons.Info className="w-4 h-4" />
                   Direct contact methods are hidden. You can enable them in Settings.
                 </p>
@@ -170,7 +171,7 @@ export function Contact() {
 
           {/* Social Links */}
           {socialLinks.length > 0 && (
-            <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
+            <div className="bg-black/30 rounded p-6 border border-os-line-dark">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Icons.Share2 className="w-5 h-5" />
                 Social & Web
@@ -185,7 +186,7 @@ export function Contact() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-4 bg-white/[0.04] rounded-lg hover:bg-white/[0.08] transition-all border border-white/[0.08] hover:border-tertiary-500/50 group"
+                      className="flex items-center gap-3 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-tertiary-500/50 group"
                     >
                       <div className="w-10 h-10 bg-tertiary-500/20 rounded-lg flex items-center justify-center group-hover:bg-tertiary-500/30 transition-all">
                         <IconComponent className="w-5 h-5 text-tertiary-400" />
@@ -204,7 +205,7 @@ export function Contact() {
 
           {/* Bio */}
           {profile.personal.bio.length > 0 && (
-            <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
+            <div className="bg-black/30 rounded p-6 border border-os-line-dark">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Icons.User className="w-5 h-5" />
                 About
@@ -220,7 +221,7 @@ export function Contact() {
           )}
 
           {/* Call to Action */}
-          <div className="bg-black/30 rounded p-6 border border-white/[0.08]">
+          <div className="bg-black/30 rounded p-6 border border-os-line-dark">
             <div className="flex items-start gap-4">
               <Icons.MessageCircle className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
               <div>
@@ -259,6 +260,6 @@ export function Contact() {
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

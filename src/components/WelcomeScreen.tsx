@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { Button } from './ui/button';
+import { WindowHeaderStrip } from './TaskbarStrip';
 
 const WELCOME_STORAGE_KEY = 'genos_welcomeShown';
 
@@ -77,11 +78,14 @@ export function WelcomeScreen() {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 12 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-2xl bg-os-ink-950 rounded-lg border border-os-line-dark shadow-os-window overflow-hidden"
+          className="relative w-full max-w-2xl bg-os-ink-950 rounded-lg border border-os-line-dark shadow-os-window overflow-hidden"
         >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-10 overflow-hidden">
+            <WindowHeaderStrip active />
+          </div>
           {/* Step 0: Welcome */}
           {currentStep === 0 && (
-            <div className="p-8">
+            <div className="relative p-8 pt-10">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-os-ink-800 border border-os-line-dark rounded-xl mb-4">
                   <Icons.Sparkles className="w-8 h-8 text-white/80" />
@@ -117,7 +121,7 @@ export function WelcomeScreen() {
 
           {/* Step 1: Keyboard Shortcuts */}
           {currentStep === 1 && (
-            <div className="p-8">
+            <div className="relative p-8 pt-10">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-14 h-14 bg-os-ink-800 border border-os-line-dark rounded-xl mb-4">
                   <Icons.Keyboard className="w-7 h-7 text-white/80" />
@@ -152,7 +156,7 @@ export function WelcomeScreen() {
 
           {/* Step 2: Getting Started */}
           {currentStep === 2 && (
-            <div className="p-8">
+            <div className="relative p-8 pt-10">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-14 h-14 bg-os-ink-800 border border-os-line-dark rounded-xl mb-4">
                   <Icons.Rocket className="w-7 h-7 text-white/80" />

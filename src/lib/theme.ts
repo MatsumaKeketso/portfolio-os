@@ -154,14 +154,22 @@ export const theme = {
       mono: '"SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Droid Sans Mono", "Source Code Pro", monospace',
     },
     fontSize: {
-      xs: '0.75rem',     // 12px
-      sm: '0.875rem',    // 14px
-      base: '1rem',      // 16px
-      lg: '1.125rem',    // 18px
-      xl: '1.25rem',     // 20px
-      '2xl': '1.5rem',   // 24px
-      '3xl': '1.875rem', // 30px
-      '4xl': '2.25rem',  // 36px
+      caption: '0.75rem',  // 12px
+      body: '0.875rem',    // 14px
+      bodyLg: '1rem',      // 16px
+      title4: '1rem',      // 16px
+      title3: '1.25rem',   // 20px
+      title2: '1.5rem',    // 24px
+      title1: '1.875rem',  // 30px
+      display: '2.375rem', // 38px
+      xs: '0.75rem',
+      sm: '0.875rem',
+      base: '0.875rem',
+      lg: '1rem',
+      xl: '1.25rem',
+      '2xl': '1.5rem',
+      '3xl': '1.875rem',
+      '4xl': '2.375rem',
     },
     fontWeight: {
       normal: '400',
@@ -170,8 +178,16 @@ export const theme = {
       bold: '700',
     },
     lineHeight: {
+      caption: '1rem',
+      body: '1.375rem',
+      bodyTight: '1.25rem',
+      title4: '1.5rem',
+      title3: '1.75rem',
+      title2: '2rem',
+      title1: '2.375rem',
+      display: '2.875rem',
       tight: '1.25',
-      normal: '1.5',
+      normal: '1.5715',
       relaxed: '1.75',
     },
   },

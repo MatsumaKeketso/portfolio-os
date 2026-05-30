@@ -47,30 +47,15 @@ VITE_ADMIN_PASSWORD=your_admin_password
 
 ## Step 3: Storage Rules (Security)
 
-To allow visitors to upload images to the Visitor Gallery while restricting other areas to admins, set your Firebase Storage rules:
+Use the checked-in `storage.rules` file as the source of truth. Do not replace it with a broad authenticated-write rule.
 
-```javascript
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    // Allow public read access to everything
-    match /{allPaths=**} {
-      allow read;
-    }
-    
-    // Visitor Gallery: allow anyone to upload images
-    match /portfolio-files/visitor-gallery/{fileName} {
-      allow write: if request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
-    }
-    
-    // Admin areas: allow only authenticated users to write
-    match /portfolio-files/{allPaths=**} {
-      allow write: if request.auth != null;
-    }
-  }
-}
-```
+The current model is scoped by folder:
+
+- `visitor-gallery/`: public image uploads only, under 5MB.
+- `app-icons/`, `app-media/`, `backgrounds/`, `milestones/`, `desktop-uploads/`, `portfolio-files/`, `reads/`: public read, superuser write.
+- Other top-level folders: left open for other apps in the shared Firebase project.
+
+The OS superuser is `admin@os.com`.
 
 ## Step 4: Testing Uploads
 
@@ -81,10 +66,10 @@ service firebase.storage {
 4. Verify the progress bar appears and the background updates.
 
 ### File Explorer
-1. Open **File Explorer**.
+1. Open **Archive**.
 2. Navigate to **Visitor Gallery**.
 3. Use the upload button or drag & drop an image.
-4. Verify the file appears and is stored in Firebase Storage under `portfolio-files/visitor-gallery/`.
+4. Verify the file appears and is stored in Firebase Storage under `visitor-gallery/`.
 
 ## Troubleshooting
 

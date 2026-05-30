@@ -1,9 +1,10 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
+import { AppShell } from '../ui/AppShell';
 
 type TemplateType = 'classic' | 'modern' | 'minimalist';
 
@@ -335,7 +336,7 @@ export function Resume() {
                   {getDateRange(exp.startDate, exp.endDate)}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mb-1">{exp.company}{exp.location && ` · ${exp.location}`}</p>
+              <p className="text-sm text-gray-600 mb-1">{exp.company}{exp.location && ` Â· ${exp.location}`}</p>
               {exp.description.length > 0 && (
                 <ul className="list-disc list-inside text-sm text-gray-700 font-light leading-relaxed space-y-1">
                   {exp.description.map((desc, i) => (
@@ -355,7 +356,7 @@ export function Resume() {
           {profile.resume.education.map((edu) => (
             <div key={edu.id} className="mb-3">
               <div className="flex justify-between items-baseline">
-                <h4 className="font-medium">{edu.degree} · {edu.field}</h4>
+                <h4 className="font-medium">{edu.degree} Â· {edu.field}</h4>
                 <span className="text-xs text-gray-500">{getDateRange(edu.startDate, edu.endDate)}</span>
               </div>
               <p className="text-sm text-gray-600">{edu.institution}</p>
@@ -373,7 +374,7 @@ export function Resume() {
             <div key={category.id} className="mb-2">
               <span className="text-sm font-medium">{category.name}: </span>
               <span className="text-sm text-gray-700 font-light">
-                {category.skills.map(s => s.name).join(' · ')}
+                {category.skills.map(s => s.name).join(' Â· ')}
               </span>
             </div>
           ))}
@@ -387,7 +388,7 @@ export function Resume() {
           {profile.resume.certifications.map((cert) => (
             <div key={cert.id} className="mb-2">
               <span className="text-sm font-medium">{cert.name}</span>
-              <span className="text-sm text-gray-600 font-light"> · {cert.issuer} · {formatDate(cert.date)}</span>
+              <span className="text-sm text-gray-600 font-light"> Â· {cert.issuer} Â· {formatDate(cert.date)}</span>
             </div>
           ))}
         </div>
@@ -432,9 +433,9 @@ export function Resume() {
         }
       `}</style>
 
-      <div className="w-full h-full flex flex-col bg-black/50">
+      <AppShell className="bg-os-ink-950/50">
         {/* Header with Controls */}
-        <div className="px-6 py-4 border-b border-white/[0.08] no-print">
+        <div className="px-6 py-4 border-b border-os-line-dark no-print">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -451,7 +452,7 @@ export function Resume() {
                 <select
                   value={selectedTemplate}
                   onChange={(e) => setSelectedTemplate(e.target.value as TemplateType)}
-                  className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
+                  className="bg-os-ink-800/60 border border-os-line-dark rounded px-3 py-1.5 text-white text-sm"
                 >
                   <option value="modern" className="bg-black/30">Modern</option>
                   <option value="classic" className="bg-black/30">Classic</option>
@@ -478,7 +479,7 @@ export function Resume() {
         <div className="flex-1 overflow-y-auto p-8 resume-print-area">
           {renderTemplate()}
         </div>
-      </div>
+      </AppShell>
     </>
   );
 }

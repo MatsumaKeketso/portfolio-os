@@ -7,13 +7,18 @@ import { useNotificationStore } from '../../store/notificationStore';
 import { Button } from '../ui/button';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgress } from '../UploadProgress';
-import { AppShell, appSelectClass } from '../ui/AppShell';
+import { AppShell, appSelectClass, appPanelClass, appRowClass } from '../ui/AppShell';
 import { cn } from '../../lib/utils';
+import logoColor from '../../assets/png-color-symbol.png';
+import logoWhite from '../../assets/png-white-symbol.png';
+import logoBlack from '../../assets/png-black-symbol.png';
+
+const START_LOGO_VARIANTS = { color: logoColor, white: logoWhite, black: logoBlack } as const;
 
 type TabType = 'profile' | 'appearance' | 'system' | 'privacy' | 'data';
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState<TabType>('profile');
+  const [activeTab, setActiveTab] = useState<TabType>('appearance');
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [, setIsUploading] = useState(false);
   const { profile, error, updatePersonal, updatePreferences, exportProfile, importProfile, resetProfile } = useUserStore();
@@ -31,12 +36,13 @@ export function Settings() {
     setTaskbarSize,
     setAutoHideTaskbar,
     setIconSize,
-    setWindowAnimations
+    setWindowAnimations,
+    updateSystemPreferences,
   } = useDesktopStore();
   const { addNotification } = useNotificationStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const panelClass = 'bg-os-ink-900 rounded-lg p-6 border border-os-line-dark';
-  const rowClass = 'flex items-center gap-3 p-4 bg-os-ink-950/70 border border-os-line-dark rounded-lg transition-colors';
+  const panelClass = cn(appPanelClass, 'p-6');
+  const rowClass = cn(appRowClass, 'p-4');
   const selectClass = cn(appSelectClass, 'w-full px-4 py-2 text-sm cursor-pointer');
 
   // Watch for store errors
@@ -236,14 +242,16 @@ export function Settings() {
 
       {/* Tab Navigation */}
       <div className="flex gap-2 px-6 py-3 border-b border-os-line-dark overflow-x-auto">
-        <Button
-          variant={activeTab === 'profile' ? 'soft-system-primary' : 'ink-ghost'}
-          size="sm"
-          onClick={() => setActiveTab('profile')}
-        >
-          <Icons.User className="w-4 h-4 mr-2" />
-          Profile
-        </Button>
+        {isAdmin && (
+          <Button
+            variant={activeTab === 'profile' ? 'soft-system-primary' : 'ink-ghost'}
+            size="sm"
+            onClick={() => setActiveTab('profile')}
+          >
+            <Icons.User className="w-4 h-4 mr-2" />
+            Profile
+          </Button>
+        )}
         <Button
           variant={activeTab === 'appearance' ? 'soft-system-primary' : 'ink-ghost'}
           size="sm"
@@ -366,17 +374,21 @@ export function Settings() {
                     <Icons.Image className="w-5 h-5" />
                     Desktop Background
                   </h3>
-                  <Button variant="soft-system-secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    <Icons.Upload className="w-4 h-4 mr-2" />
-                    Upload Image
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleBackgroundUpload}
-                    className="hidden"
-                  />
+                  {isAdmin && (
+                    <>
+                      <Button variant="soft-system-secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                        <Icons.Upload className="w-4 h-4 mr-2" />
+                        Upload Image
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackgroundUpload}
+                        className="hidden"
+                      />
+                    </>
+                  )}
                 </div>
 
                 <p className="text-white/40 text-sm mb-4">
@@ -416,13 +428,13 @@ export function Settings() {
                             <Icons.Check className="w-3 h-3 text-white" />
                           </div>
                         )}
-                        {!bg.id.startsWith('default-') && (
+                        {isAdmin && !bg.id.startsWith('default-') && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemoveBackground(bg.id);
                             }}
-                            className="opacity-0 group-hover:opacity-100 absolute top-2 left-2 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-all"
+                            className="opacity-0 group-hover:opacity-100 absolute top-2 left-2 bg-error hover:bg-error rounded-full p-1 transition-all"
                           >
                             <Icons.Trash2 className="w-3 h-3 text-white" />
                           </button>
@@ -576,6 +588,40 @@ export function Settings() {
                       </p>
                     </div>
                   </label>
+
+                  <div>
+                    <label className="text-white text-sm mb-2 block">Start Button Icon</label>
+                    <div className="flex gap-2">
+                      {(['color', 'white', 'black'] as const).map(variant => (
+                        <button
+                          key={variant}
+                          onClick={() => {
+                            updateSystemPreferences({ startIconVariant: variant });
+                            addNotification({ type: 'success', title: 'Start Icon Updated', message: `Using ${variant} logo variant`, duration: 2000 });
+                          }}
+                          className={cn(
+                            'flex-1 flex flex-col items-center gap-2 rounded-lg border px-3 py-3 transition-all',
+                            (systemPreferences.startIconVariant ?? 'color') === variant
+                              ? 'border-primary-500 bg-primary-500/10 text-primary-300'
+                              : 'border-os-line-dark bg-os-ink-950/60 text-white/40 hover:border-os-line-dark-hover hover:text-white/70'
+                          )}
+                        >
+                          <span className={cn(
+                            'w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden',
+                            variant === 'black' ? 'bg-white' : variant === 'white' ? 'bg-os-ink-800' : 'bg-os-ink-900'
+                          )}>
+                            <img
+                              src={START_LOGO_VARIANTS[variant]}
+                              alt={`${variant} logo`}
+                              className="w-5 h-5 object-contain"
+                            />
+                          </span>
+                          <span className="text-xs capitalize">{variant}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-white/40 text-xs mt-1">Choose the logo variant for the start button</p>
+                  </div>
                 </div>
               </div>
 
@@ -631,7 +677,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Grid3x3 className="w-4 h-4 text-purple-400" />
+                        <Icons.Grid3x3 className="w-4 h-4 text-tertiary-300" />
                         <span className="text-white font-medium">Snap to Grid</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -684,7 +730,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Sparkles className="w-4 h-4 text-yellow-400" />
+                        <Icons.Sparkles className="w-4 h-4 text-fg-warning" />
                         <span className="text-white font-medium">Visual Effects</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -702,7 +748,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Gauge className="w-4 h-4 text-green-400" />
+                        <Icons.Gauge className="w-4 h-4 text-fg-success" />
                         <span className="text-white font-medium">Performance Mode</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -726,13 +772,13 @@ export function Settings() {
                   <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
                       <Icons.Folder className="w-4 h-4 text-primary-400" />
-                      <span className="text-white text-sm">File Explorer</span>
+                      <span className="text-white text-sm">Archive</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Icons.User className="w-4 h-4 text-purple-400" />
+                      <Icons.User className="w-4 h-4 text-tertiary-300" />
                       <span className="text-white text-sm">About Me</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
@@ -796,7 +842,7 @@ export function Settings() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Icons.Phone className="w-4 h-4 text-green-400" />
+                            <Icons.Phone className="w-4 h-4 text-fg-success" />
                             <span className="text-white font-medium">Show Phone Number</span>
                           </div>
                           <p className="text-white/40 text-xs mt-1">
@@ -814,7 +860,7 @@ export function Settings() {
 
                   <div className={panelClass}>
                     <div className="flex items-start gap-4">
-                      <Icons.ShieldCheck className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                      <Icons.ShieldCheck className="w-6 h-6 text-fg-success flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Privacy & Security</h4>
                         <p className="text-white/60 text-sm leading-relaxed">
@@ -889,18 +935,18 @@ export function Settings() {
                     <p className="text-white/40 text-sm mb-4">
                       Reset your profile to default values. This will erase all your custom data.
                     </p>
-                    <Button variant="soft-system-secondary" size="md" onClick={handleReset} className="text-red-400 border-red-500/20 hover:bg-red-500/10">
+                    <Button variant="soft-system-secondary" size="md" onClick={handleReset} className="text-fg-error border-stroke-error/40 hover:bg-error-subtle">
                       <Icons.Trash2 className="w-4 h-4 mr-2" />
                       Reset to Defaults
                     </Button>
-                    <p className="text-red-400 text-xs mt-2 font-medium">
+                    <p className="text-fg-error text-xs mt-2 font-medium">
                       ⚠️ Warning: This action cannot be undone
                     </p>
                   </div>
 
                   <div className={panelClass}>
                     <div className="flex items-start gap-4">
-                      <Icons.AlertCircle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
+                      <Icons.AlertCircle className="w-6 h-6 text-fg-warning flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Data Management</h4>
                         <p className="text-white/60 text-sm leading-relaxed">

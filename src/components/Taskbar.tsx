@@ -7,17 +7,24 @@ import { App } from '../types';
 import { AppIcon } from '../lib/AppIcon';
 import { Button } from './ui/button';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
-import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { ContextMenuItemDef, ContextPermission, MenuGroup, resolveAndSort } from '../lib/contextMenuRegistry';
 import { CalendarPopup, type PopupAnchor } from './CalendarPopup';
 import { VolumePopup } from './VolumePopup';
 import { NotificationPanel } from './NotificationPanel';
 import { useNotificationStore } from '../store/notificationStore';
 import { StartMenu } from './StartMenu';
+import { TaskbarStrip } from './TaskbarStrip';
 import { cn } from '../lib/utils';
-import generativeStudioLogo from '../assets/png-color-symbol.png';
+import { Typography } from './ui/Typography';
+import logoColor from '../assets/png-color-symbol.png';
+import logoWhite from '../assets/png-white-symbol.png';
+import logoBlack from '../assets/png-black-symbol.png';
 
-const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
-  sortAndSeparate(defs).map((item) => ({
+const LOGO_VARIANTS = { color: logoColor, white: logoWhite, black: logoBlack } as const;
+const CV_PREVIEW_COLLAPSED_KEY = 'genos_cv_taskbar_preview_collapsed';
+
+const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPermission[]): ContextMenuItem[] =>
+  resolveAndSort(defs, permissions).map((item) => ({
     label: item.label,
     icon: item.icon,
     onClick: item.action,
@@ -34,6 +41,102 @@ type AppButtonMenuState = {
   windowId: string | null;
   windowMinimized: boolean;
 };
+
+function CvTaskbarPreview({
+  app,
+  isVisible,
+  collapsed,
+  onToggleCollapsed,
+}: {
+  app: App;
+  isVisible: boolean;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onToggleCollapsed();
+        }}
+        className="absolute right-0.5 top-0.5 z-[10003] flex h-4 w-4 items-center justify-center rounded-[5px] bg-background-chrome/86 text-white/42 transition-colors hover:bg-os-ink-800 hover:text-white"
+        title={collapsed ? 'Show bio preview' : 'Hide bio preview'}
+      >
+        {collapsed ? <Icons.ChevronUp className="h-2.5 w-2.5" /> : <Icons.ChevronDown className="h-2.5 w-2.5" />}
+      </button>
+
+      <AnimatePresence>
+        {isVisible && !collapsed && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="pointer-events-auto absolute bottom-[calc(100%+10px)] left-1/2 z-[10002] w-[330px] -translate-x-1/2"
+            style={{ overflow: 'visible' }}
+          >
+            <div aria-hidden className="absolute -bottom-3 left-1/2 h-3 w-20 -translate-x-1/2" />
+            <div className="relative min-h-[190px] overflow-hidden rounded-2xl">
+              <motion.div
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 18 }}
+                transition={{ duration: 0.24, delay: 0.03, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute bottom-0 right-0 z-20 w-24 h-full"
+              >
+                {!imageLoaded && (
+                  <div className="absolute bottom-0 left-0 flex h-full w-full items-center justify-center">
+                    <div className="h-7 w-7 rounded-full border border-primary-300/25 border-t-primary-300/80 animate-spin" />
+                  </div>
+                )}
+                <img
+                  src="https://firebasestorage.googleapis.com/v0/b/generative-studio.appspot.com/o/profile%2Fcompressed__9BP5381%20(1).png?alt=media&token=96691a14-ea96-4da3-bf1c-5190b2ce8cc8"
+                  alt="Keketso Matsuma"
+                  onLoad={() => setImageLoaded(true)}
+                  className={cn(
+                    'absolute bottom-0 left-0 w-full h-full object-cover object-top transition-opacity duration-300',
+                    imageLoaded ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+              </motion.div>
+
+              <div className="relative z-10 p-4 pr-24">
+                <div className="pointer-events-none absolute inset-0 bg-background-chrome/68 backdrop-blur-2xl [mask-image:radial-gradient(ellipse_at_bottom,black_0%,black_58%,transparent_86%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background-chrome/88 via-background-chrome/42 to-transparent" />
+                <div className="relative">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-os-ink-900/78">
+                    <AppIcon icon={app.icon} customIcon={app.customIcon} className="h-4 w-4 text-white/70" />
+                  </div>
+                  <div>
+                    <Typography variant="label" tone="brand" className="tracking-[0.14em]">CV</Typography>
+                    <Typography as="h3" variant="bodyStrong" className="leading-none text-white/86">Keketso Matsuma</Typography>
+                  </div>
+                </div>
+                <Typography variant="caption" tone="inverseMuted" className="max-w-[210px] leading-5">
+                  Full-stack developer and UI/UX designer building interactive systems, motion-rich interfaces, and product environments with depth.
+                </Typography>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {['Systems', 'Frontend', 'Motion'].map((tag) => (
+                    <Typography as="span" key={tag} variant="caption" className="rounded-full border border-os-line-dark bg-os-ink-900/70 px-2 py-1 text-[10px] text-white/42">
+                      {tag}
+                    </Typography>
+                  ))}
+                </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
 
 export function Taskbar() {
   const {
@@ -56,11 +159,24 @@ export function Taskbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSystemTray, setShowSystemTray] = useState(false);
   const [volume, setVolume] = useState(75);
+  const [hoveredTaskbarAppId, setHoveredTaskbarAppId] = useState<string | null>(null);
+  const [isCvPreviewCollapsed, setIsCvPreviewCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(CV_PREVIEW_COLLAPSED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const notificationCount = useNotificationStore((s) => s.notifications.length);
   const [startMenuAnchor, setStartMenuAnchor] = useState<PopupAnchor | null>(null);
   const [calendarAnchor, setCalendarAnchor] = useState<PopupAnchor | null>(null);
   const [volumeAnchor, setVolumeAnchor] = useState<PopupAnchor | null>(null);
   const { isAuthenticated, isAdmin } = useAuthStore();
+  const menuPermissions: ContextPermission[] = [
+    'visitor',
+    ...(isAuthenticated ? ['owner' as ContextPermission] : []),
+    ...(isAdmin ? ['admin' as ContextPermission] : []),
+  ];
 
   const startBtnRef = useRef<HTMLButtonElement>(null);
   const volumeBtnRef = useRef<HTMLButtonElement>(null);
@@ -81,8 +197,20 @@ export function Taskbar() {
     return () => clearInterval(timer);
   }, []);
 
+  const toggleCvPreviewCollapsed = () => {
+    setIsCvPreviewCollapsed((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(CV_PREVIEW_COLLAPSED_KEY, String(next));
+      } catch {
+        // Preference persistence is helpful, not critical.
+      }
+      return next;
+    });
+  };
+
   const pinnedApps = apps.filter(app => app.pinnedToTaskbar);
-  const openApps = windows.filter(w => !w.isMinimized);
+  const openApps = windows;
 
   const renderIcon = (iconName: string, customIcon: string | undefined, className: string) => (
     <AppIcon icon={iconName} customIcon={customIcon} className={className} />
@@ -180,7 +308,7 @@ export function Taskbar() {
     // large: p-2 (8px) → inner radius 8px
     const paddingClass = { small: 'p-1', medium: 'p-1.5', large: 'p-2' }[taskbarSize];
 
-    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-background-chrome/80 border border-os-line-dark shadow-xl shadow-black/50`;
+    return `fixed ${posClass} ${dirClass} ${paddingClass} flex items-center z-[10000] rounded-2xl backdrop-blur-md bg-background-chrome/80 border border-os-line-dark shadow-xl shadow-black/50 overflow-visible`;
   };
   const isVertical = systemPreferences.taskbarPosition === 'left' || systemPreferences.taskbarPosition === 'right';
 
@@ -190,6 +318,7 @@ export function Taskbar() {
   return (
     <>
     <div id="genos-taskbar" className={getTaskbarClasses()} onContextMenu={handleTaskbarContextMenu}>
+      <TaskbarStrip />
       <div className={`flex items-center gap-1 ${isVertical ? 'flex-col' : 'flex-row'}`}>
         <div className="relative group">
           <Button
@@ -210,11 +339,11 @@ export function Taskbar() {
             data-active={isStartMenuOpen}
           >
             <div className="bg-os-canvas rounded-[10px] w-full h-full flex items-center justify-center">
-              <img src={generativeStudioLogo} alt="Generative Studio" className="w-5 h-5 object-contain" />
+              <img src={LOGO_VARIANTS[systemPreferences.startIconVariant ?? 'color']} alt="Generative Studio" className="w-5 h-5 object-contain" />
               {isAuthenticated && (
                 <span className={cn(
                   "absolute right-1.5 bottom-1.5 w-2 h-2 rounded-full border border-os-canvas",
-                  isAdmin ? "bg-primary-500" : "bg-emerald-500"
+                  isAdmin ? "bg-primary-500" : "bg-fg-success"
                 )} />
               )}
             </div>
@@ -228,9 +357,24 @@ export function Taskbar() {
           const iconClass = isFocused
             ? "w-5 h-5 text-white"
             : hasWindow ? "w-5 h-5 text-white/70" : "w-5 h-5 text-white/40";
+          const isCvApp = app.id === 'cv' || app.component === 'CV';
+
           return (
-            <Button
+            <div
               key={app.id}
+              className="relative overflow-visible"
+              onMouseEnter={() => setHoveredTaskbarAppId(app.id)}
+              onMouseLeave={() => setHoveredTaskbarAppId((current) => current === app.id ? null : current)}
+            >
+              {isCvApp && (
+                <CvTaskbarPreview
+                  app={app}
+                  isVisible={hoveredTaskbarAppId === app.id}
+                  collapsed={isCvPreviewCollapsed}
+                  onToggleCollapsed={toggleCvPreviewCollapsed}
+                />
+              )}
+            <Button
               onClick={() => {
                 if (!win) {
                   openWindow(app);
@@ -261,24 +405,29 @@ export function Taskbar() {
                 <div className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-2 rounded-full bg-white/30" />
               )}
             </Button>
+            </div>
           );
         })}
 
         {openApps.filter(w => !pinnedApps.some(app => app.id === w.appId)).map((win) => {
           const isFocused = win.id === focusedWindowId;
-          const iconClass = isFocused ? "w-5 h-5 text-white" : "w-5 h-5 text-white/70";
+          const iconClass = win.isMinimized
+            ? "w-5 h-5 text-white/35"
+            : isFocused ? "w-5 h-5 text-white" : "w-5 h-5 text-white/70";
           return (
             <Button
               key={win.id}
               onClick={() => {
-                if (isFocused) {
+                if (win.isMinimized) {
+                  minimizeWindow(win.id);
+                } else if (isFocused) {
                   minimizeWindow(win.id);
                 } else {
                   bringToFront(win.id);
                 }
               }}
               onContextMenu={(e) =>
-                handleAppButtonContextMenu(e, win.appId, win.id, false)
+                handleAppButtonContextMenu(e, win.appId, win.id, win.isMinimized)
               }
               variant="taskbar"
               size="iconLg"
@@ -291,6 +440,8 @@ export function Taskbar() {
                   className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-primary-400"
                   transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.5 }}
                 />
+              ) : win.isMinimized ? (
+                <div className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-2 rounded-full bg-white/15" />
               ) : (
                 <div className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-2 rounded-full bg-white/30" />
               )}
@@ -399,7 +550,7 @@ export function Taskbar() {
         <ContextMenu
           x={appMenu.x}
           y={appMenu.y}
-          items={toContextMenuItems(getAppButtonMenuDefs(appMenu))}
+          items={toContextMenuItems(getAppButtonMenuDefs(appMenu), menuPermissions)}
           onClose={() => setAppMenu(null)}
         />
       )}
@@ -411,7 +562,7 @@ export function Taskbar() {
         <ContextMenu
           x={taskbarMenu.x}
           y={taskbarMenu.y}
-          items={toContextMenuItems(getTaskbarMenuDefs())}
+          items={toContextMenuItems(getTaskbarMenuDefs(), menuPermissions)}
           onClose={() => setTaskbarMenu(null)}
         />
       )}

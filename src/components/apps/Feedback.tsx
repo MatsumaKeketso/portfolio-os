@@ -211,10 +211,10 @@ export function Feedback() {
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+                        className="flex items-center gap-2 p-3 rounded-lg bg-success-subtle border border-stroke-success/40"
                       >
-                        <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <p className="text-xs text-emerald-300">Received — thanks for your feedback.</p>
+                        <CheckCircle className="w-4 h-4 text-fg-success shrink-0" />
+                        <p className="text-xs text-fg-success">Received — thanks for your feedback.</p>
                       </motion.div>
                     )}
                     {submitStatus === 'error' && (
@@ -223,10 +223,10 @@ export function Feedback() {
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20"
+                        className="flex items-center gap-2 p-3 rounded-lg bg-error-subtle border border-stroke-error/40"
                       >
-                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                        <p className="text-xs text-red-300">{submitError || 'Something went wrong - please try again.'}</p>
+                        <AlertCircle className="w-4 h-4 text-fg-error shrink-0" />
+                        <p className="text-xs text-fg-error">{submitError || 'Something went wrong - please try again.'}</p>
                       </motion.div>
                     )}
                     {submitStatus === 'ratelimit' && (

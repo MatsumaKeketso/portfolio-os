@@ -71,11 +71,17 @@
     --color-bg-accent:        #bef264;  /* primitive.lime.300  */
     --color-bg-accent-hover:  #a3e635;  /* primitive.lime.400  */
 
-    /* Feedback backgrounds */
+    /* Feedback backgrounds — subtle variants tinted for dark OS chrome.
+       (The original #f0fdf4 / #fef2f2 light values are preserved under `.dark`
+       below for future light-surface mode.) */
     --color-bg-success:        #15803d;  /* primitive.green.1000 */
-    --color-bg-success-subtle: #f0fdf4;  /* primitive.green.50   */
+    --color-bg-success-subtle: rgba(74, 222, 128, 0.10);  /* green 400 @10% — chrome-friendly */
     --color-bg-error:          #b91c1c;  /* primitive.red.1000   */
-    --color-bg-error-subtle:   #fef2f2;  /* primitive.red.50     */
+    --color-bg-error-subtle:   rgba(251, 113, 133, 0.10); /* red 400 @10% — chrome-friendly */
+    --color-bg-warning:        #ca8a04;  /* primitive.yellow.600 */
+    --color-bg-warning-subtle: rgba(250, 204, 21, 0.10); /* yellow 400 @10% — chrome-friendly */
+    --color-bg-info:           #2563eb;  /* primitive.blue.600 */
+    --color-bg-info-subtle:    rgba(96, 165, 250, 0.10); /* blue 400 @10% — chrome-friendly */
 
     /* Control / interactive backgrounds */
     --color-bg-control:          #f5f5f3;  /* primitive.gray.100  */
@@ -93,15 +99,18 @@
     --color-fg-on-primary:   #ffffff;  /* white on brand/dark solid   */
     --color-fg-on-secondary: #111111;  /* primitive.gray.1700 on soft */
 
-    /* Brand foreground — Generative Studio red */
-    --color-fg-brand:       #dc2626;  /* primitive.red.600   */
-    --color-fg-brand-hover: #b91c1c;  /* primitive.red.1000  */
+    /* Brand foreground — Generative Studio red. Values tuned for the dark OS
+       chrome (#111) which is the OS's default render context. The `.dark`
+       overrides below preserve the original darker values for a future
+       opt-in light-surface mode that does not exist yet. */
+    --color-fg-brand:       #ef4444;  /* primitive.red.500 — readable on chrome */
+    --color-fg-brand-hover: #f87171;  /* primitive.red.400 — readable on chrome */
 
-    /* Feedback foreground */
-    --color-fg-success: #16a34a;  /* primitive.green.600  */
-    --color-fg-warning: #ca8a04;  /* primitive.yellow.600 */
-    --color-fg-error:   #dc2626;  /* primitive.red.600    */
-    --color-fg-info:    #2563eb;  /* primitive.blue.600   */
+    /* Feedback foreground — tuned for dark OS chrome (see comment above) */
+    --color-fg-success: #4ade80;  /* primitive.green.400 — readable on chrome */
+    --color-fg-warning: #facc15;  /* primitive.yellow.400 — readable on chrome */
+    --color-fg-error:   #fb7185;  /* primitive.red.400 — readable on chrome */
+    --color-fg-info:    #60a5fa;  /* primitive.blue.400 — readable on chrome */
 
     /* Stroke / border */
     --color-stroke-primary:   #e8e8e5;  /* aligns with os-line-light   */
@@ -114,6 +123,26 @@
     --color-stroke-warning: #ca8a04;  /* primitive.yellow.600 */
     --color-stroke-error:   #dc2626;  /* primitive.red.600    */
     --color-stroke-info:    #2563eb;  /* primitive.blue.600   */
+
+    /* Typography — Ant Design-inspired scale using the existing OS font stack. */
+    --os-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --os-font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --os-type-size-caption: 0.75rem;      /* 12px */
+    --os-type-size-body: 0.875rem;        /* 14px */
+    --os-type-size-body-lg: 1rem;         /* 16px */
+    --os-type-size-title-4: 1rem;         /* 16px */
+    --os-type-size-title-3: 1.25rem;      /* 20px */
+    --os-type-size-title-2: 1.5rem;       /* 24px */
+    --os-type-size-title-1: 1.875rem;     /* 30px */
+    --os-type-size-display: 2.375rem;     /* 38px */
+    --os-type-line-caption: 1rem;         /* 16px */
+    --os-type-line-body: 1.375rem;        /* 22px */
+    --os-type-line-body-tight: 1.25rem;   /* 20px */
+    --os-type-line-title-4: 1.5rem;       /* 24px */
+    --os-type-line-title-3: 1.75rem;      /* 28px */
+    --os-type-line-title-2: 2rem;         /* 32px */
+    --os-type-line-title-1: 2.375rem;     /* 38px */
+    --os-type-line-display: 2.875rem;     /* 46px */
   }
 
   /* Dark mode overrides — apply .dark on <html> or a wrapping element */
@@ -217,7 +246,19 @@
   /* Body default styling */
   body {
     @apply bg-gray-950 text-white antialiased;
+    font-family: var(--os-font-family);
+    font-size: var(--os-type-size-body);
+    letter-spacing: 0;
+    line-height: 1.5715;
     overflow: hidden;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    letter-spacing: 0;
   }
 
   /* Dynamic Border Radius - Applied globally based on theme */
@@ -303,6 +344,112 @@
 }
 
 @layer utilities {
+  .os-type-display {
+    font-size: var(--os-type-size-display);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-display);
+  }
+
+  .os-type-title-1 {
+    font-size: var(--os-type-size-title-1);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-title-1);
+  }
+
+  .os-type-title-2 {
+    font-size: var(--os-type-size-title-2);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-title-2);
+  }
+
+  .os-type-title-3 {
+    font-size: var(--os-type-size-title-3);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-title-3);
+  }
+
+  .os-type-title-4 {
+    font-size: var(--os-type-size-title-4);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-title-4);
+  }
+
+  .os-type-body {
+    font-size: var(--os-type-size-body);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-body);
+  }
+
+  .os-type-body-strong {
+    font-size: var(--os-type-size-body);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-body-tight);
+  }
+
+  .os-type-secondary {
+    font-size: var(--os-type-size-body);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-body);
+  }
+
+  .os-type-caption {
+    font-size: var(--os-type-size-caption);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-caption);
+  }
+
+  .os-type-label {
+    font-size: var(--os-type-size-caption);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-caption);
+    text-transform: uppercase;
+  }
+
+  .os-type-menu-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.125rem;
+  }
+
+  .os-type-menu-description {
+    font-size: var(--os-type-size-caption);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: var(--os-type-line-caption);
+  }
+
+  .os-type-window-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.125rem;
+  }
+
+  .os-type-value {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 2.5rem;
+  }
+
+  .os-type-code {
+    font-family: var(--os-font-family-mono);
+    font-size: var(--os-type-size-caption);
+    letter-spacing: 0;
+    line-height: var(--os-type-line-caption);
+  }
+
   .os-interactive {
     transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     transition-duration: 180ms;

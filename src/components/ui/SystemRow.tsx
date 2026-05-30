@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '../../lib/utils'
+import { Typography } from './Typography'
 
 /**
  * SystemRow — shared row pattern for all OS list surfaces.
@@ -130,18 +131,19 @@ const SystemRow = React.forwardRef<HTMLButtonElement, SystemRowProps>(
 
         {/* Label + description */}
         <span className="flex-1 min-w-0">
-          <span className="block text-[13px] font-medium leading-[18px] truncate">
+          <Typography as="span" variant="menuTitle" truncate className="block">
             {label}
-          </span>
+          </Typography>
           {description && (
-            <span
-              className={cn(
-                'block text-[11px] leading-[16px] truncate mt-px',
-                isChrome ? 'text-white/35' : 'text-os-text-faint'
-              )}
+            <Typography
+              as="span"
+              variant="menuDescription"
+              tone={isChrome ? 'inverseFaint' : 'faint'}
+              truncate
+              className="mt-px block"
             >
               {description}
-            </span>
+            </Typography>
           )}
         </span>
 
@@ -149,26 +151,27 @@ const SystemRow = React.forwardRef<HTMLButtonElement, SystemRowProps>(
         {(meta || badge || rightSlot) && (
           <span className="flex items-center gap-1.5 flex-shrink-0 ml-1">
             {meta && (
-              <span
-                className={cn(
-                  'text-[11px] leading-[16px]',
-                  isChrome ? 'text-white/30' : 'text-os-text-faint'
-                )}
+              <Typography
+                as="span"
+                variant="caption"
+                tone={isChrome ? 'inverseFaint' : 'faint'}
               >
                 {meta}
-              </span>
+              </Typography>
             )}
             {badge && (
-              <span
+              <Typography
+                as="span"
+                variant="caption"
                 className={cn(
-                  'text-[10px] px-1.5 py-[2px] rounded-[4px] font-medium leading-none',
+                  'px-1.5 py-[2px] rounded-[4px] font-medium',
                   isChrome
                     ? 'bg-os-ink-800 text-os-text-inverse/70'
                     : 'bg-black/[0.05] text-os-text-muted'
                 )}
               >
                 {badge}
-              </span>
+              </Typography>
             )}
             {rightSlot}
           </span>
@@ -185,17 +188,19 @@ export interface SystemRowGroupProps extends React.HTMLAttributes<HTMLDivElement
 }
 const SystemRowGroup = React.forwardRef<HTMLDivElement, SystemRowGroupProps>(
   ({ className, context = 'chrome', children, ...props }, ref) => (
-    <div
+    <Typography
+      as="div"
+      variant="label"
+      tone={context === 'chrome' ? 'inverseFaint' : 'faint'}
       ref={ref}
       className={cn(
-        'px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] leading-none select-none',
-        context === 'chrome' ? 'text-white/30' : 'text-os-text-faint',
+        'px-3 pt-4 pb-1 select-none',
         className
       )}
       {...props}
     >
       {children}
-    </div>
+    </Typography>
   )
 )
 SystemRowGroup.displayName = 'SystemRowGroup'

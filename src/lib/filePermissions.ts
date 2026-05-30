@@ -1,4 +1,4 @@
-import { FileItem, VISITOR_GALLERY_ID } from '../types';
+import { FileItem, VISITOR_GALLERY_ID, TRASH_FOLDER_ID } from '../types';
 
 // ---------------------------------------------------------------------------
 // Location context — which OS "zone" the current path lives in
@@ -7,6 +7,7 @@ import { FileItem, VISITOR_GALLERY_ID } from '../types';
 export type LocationContext =
   | 'root'          // top-level home view
   | 'visitorGallery' // inside Visitor Gallery (restricted public zone)
+  | 'trash'         // inside Trash (no new content; restore / permanent delete only)
   | 'system'        // inside a protected system folder (admin-only writes)
   | 'general';      // regular writable folder
 
@@ -19,6 +20,7 @@ export function getLocationContext(
   const topLevelId = currentPath[0];
 
   if (topLevelId === VISITOR_GALLERY_ID) return 'visitorGallery';
+  if (topLevelId === TRASH_FOLDER_ID || currentPath.includes(TRASH_FOLDER_ID)) return 'trash';
 
   const topFolder = files.find((f) => f.id === topLevelId);
   if (topFolder?.isProtected) return 'system';
@@ -54,6 +56,20 @@ export function getPermissions(
       canDelete: isAdmin,
       canRename: isAdmin,
       canMove: isAdmin,
+    };
+  }
+
+  if (context === 'trash') {
+    // Trash is a holding area — no new content lands here directly. Items leave
+    // via restore or permanent delete (admin-gated).
+    return {
+      canCreateFolder: false,
+      canCreateFile: false,
+      canUpload: false,
+      allowedUploadTypes: '',
+      canDelete: isAdmin,
+      canRename: false,
+      canMove: false,
     };
   }
 

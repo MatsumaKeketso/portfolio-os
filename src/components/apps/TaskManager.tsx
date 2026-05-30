@@ -273,9 +273,9 @@ export function TaskManager() {
                       </div>
                       <div className="col-span-2">
                         <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${process.status === 'Running'
-                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                            ? 'bg-success-subtle text-fg-success border border-stroke-success/40'
                             : process.status === 'Minimized'
-                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                              ? 'bg-warning-subtle text-fg-warning border border-stroke-warning/40'
                               : 'bg-os-ink-800 text-white/60 border border-os-line-dark-hover'
                           }`}>
                           {process.status}
@@ -297,7 +297,7 @@ export function TaskManager() {
                         {process.isWindow && (
                           <button
                             onClick={() => handleEndTask(process)}
-                            className="os-interactive os-focus-ring px-2 py-1 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded border border-red-500/30 flex items-center gap-1"
+                            className="os-interactive os-focus-ring px-2 py-1 text-xs bg-error-subtle hover:bg-error-subtle text-fg-error rounded border border-stroke-error/40 flex items-center gap-1"
                           >
                             <Icons.X className="w-3 h-3" />
                             End
@@ -350,7 +350,7 @@ export function TaskManager() {
             <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Icons.HardDrive className="w-5 h-5 text-green-400" />
+                  <Icons.HardDrive className="w-5 h-5 text-fg-success" />
                   Memory
                 </h3>
                 <span className="text-3xl font-bold text-white">{usedMemory} MB</span>
@@ -359,7 +359,7 @@ export function TaskManager() {
                 {memoryHistory.map((value, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-green-500 rounded-t transition-all"
+                    className="flex-1 bg-fg-success rounded-t transition-all"
                     style={{ height: `${value}%` }}
                   />
                 ))}

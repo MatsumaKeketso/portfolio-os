@@ -1,3 +1,5 @@
+import containerQueries from '@tailwindcss/container-queries';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -271,12 +273,57 @@ export default {
           focus: 'var(--color-stroke-focus)',
           brand: 'var(--color-stroke-brand)',
           accent: 'var(--color-bg-accent)',
+          success: 'var(--color-stroke-success)',
+          warning: 'var(--color-stroke-warning)',
+          error:   'var(--color-stroke-error)',
+          info:    'var(--color-stroke-info)',
           feedback: {
             success: 'var(--color-stroke-success)',
             warning: 'var(--color-stroke-warning)',
             error: 'var(--color-stroke-error)',
             info: 'var(--color-stroke-info)',
           },
+        },
+
+        // ─── Short flat aliases (canonical per docs/DESIGN_SYSTEM.md) ──────
+        // These match the documented utility names (`bg-brand-solid`,
+        // `text-fg-success`, `border-stroke-error`, etc.) so app code can
+        // use the short form. Source values are the same CSS variables as
+        // the nested `background.*`/`foreground.*`/`stroke.*` keys above.
+
+        // Background shortcuts
+        'brand-solid':        'var(--color-bg-brand-solid)',
+        'brand-solid-hover':  'var(--color-bg-brand-solid-hover)',
+        'brand-solid-focus':  'var(--color-bg-brand-solid-focus)',
+        'brand-subtle':       'var(--color-bg-brand-subtle)',
+        'brand-subtle-hover': 'var(--color-bg-brand-subtle-hover)',
+        'success-subtle':     'var(--color-bg-success-subtle)',
+        'error-subtle':       'var(--color-bg-error-subtle)',
+        'warning-subtle':     'var(--color-bg-warning-subtle)',
+        'info-subtle':        'var(--color-bg-info-subtle)',
+        success:              'var(--color-bg-success)',
+        error:                'var(--color-bg-error)',
+        warning:              'var(--color-bg-warning)',
+        info:                 'var(--color-bg-info)',
+        control:              'var(--color-bg-control)',
+        'control-hover':      'var(--color-bg-control-hover)',
+        'control-active':     'var(--color-bg-control-active)',
+        'control-disabled':   'var(--color-bg-control-disabled)',
+
+        // Foreground shortcuts (use with `text-*` / `fill-*`)
+        fg: {
+          primary:   'var(--color-fg-primary)',
+          secondary: 'var(--color-fg-secondary)',
+          tertiary:  'var(--color-fg-tertiary)',
+          disabled:  'var(--color-fg-disabled)',
+          brand:     'var(--color-fg-brand)',
+          'brand-hover': 'var(--color-fg-brand-hover)',
+          success:   'var(--color-fg-success)',
+          warning:   'var(--color-fg-warning)',
+          error:     'var(--color-fg-error)',
+          info:      'var(--color-fg-info)',
+          'on-primary':   'var(--color-fg-on-primary)',
+          'on-secondary': 'var(--color-fg-on-secondary)',
         },
       },
 
@@ -417,5 +464,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [containerQueries],
 };

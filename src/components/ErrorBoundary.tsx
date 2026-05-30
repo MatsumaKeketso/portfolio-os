@@ -58,8 +58,8 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="bg-os-ink-950 rounded border border-os-line-dark shadow-os-window p-6">
               {/* Icon */}
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-red-500/[0.15] border border-red-500/30 rounded-full flex items-center justify-center">
-                  <Icons.AlertTriangle className="w-8 h-8 text-red-400" />
+                <div className="w-16 h-16 bg-error-subtle border border-stroke-error/40 rounded-full flex items-center justify-center">
+                  <Icons.AlertTriangle className="w-8 h-8 text-fg-error" />
                 </div>
               </div>
 
@@ -77,11 +77,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
               {/* Error details */}
               {this.state.error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
+                <div className="bg-error-subtle border border-stroke-error/40 rounded-lg p-3 mb-4">
                   <div className="flex items-start gap-2">
-                    <Icons.Code className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <Icons.Code className="w-4 h-4 text-fg-error mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-red-300 font-mono break-all">
+                      <p className="text-xs text-fg-error font-mono break-all">
                         {this.state.error.message}
                       </p>
                     </div>

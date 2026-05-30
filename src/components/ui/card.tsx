@@ -1,74 +1,70 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
-import { BorderGlow } from '../aceternity/ui/border-glow'
 
 /**
- * Card component with Framer-inspired styling
- * Provides multiple glass-morphism and solid variants for GenOS
+ * Card — semantic card primitive aligned with the Generative Studio /
+ * Product Mono direction.
  *
- * @example Hover card (desktop icon style)
- * <Card variant="hover">
- *   <CardAccent />
- *   <CardContent>Content</CardContent>
- * </Card>
+ * The 2026-05-30 ui/ reconciliation pass removed the Cyberpunk angled-corner
+ * clip-path, the Aceternity BorderGlow integration, and the gradient
+ * `CardIcon` glow effect. All variants now resolve to OS ink/line tokens
+ * defined in `src/index.css` and described in `docs/DESIGN_SYSTEM.md`.
  *
- * @example Standard glassmorphism card
- * <Card variant="standard">
+ * For app body composition prefer `<AppCard>` from `ui/AppShell.tsx` —
+ * `Card` exists for standalone surfaces (welcome screen, popovers,
+ * non-AppShell screens).
+ *
+ * @example Standard card on dark chrome
+ * <Card variant="standard" padding="md">
  *   <CardHeader>
  *     <CardTitle>Title</CardTitle>
+ *     <CardDescription>Description</CardDescription>
  *   </CardHeader>
- *   <CardBody>Content</CardBody>
- * </Card>
- *
- * @example Window chrome card
- * <Card variant="window">
- *   <CardHeader>Window Title</CardHeader>
  *   <CardBody>Content</CardBody>
  * </Card>
  */
 
 const cardVariants = cva(
-  // Base styles - Cyberpunk easing
-  'relative transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
+  'os-interactive relative',
   {
     variants: {
       variant: {
-        // Desktop icon style card
-        hover:
-          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:translate-y-[-2px] overflow-hidden',
-
-        // Standard panel
+        // Default card on dark chrome — quiet, neutral
         standard:
-          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover',
 
-        // Elevated panel
+        // Hoverable card — same as standard but lifts on hover
+        hover:
+          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800',
+
+        // Elevated card — slightly raised tone
         elevated:
-          'bg-os-ink-900 border border-os-line-dark hover:border-os-line-dark-hover hover:translate-y-[-2px]',
+          'bg-os-ink-800 border border-os-line-dark-hover',
 
-        // Flat minimal surface
+        // Flat / minimal — base chrome
         flat:
-          'bg-os-ink-950 border border-os-line-dark hover:border-os-line-dark-hover',
+          'bg-os-ink-950 border border-os-line-dark',
 
-        // Accent panel
+        // Brand-accented card — uses brand stroke on hover
         accent:
-          'bg-os-ink-900 border border-os-line-dark-hover hover:border-stroke-brand hover:translate-y-[-1px]',
+          'bg-os-ink-900 border border-os-line-dark hover:border-stroke-brand',
 
-        // Window main container
+        // Window-style card (matches Window.tsx chrome)
         window:
           'bg-os-ink-950 border border-os-line-dark shadow-os-window',
 
-        // Modal elevated dialog
+        // Modal panel
         modal:
           'bg-os-ink-950 border border-os-line-dark shadow-os-window',
 
-        // Icon container
-        icon:
-          'bg-os-ink-900 border border-os-line-dark',
-
-        // Menu context panel
+        // Floating menu / context overlay
         menu:
           'bg-os-ink-950 border border-os-line-dark shadow-os-floating',
+
+        // Light card on canvas surfaces
+        light:
+          'bg-os-canvas-raised border border-os-line-light hover:border-os-line-light-hover text-os-text-strong',
       },
 
       padding: {
@@ -79,292 +75,150 @@ const cardVariants = cva(
       },
 
       rounded: {
-        none: 'rounded-none',    // Cyberpunk default
-        md: 'rounded-none',      // Override to sharp for Cyberpunk
-        lg: 'rounded-none',      // Override to sharp for Cyberpunk
-        xl: 'rounded-none',      // Override to sharp for Cyberpunk
+        none: 'rounded-none',
+        sm: 'rounded',
+        md: 'rounded-md',
+        lg: 'rounded-lg',
+        xl: 'rounded-xl',
       },
     },
     defaultVariants: {
-      variant: 'window',
+      variant: 'standard',
       padding: 'md',
-      rounded: 'none',           // Force sharp for Cyberpunk
+      rounded: 'lg',
     },
   }
 )
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof cardVariants> {
-  borderGlow?: boolean
-  glowColor?: string
-  glowSize?: number
-}
+    VariantProps<typeof cardVariants> {}
 
-/**
- * Card component
- *
- * @param variant - The card style variant
- * @param padding - The card padding
- * @param rounded - The card border radius
- * @param borderGlow - Enable cursor-following border glow effect
- * @param glowColor - Color of the glow effect
- * @param glowSize - Size of the glow effect in pixels
- * @param className - Additional classes to apply
- * @param children - Card content
- */
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant, padding, rounded, borderGlow = false, glowColor, glowSize, style, ...props }, ref) => {
-    // Variants that get angled corners (Star Citizen HUD style)
-    const hasAngledCorners = variant && ['hover', 'standard', 'elevated', 'accent', 'modal'].includes(variant)
-
-    const clipPathStyle = hasAngledCorners
-      ? {
-          clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
-          ...style,
-        }
-      : style
-
-    const card = (
-      <div
-        ref={ref}
-        className={cn(cardVariants({ variant, padding, rounded, className }))}
-        style={clipPathStyle}
-        {...props}
-      />
-    )
-
-    if (borderGlow) {
-      return (
-        <BorderGlow
-          glowColor={glowColor}
-          glowSize={glowSize}
-          borderRadius={rounded === 'none' ? '0' : rounded === 'md' ? '0.5rem' : rounded === 'lg' ? '0.75rem' : '1rem'}
-        >
-          {card}
-        </BorderGlow>
-      )
-    }
-
-    return card
-  }
+  ({ className, variant, padding, rounded, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(cardVariants({ variant, padding, rounded, className }))}
+      {...props}
+    />
+  )
 )
 Card.displayName = 'Card'
 
-/**
- * Card Header component
- * Used for card titles and top sections
- *
- * @example
- * <CardHeader>
- *   <CardTitle>Title</CardTitle>
- *   <CardDescription>Description</CardDescription>
- * </CardHeader>
- */
-const CardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('flex flex-col space-y-1.5', className)}
-    {...props}
-  />
-))
+/** Card header — vertical stack of title and description. */
+const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col space-y-1.5', className)} {...props} />
+  )
+)
 CardHeader.displayName = 'CardHeader'
 
-/**
- * Card Title component
- */
-const CardTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn('font-semibold leading-none tracking-tight', className)}
-    {...props}
-  />
-))
+/** Card title — uses os-type-title-4 by default. */
+const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h3 ref={ref} className={cn('os-type-title-4 text-os-text-inverse', className)} {...props} />
+  )
+)
 CardTitle.displayName = 'CardTitle'
 
-/**
- * Card Description component
- */
-const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn('text-sm text-white/40', className)}
-    {...props}
-  />
-))
+/** Card description — uses os-type-caption with muted color. */
+const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => (
+    <p ref={ref} className={cn('os-type-caption text-os-text-inverse/50', className)} {...props} />
+  )
+)
 CardDescription.displayName = 'CardDescription'
 
-/**
- * Card Body component
- * Main content area of the card
- */
-const CardBody = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('pt-0', className)} {...props} />
-))
+/** Card body — main content area. */
+const CardBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('pt-0', className)} {...props} />
+  )
+)
 CardBody.displayName = 'CardBody'
 
-/**
- * Card Footer component
- * Used for actions and bottom sections
- */
-const CardFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('flex items-center pt-0', className)}
-    {...props}
-  />
-))
+/** Alias for CardBody for consistency with shadcn-style APIs. */
+const CardContent = CardBody
+
+/** Card footer — bottom action area. */
+const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex items-center pt-0', className)} {...props} />
+  )
+)
 CardFooter.displayName = 'CardFooter'
 
-/**
- * Card Accent Bar
- * HUD top data strip (no glow, just thin line)
- */
-const CardAccent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { variant?: 'primary' | 'tertiary' | 'mixed' }
->(({ className, variant = 'mixed', ...props }, ref) => {
-  const gradients = {
-    primary: 'bg-gradient-to-r from-transparent via-primary-500/60 to-transparent',
-    tertiary: 'bg-gradient-to-r from-transparent via-tertiary-500/60 to-transparent',
-    mixed: 'bg-gradient-to-r from-primary-500/40 via-tertiary-500/60 to-primary-500/40',
-  };
+/** Thin 1px divider inside a card. */
+const CardDivider = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('h-px bg-os-line-dark my-4', className)} {...props} />
+  )
+)
+CardDivider.displayName = 'CardDivider'
 
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'absolute top-0 left-0 right-0 h-[1px]',  // Thin data indicator line
-        gradients[variant],
-        className
-      )}
-      {...props}
-    />
-  );
-});
-CardAccent.displayName = 'CardAccent';
-
-/**
- * Card Divider
- * HUD section divider (subtle, no glow)
- */
-const CardDivider = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'h-px bg-os-line-dark my-4',
-      className
-    )}
-    {...props}
-  />
-));
-CardDivider.displayName = 'CardDivider';
-
-/**
- * Card Icon
- * Icon container with glow effect
- */
-const CardIcon = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    glowColor?: 'primary' | 'tertiary' | 'mixed';
-    size?: 'sm' | 'md' | 'lg';
-  }
->(({ className, glowColor = 'mixed', size = 'md', children, ...props }, ref) => {
-  const glowColors = {
-    primary: 'bg-gradient-to-br from-primary-500/30 to-primary-600/30',
-    tertiary: 'bg-gradient-to-br from-tertiary-500/30 to-tertiary-600/30',
-    mixed: 'bg-gradient-to-br from-primary-500/30 to-tertiary-500/30',
-  };
-
-  const sizes = {
-    sm: 'w-12 h-12',
-    md: 'w-16 h-16',
-    lg: 'w-24 h-24',
-  };
-
-  return (
-    <div ref={ref} className={cn('relative flex items-center justify-center mb-4', className)} {...props}>
-      {/* Glow effect */}
-      <div className={cn('absolute inset-0', glowColors[glowColor])} />
-
-      {/* Icon */}
-      <div className={cn('relative z-10 text-white drop-shadow-lg flex items-center justify-center', sizes[size])}>
+/** Compact icon container. */
+export interface CardIconProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: 'sm' | 'md' | 'lg'
+}
+const CardIcon = React.forwardRef<HTMLDivElement, CardIconProps>(
+  ({ className, size = 'md', children, ...props }, ref) => {
+    const sizes = { sm: 'w-12 h-12', md: 'w-16 h-16', lg: 'w-24 h-24' }
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'relative flex items-center justify-center mb-4',
+          'bg-os-ink-800 border border-os-line-dark rounded-md',
+          'text-os-text-inverse',
+          sizes[size],
+          className
+        )}
+        {...props}
+      >
         {children}
       </div>
-    </div>
-  );
-});
-CardIcon.displayName = 'CardIcon';
-
-/**
- * Card Badge
- * Pill-shaped badge (desktop icon style)
- */
-const CardBadge = React.forwardRef<
-  HTMLSpanElement,
-  React.HTMLAttributes<HTMLSpanElement> & {
-    variant?: 'primary' | 'tertiary' | 'success' | 'info';
+    )
   }
->(({ className, variant = 'primary', ...props }, ref) => {
-  const variants = {
-    primary:
-      'bg-primary-500/15 text-primary-300 border-primary-500/30',
-    tertiary:
-      'bg-tertiary-500/15 text-tertiary-300 border-tertiary-500/30',
-    success:
-      'bg-green-500/15 text-green-300 border-green-500/30',
-    info:
-      'bg-blue-500/15 text-blue-300 border-blue-500/30',
-  };
+)
+CardIcon.displayName = 'CardIcon'
 
-  return (
-    <span
-      ref={ref}
-      className={cn(
-        'px-2.5 py-1 border rounded-full text-xs font-medium inline-flex items-center gap-1.5',
-        variants[variant],
-        className
-      )}
-      {...props}
-    />
-  );
-});
-CardBadge.displayName = 'CardBadge';
-
-/**
- * Card Content
- * Alias for CardBody for consistency with new naming
- */
-const CardContent = CardBody;
+/** Status badge — small pill with semantic feedback color. */
+export interface CardBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: 'brand' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
+}
+const CardBadge = React.forwardRef<HTMLSpanElement, CardBadgeProps>(
+  ({ className, variant = 'neutral', ...props }, ref) => {
+    const variants = {
+      brand: 'bg-brand-subtle text-fg-brand border-stroke-brand',
+      success: 'bg-success-subtle text-fg-success border-stroke-success',
+      info: 'bg-os-ink-800 text-fg-info border-stroke-info',
+      warning: 'bg-os-ink-800 text-fg-warning border-stroke-warning',
+      error: 'bg-error-subtle text-fg-error border-stroke-error',
+      neutral: 'bg-os-ink-800 text-os-text-inverse/70 border-os-line-dark-hover',
+    }
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          'os-type-caption px-2 py-0.5 border rounded inline-flex items-center gap-1',
+          variants[variant],
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+CardBadge.displayName = 'CardBadge'
 
 export {
   Card,
   CardHeader,
-  CardFooter,
   CardTitle,
   CardDescription,
   CardBody,
   CardContent,
-  CardAccent,
+  CardFooter,
   CardDivider,
   CardIcon,
   CardBadge,

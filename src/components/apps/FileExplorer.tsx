@@ -5,25 +5,49 @@ import { useFileStore } from '../../store/fileStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
-import { FileItem, VISITOR_GALLERY_ID } from '../../types';
+import { FileItem, VISITOR_GALLERY_ID, TRASH_FOLDER_ID } from '../../types';
 import { ContextMenu, ContextMenuItem } from '../ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from '../ui/SystemRow';
 import { MediaSurface } from '../ui/surface';
+import { AppShell } from '../ui/AppShell';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
-import { storage } from '../../lib/firebase';
-import { ref as storageRef, listAll, getDownloadURL } from 'firebase/storage';
+import { db } from '../../lib/firebase';
+import { collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'firebase/firestore';
+import { getFilePathFromUrl } from '../../lib/uploadUtils';
 import { UploadProgressToast } from '../UploadProgress';
-import { getFileIcon, getFileColor, formatFileSize, getViewerType } from '../../lib/fileUtils';
+import { getFileIcon, getFileColor, formatFileSize } from '../../lib/fileUtils';
 import { getLocationContext, getPermissions, fileIsWritable } from '../../lib/filePermissions';
-import { ContextMenuItemDef, sortAndSeparate } from '../../lib/contextMenuRegistry';
+import { openFileWithApp } from '../../lib/fileRouter';
+import { ContextMenuItemDef, ContextPermission, resolveAndSort } from '../../lib/contextMenuRegistry';
 import { cn } from '../../lib/utils';
+import { createThumbnail } from '../../lib/imageUtils';
+import { SplitCard, type SplitCardStat } from '../ui/SplitCard';
+import { Icon3D, resolveIcon3DType } from '../ui/Icon3D';
+
+// Compact relative-time formatter ("3d ago", "2h ago", "just now"). Pure UI
+// sugar — fine to inline here while it has no other caller.
+function formatRelativeDate(ts?: number): string {
+  if (!ts) return '—';
+  const diffMs = Date.now() - ts;
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return 'just now';
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day}d ago`;
+  const mo = Math.floor(day / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+}
 
 // ---------------------------------------------------------------------------
 // Sidebar location definitions
 // ---------------------------------------------------------------------------
 
 const SIDEBAR_LOCATIONS = [
-  { id: 'desktop', label: 'Desktop', icon: Icons.Monitor, folderId: null as string | null },
+  { id: 'desktop', label: 'Desktop', icon: Icons.Monitor, folderId: 'folder-desktop' as string | null },
   { id: 'folder-documents', label: 'Documents', icon: Icons.FileText, folderId: 'folder-documents' },
   { id: 'folder-downloads', label: 'Downloads', icon: Icons.Download, folderId: 'folder-downloads' },
   { id: 'folder-projects', label: 'Projects', icon: Icons.Briefcase, folderId: 'folder-projects' },
@@ -31,6 +55,7 @@ const SIDEBAR_LOCATIONS = [
   { id: 'folder-images', label: 'Images', icon: Icons.Image, folderId: 'folder-images' },
   { id: VISITOR_GALLERY_ID, label: 'Visitor Gallery', icon: Icons.Users, folderId: VISITOR_GALLERY_ID },
   { id: 'folder-system', label: 'System', icon: Icons.HardDrive, folderId: 'folder-system' },
+  { id: TRASH_FOLDER_ID, label: 'Trash', icon: Icons.Trash2, folderId: TRASH_FOLDER_ID },
 ] as const;
 
 const VISITOR_ALLOWED_IMAGE_TYPES = new Set([
@@ -42,8 +67,47 @@ const VISITOR_ALLOWED_IMAGE_TYPES = new Set([
 
 const isAllowedVisitorImage = (file: File) => VISITOR_ALLOWED_IMAGE_TYPES.has(file.type);
 
-const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
-  sortAndSeparate(defs).map((item) => ({
+// Admin upload allowlist — covers media + common document/data types.
+// Storage rules are the final enforcement; this just stops uploadFile's
+// client-side validator from rejecting safe document types.
+const ADMIN_ALLOWED_TYPES = [
+  'image/*',
+  'video/*',
+  'audio/*',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+  'text/markdown',
+  'application/json',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+];
+
+const createImageThumbnail = async (file: File): Promise<string | undefined> => {
+  if (!file.type.startsWith('image/')) return undefined;
+  try {
+    return await createThumbnail(file, 360);
+  } catch (error) {
+    console.warn('Failed to create image thumbnail:', error);
+    return undefined;
+  }
+};
+
+const createImageThumbnailFromUrl = async (url: string): Promise<string | undefined> => {
+  try {
+    return await createThumbnail(url, 360);
+  } catch (error) {
+    console.warn('Failed to repair image thumbnail:', error);
+    return undefined;
+  }
+};
+
+const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPermission[]): ContextMenuItem[] =>
+  resolveAndSort(defs, permissions).map((item) => ({
     label: item.label,
     icon: item.icon,
     onClick: item.action,
@@ -100,34 +164,43 @@ export function FileExplorer() {
     [locationContext, isAdmin],
   );
 
-  const currentFiles = fileStore.getCurrentFolderFiles();
+  const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
+  const currentFiles = useMemo(
+    () => fileStore.files.filter((file) => file.parentId === currentFolderId),
+    [fileStore.files, currentFolderId],
+  );
   const pathString = fileStore.getPathString();
 
-  // When navigating to Visitor Gallery, load existing uploads from Firebase Storage
+  // When navigating to Visitor Gallery, load approved uploads from Firestore
   useEffect(() => {
     if (locationContext !== 'visitorGallery') return;
-    const galleryRef = storageRef(storage, 'visitor-gallery');
-    listAll(galleryRef).then(async (result) => {
+    const q = query(
+      collection(db, 'os-gallery'),
+      where('status', '==', 'approved'),
+      orderBy('uploadedAt', 'desc'),
+    );
+    getDocs(q).then((snap) => {
       const existingUrls = new Set(
-        fileStore.files.filter(f => f.parentId === VISITOR_GALLERY_ID).map(f => f.dataUrl)
+        fileStore.files.filter(f => f.parentId === VISITOR_GALLERY_ID).map(f => f.dataUrl),
       );
-      for (const item of result.items) {
-        const url = await getDownloadURL(item);
-        if (existingUrls.has(url)) continue;
+      snap.forEach((d) => {
+        const data = d.data();
+        if (existingUrls.has(data.url)) return;
         fileStore.addFile({
-          id: `vg-${item.name}`,
-          name: item.name,
+          id: `vg-${d.id}`,
+          name: data.name,
           type: 'image',
           mimeType: 'image/jpeg',
           parentId: VISITOR_GALLERY_ID,
-          path: `/Visitor Gallery/${item.name}`,
-          dataUrl: url,
-          createdAt: Date.now(),
-          modifiedAt: Date.now(),
+          path: `/Visitor Gallery/${data.name}`,
+          dataUrl: data.url,
+          thumbnailUrl: data.thumbnailUrl,
+          createdAt: data.uploadedAt?.toMillis?.() ?? Date.now(),
+          modifiedAt: data.uploadedAt?.toMillis?.() ?? Date.now(),
           isVisitorOwned: true,
         });
-      }
-    }).catch(() => { /* storage listing failed — gallery stays empty */ });
+      });
+    }).catch(() => {});
   }, [locationContext]);
 
   // ---------------------------------------------------------------------------
@@ -174,11 +247,12 @@ export function FileExplorer() {
   const getFileColorClass = (file: FileItem) =>
     getFileColor(file.name, file.type, file.mimeType);
 
-  const filteredAndSortedFiles = () => {
+  const displayFiles = useMemo(() => {
     let files = [...currentFiles];
     if (searchQuery.trim()) {
+      const normalizedSearch = searchQuery.toLowerCase();
       files = files.filter((f) =>
-        f.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        f.name.toLowerCase().includes(normalizedSearch),
       );
     }
     files.sort((a, b) => {
@@ -194,9 +268,40 @@ export function FileExplorer() {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
     return files;
-  };
+  }, [currentFiles, searchQuery, sortBy, sortOrder]);
 
-  const displayFiles = filteredAndSortedFiles();
+  const childCountByFolderId = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const file of fileStore.files) {
+      if (!file.parentId) continue;
+      counts.set(file.parentId, (counts.get(file.parentId) ?? 0) + 1);
+    }
+    return counts;
+  }, [fileStore.files]);
+
+  useEffect(() => {
+    const candidates = displayFiles
+      .filter((file) => file.type === 'image' && file.dataUrl && !file.thumbnailUrl)
+      .slice(0, 3);
+
+    if (candidates.length === 0) return;
+
+    let cancelled = false;
+    const timeout = window.setTimeout(async () => {
+      for (const file of candidates) {
+        if (cancelled || !file.dataUrl) return;
+        const thumbnailUrl = await createImageThumbnailFromUrl(file.dataUrl);
+        if (!cancelled && thumbnailUrl) {
+          fileStore.updateFile(file.id, { thumbnailUrl });
+        }
+      }
+    }, 700);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [displayFiles, fileStore]);
 
   // ---------------------------------------------------------------------------
   // Create / upload handlers
@@ -266,17 +371,24 @@ export function FileExplorer() {
         ? 'image'
         : file.type.startsWith('video/')
           ? 'video'
-          : 'file';
+          : file.type.startsWith('audio/')
+            ? 'audio'
+            : 'file';
 
       let dataUrl = '';
+      let uploadError: string | undefined;
+      const thumbnailUrl = await createImageThumbnail(file);
 
-      if (fileType === 'image' || fileType === 'video') {
+      // Every uploaded file goes through Firebase Storage. Previously this
+      // gate only matched image/video/audio, which silently dropped PDFs and
+      // other documents — the metadata was stored but the bytes were lost.
+      {
         try {
           const result = await uploadFile(file, {
             maxSizeMB: locationContext === 'visitorGallery' ? 5 : 100,
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-              : ['image/*', 'video/*'],
+              : ADMIN_ALLOWED_TYPES,
             folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : 'file-explorer',
             generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
@@ -293,16 +405,45 @@ export function FileExplorer() {
           });
           if (result.url && !result.error) {
             dataUrl = result.url;
+            if (locationContext === 'visitorGallery') {
+              addDoc(collection(db, 'os-gallery'), {
+                url: result.url,
+                name: file.name,
+                thumbnailUrl,
+                storagePath: getFilePathFromUrl(result.url) ?? `visitor-gallery/${file.name}`,
+                status: 'pending',
+                uploadedAt: serverTimestamp(),
+              }).catch(() => {});
+            }
+          } else {
+            uploadError = result.error;
           }
         } catch (err) {
           console.error('Upload exception:', err);
+          uploadError = err instanceof Error ? err.message : 'Upload failed';
         }
       }
 
-      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
+      // Fallback to base64 only for media types where inline preview is viable.
+      // Documents (PDFs etc.) cannot reasonably embed as base64 in Firestore.
+      if (!dataUrl && (fileType === 'image' || fileType === 'video' || fileType === 'audio')) {
         const reader = new FileReader();
         reader.onload = (event) => createFileItem(event.target?.result as string);
         reader.readAsDataURL(file);
+        continue;
+      }
+
+      // If a non-media file failed to upload, surface the error and skip the
+      // file rather than storing broken metadata with an empty dataUrl.
+      if (!dataUrl && fileType === 'file') {
+        addNotification({
+          type: 'error',
+          title: 'Upload failed',
+          message: uploadError
+            ? `${file.name}: ${uploadError}`
+            : `${file.name} could not be uploaded.`,
+          duration: 5000,
+        });
         continue;
       }
 
@@ -318,6 +459,7 @@ export function FileExplorer() {
           size: file.size,
           mimeType: file.type,
           dataUrl: urlOrContent,
+          thumbnailUrl,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
           isVisitorOwned: !isAdmin,
@@ -351,19 +493,7 @@ export function FileExplorer() {
   const handleFileDoubleClick = (file: FileItem, e: React.MouseEvent) => {
     e.stopPropagation();
     if (file.type === 'folder') { handleFolderDouble(file); return; }
-
-    const viewerType = getViewerType(file.name, file.mimeType);
-    if (viewerType === 'notepad' || file.name.endsWith('.txt')) {
-      openWindow(
-        { id: 'notepad', name: 'Notepad', icon: 'file-text', type: 'component', component: 'Notepad', defaultSize: { width: 600, height: 400 }, description: 'Simple text editor' },
-        { fileId: file.id, content: file.content || '', title: file.name },
-      );
-      return;
-    }
-    openWindow(
-      { id: 'file-viewer', name: 'File Viewer', icon: 'file', type: 'component', component: 'FileViewer', defaultSize: { width: 800, height: 600 }, description: 'Universal file viewer' },
-      { file, title: file.name, fileId: file.id },
-    );
+    openFileWithApp(file, openWindow);
   };
 
   // ---------------------------------------------------------------------------
@@ -432,16 +562,23 @@ export function FileExplorer() {
         continue;
       }
 
-      const fileType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file';
+      const fileType = file.type.startsWith('image/') ? 'image'
+        : file.type.startsWith('video/') ? 'video'
+        : file.type.startsWith('audio/') ? 'audio'
+        : 'file';
       let dataUrl = '';
+      let uploadError: string | undefined;
+      const thumbnailUrl = await createImageThumbnail(file);
 
-      if (fileType === 'image' || fileType === 'video') {
+      // Every dropped file goes through Firebase Storage. See handleUpload
+      // for the matching fix.
+      {
         try {
           const result = await uploadFile(file, {
             maxSizeMB: locationContext === 'visitorGallery' ? 5 : 100,
             allowedTypes: locationContext === 'visitorGallery'
               ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-              : ['image/*', 'video/*'],
+              : ADMIN_ALLOWED_TYPES,
             folder: locationContext === 'visitorGallery' ? 'visitor-gallery' : 'file-explorer',
             generateUniqueName: locationContext === 'visitorGallery',
             onProgress: (progress) => {
@@ -452,16 +589,46 @@ export function FileExplorer() {
               });
             },
           });
-          if (result.url && !result.error) dataUrl = result.url;
-        } catch (err) { console.error('Upload exception:', err); }
+          if (result.url && !result.error) {
+            dataUrl = result.url;
+            if (locationContext === 'visitorGallery') {
+              addDoc(collection(db, 'os-gallery'), {
+                url: result.url,
+                name: file.name,
+                thumbnailUrl,
+                storagePath: getFilePathFromUrl(result.url) ?? `visitor-gallery/${file.name}`,
+                status: 'pending',
+                uploadedAt: serverTimestamp(),
+              }).catch(() => {});
+            }
+          } else {
+            uploadError = result.error;
+          }
+        } catch (err) {
+          console.error('Upload exception:', err);
+          uploadError = err instanceof Error ? err.message : 'Upload failed';
+        }
       }
 
-      if (!dataUrl && (fileType === 'image' || fileType === 'video')) {
+      if (!dataUrl && (fileType === 'image' || fileType === 'video' || fileType === 'audio')) {
         const reader = new FileReader();
         reader.onload = (event) => createFile(event.target?.result as string);
         reader.readAsDataURL(file);
         continue;
       }
+
+      if (!dataUrl && fileType === 'file') {
+        addNotification({
+          type: 'error',
+          title: 'Upload failed',
+          message: uploadError
+            ? `${file.name}: ${uploadError}`
+            : `${file.name} could not be uploaded.`,
+          duration: 5000,
+        });
+        continue;
+      }
+
       createFile(dataUrl);
 
       function createFile(urlOrContent: string) {
@@ -474,6 +641,7 @@ export function FileExplorer() {
           size: file.size,
           mimeType: file.type,
           dataUrl: urlOrContent,
+          thumbnailUrl,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
           isVisitorOwned: !isAdmin,
@@ -559,8 +727,26 @@ export function FileExplorer() {
       });
     }
 
+    if (selectedCount > 0 && inTrash) {
+      items.push({
+        id: 'restore',
+        label: selectedCount === 1 ? 'Restore' : `Restore ${selectedCount} items`,
+        icon: Icons.Undo2,
+        action: handleRestoreSelection,
+        group: 'organize',
+      });
+    }
+
     if (selectedCount > 0 && permissions.canDelete && allWritable) {
-      items.push({ id: 'delete', label: 'Delete', icon: Icons.Trash2, danger: true, action: handleDeleteMultiple, shortcut: 'Del', group: 'danger' });
+      items.push({
+        id: 'delete',
+        label: inTrash ? 'Delete permanently' : 'Move to Trash',
+        icon: Icons.Trash2,
+        danger: true,
+        action: handleDeleteMultiple,
+        shortcut: 'Del',
+        group: 'danger',
+      });
     }
 
     if (selectedCount === 0) {
@@ -575,20 +761,58 @@ export function FileExplorer() {
         label: 'Select All',
         icon: Icons.CheckSquare,
         action: () => {
-          const currentFolderId = fileStore.currentPath[fileStore.currentPath.length - 1] || null;
           fileStore.selectAll(currentFolderId);
         },
         shortcut: 'Ctrl+A',
         group: 'system',
       });
+      if (inTrash && permissions.canDelete) {
+        const hasItems = fileStore.files.some((f) => f.parentId === TRASH_FOLDER_ID);
+        items.push({
+          id: 'empty-trash',
+          label: 'Empty Trash',
+          icon: Icons.Trash2,
+          danger: true,
+          disabled: !hasItems,
+          action: handleEmptyTrash,
+          group: 'danger',
+        });
+      }
     }
 
-    return toContextMenuItems(items);
+    return toContextMenuItems(items, menuPermissions);
   };
 
+  const menuPermissions: ContextPermission[] = [
+    'visitor',
+    ...(isAdmin ? (['admin', 'owner'] as ContextPermission[]) : []),
+  ];
+
+  const inTrash = currentFolderId === TRASH_FOLDER_ID
+    || fileStore.currentPath.includes(TRASH_FOLDER_ID);
+
   const handleDeleteMultiple = () => {
-    fileStore.selectedFileIds.forEach((id) => fileStore.removeFile(id));
+    const ids = fileStore.selectedFileIds;
+    if (ids.length === 0) return;
+    if (inTrash) {
+      if (!globalThis.window.confirm(`Permanently delete ${ids.length} item${ids.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+      ids.forEach((id) => fileStore.removeFile(id));
+    } else {
+      fileStore.moveToTrash(ids);
+    }
     fileStore.clearSelection();
+  };
+
+  const handleRestoreSelection = () => {
+    if (fileStore.selectedFileIds.length === 0) return;
+    fileStore.restoreFromTrash(fileStore.selectedFileIds);
+  };
+
+  const handleEmptyTrash = () => {
+    const trashCount = fileStore.files.filter((f) => f.parentId === TRASH_FOLDER_ID).length;
+    if (trashCount === 0) return;
+    if (!globalThis.window.confirm(`Empty Trash? ${trashCount} item${trashCount === 1 ? '' : 's'} will be permanently deleted.`)) return;
+    fileStore.emptyTrash();
   };
 
   // ---------------------------------------------------------------------------
@@ -645,7 +869,7 @@ export function FileExplorer() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="w-full h-full bg-background-chrome flex flex-col border-b border-os-line-dark overflow-hidden">
+    <AppShell className="bg-background-chrome border-b border-os-line-dark">
       {/* Navigation Bar */}
       <div className="border-b border-os-line-dark p-3 flex items-center gap-2 flex-wrap">
         <button onClick={() => fileStore.navigateUp()} className="p-1.5 hover:bg-os-ink-800 rounded text-white transition-colors" title="Back">
@@ -885,14 +1109,61 @@ export function FileExplorer() {
 
             {/* SideNav Footer Card */}
             <div className="p-2 mt-auto">
-              <div className="rounded-lg border border-os-line-dark bg-os-ink-900 px-3 py-2 flex flex-col gap-1 relative overflow-hidden group/footer">
-                  <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary-500/45 to-transparent" />
-                  <div className="text-[10px] font-bold text-os-text-inverse/35 uppercase tracking-tight">System Status</div>
-                  <div className="text-[11px] font-bold text-os-text-inverse flex items-center justify-between">
-                    <span>Latest Update</span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+              <div className="group/footer relative overflow-hidden rounded-xl border border-os-line-dark bg-os-ink-950/78 p-2.5 shadow-os-card">
+                <svg
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 -top-2 h-7 w-full text-primary-400/50"
+                  viewBox="0 0 188 32"
+                  preserveAspectRatio="none"
+                >
+                  <motion.path
+                    d="M-38 16 C-18 7, 2 25, 22 16 S62 7, 82 16 S122 25, 142 16 S182 7, 222 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                    animate={{ x: [0, 40, 0], opacity: [0.32, 0.72, 0.32] }}
+                    transition={{ x: { duration: 7.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+                  />
+                  <path
+                    d="M-24 21 C-4 13, 16 28, 36 20 S76 13, 96 20 S136 28, 156 20 S196 13, 216 20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="0.8"
+                    strokeLinecap="round"
+                    opacity="0.24"
+                  />
+                </svg>
+                <div className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent" />
+
+                <div className="relative pt-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Icons.Activity className="h-3.5 w-3.5 text-primary-400" />
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">System Status</p>
+                    </div>
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-35" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-400" />
+                    </span>
                   </div>
-                  <div className="text-[9px] text-os-text-inverse/45 font-medium">Visual Design v2.4</div>
+
+                  <div className="mt-2">
+                    <p className="text-[11px] font-semibold leading-none text-white/85">Latest Update</p>
+                    <p className="mt-1 text-[10px] font-medium leading-4 text-white/45">Visual Design v2.4</p>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    <div className="rounded-md border border-os-line-dark bg-os-ink-900/70 px-2 py-1">
+                      <p className="text-[9px] uppercase tracking-[0.08em] text-white/25">Mode</p>
+                      <p className="mt-0.5 text-[10px] font-medium text-white/65">Archive</p>
+                    </div>
+                    <div className="rounded-md border border-os-line-dark bg-os-ink-900/70 px-2 py-1">
+                      <p className="text-[9px] uppercase tracking-[0.08em] text-white/25">State</p>
+                      <p className="mt-0.5 text-[10px] font-medium text-white/65">Live</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -936,90 +1207,164 @@ export function FileExplorer() {
               </p>
             </div>
           ) : viewMode === 'grid' ? (
-            <div className="flex flex-wrap gap-10 p-10 overflow-y-auto content-start">
+            <div
+              className={cn(
+                '@container',
+                'grid auto-rows-min items-start content-start gap-5 p-6 overflow-y-auto',
+                // Responsive column tracks driven by FileExplorer window width
+                // (not viewport) via container queries + auto-fill.
+                'grid-cols-[repeat(auto-fill,minmax(160px,1fr))]',
+                '@[420px]:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]',
+                '@[720px]:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]',
+                '@[1080px]:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]',
+              )}
+            >
               {displayFiles.map((file) => {
-                const FileIcon = getFileIconComponent(file);
-                const fileColor = getFileColorClass(file);
                 const isSelected = fileStore.selectedFileIds.includes(file.id);
                 const isCut = fileStore.clipboard.operation === 'cut' && fileStore.clipboard.fileIds.includes(file.id);
                 const isDropTarget = dropTargetId === file.id;
-                const childCount = file.type === 'folder' ? fileStore.files.filter(f => f.parentId === file.id).length : 0;
-                
+                const childCount = file.type === 'folder' ? childCountByFolderId.get(file.id) ?? 0 : 0;
+                const thumbnailSrc = file.thumbnailUrl || file.previewUrl || file.dataUrl;
+                const isImage = file.type === 'image' && Boolean(thumbnailSrc);
+                const isRenaming = renamingFileId === file.id;
+
+                // Subtitle: short type/size summary shown over the hero.
+                const subtitle = file.type === 'folder'
+                  ? `Folder · ${childCount} item${childCount === 1 ? '' : 's'}`
+                  : `${(file.name.split('.').pop() || file.type).toUpperCase()}${file.size ? ` · ${formatFileSize(file.size)}` : ''}`;
+
+                // Stats row inside the detail panel.
+                const stats: SplitCardStat[] = file.type === 'folder'
+                  ? [
+                      { label: 'Items', value: String(childCount) },
+                      { label: 'Modified', value: formatRelativeDate(file.modifiedAt) },
+                      { label: 'Type', value: 'Folder' },
+                    ]
+                  : [
+                      { label: 'Size', value: file.size ? formatFileSize(file.size) : '—' },
+                      { label: 'Modified', value: formatRelativeDate(file.modifiedAt) },
+                      { label: 'Type', value: (file.name.split('.').pop() || file.type).toUpperCase() },
+                    ];
+
+                const description = file.type === 'folder'
+                  ? `Located in ${file.path || 'this filesystem'}.`
+                  : file.mimeType
+                    ? `${file.mimeType} · added ${formatRelativeDate(file.createdAt)}.`
+                    : `Added ${formatRelativeDate(file.createdAt)}.`;
+
+                const handleOpen = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  if (file.type === 'folder') {
+                    fileStore.navigateToFolder(file.id);
+                  } else {
+                    openFileWithApp(file, openWindow);
+                  }
+                };
+
                 return (
-                  <motion.button
+                  <div
                     key={file.id}
-                    onClick={(e) => handleFileClick(file, e)}
-                    onDoubleClick={(e) => handleFileDoubleClick(file, e)}
-                    onContextMenu={(e) => handleContextMenu(e, file)}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
-                    onDragOver={(e) => handleDragOver(e, file)}
-                    onDrop={(e) => handleDrop(e, file)}
-                    whileHover={{ y: -5 }}
                     className={cn(
-                      "relative flex flex-col items-center gap-4 group/file w-40",
-                      isCut ? 'opacity-50' : ''
+                      'min-w-0',
+                      isCut && 'opacity-50',
+                      isDropTarget && 'ring-2 ring-primary-500/60 rounded-2xl',
                     )}
                   >
-                    {/* Item Container */}
-                    <div className={cn(
-                      "relative w-full aspect-[4/3] rounded-3xl transition-all duration-300 flex items-center justify-center overflow-hidden",
-                      isSelected 
-                        ? "bg-primary-500/20 ring-2 ring-primary-500/50 shadow-glow-primary" 
-                        : "bg-os-ink-950/45 border border-os-line-dark hover:bg-os-ink-900 hover:border-os-line-dark-hover",
-                      isDropTarget && "ring-4 ring-primary-500/50 bg-primary-500/30"
-                    )}>
-                      {file.type === 'image' && file.dataUrl ? (
-                        <img src={file.dataUrl} alt={file.name} className="w-full h-full object-cover group-hover/file:scale-110 transition-transform duration-500" />
-                      ) : (
-                        <div className="relative flex flex-col items-center justify-center gap-2">
-                          <FileIcon className={cn(
-                            "w-12 h-12 transition-all duration-300",
-                            fileColor,
-                            file.type === 'folder' ? "drop-shadow-[0_0_12px_rgb(var(--color-primary)_/_0.28)]" : ""
-                          )} />
-                          {file.type === 'folder' && childCount > 0 && (
-                            <div className="absolute -top-1 -right-1 bg-primary-500 text-[9px] font-black text-white px-1.5 py-0.5 rounded-full shadow-lg border border-os-line-dark">
-                              {childCount}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Selection Glow */}
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-primary-500/10 pointer-events-none animate-pulse" />
-                      )}
-                    </div>
-
-                    {/* Label Area */}
-                    <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
-                      {renamingFileId === file.id ? (
-                        <input
-                          type="text"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onBlur={finishRename}
-                          onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') finishRename(); if (e.key === 'Escape') cancelRename(); }}
-                          onClick={(e) => e.stopPropagation()}
-                          autoFocus
-                          className="text-xs text-center w-full bg-os-ink-800 text-white border border-stroke-brand rounded-lg px-2 py-1 focus:outline-none"
-                        />
-                      ) : (
+                    <SplitCard
+                      selected={isSelected}
+                      expanded={isSelected}
+                      onClick={(e) => handleFileClick(file, e)}
+                      onDoubleClick={(e) => handleFileDoubleClick(file, e)}
+                      onContextMenu={(e) => handleContextMenu(e, file)}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
+                      onDragOver={(e) => handleDragOver(e, file)}
+                      onDrop={(e) => handleDrop(e, file)}
+                      media={
+                        isImage ? (
+                          <img
+                            src={thumbnailSrc}
+                            alt={file.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover group-hover/hero:scale-[1.04] transition-transform duration-500"
+                          />
+                        ) : (
+                          <Icon3D
+                            type={resolveIcon3DType(file)}
+                            size={120}
+                            animate={isSelected}
+                            className="transition-transform duration-500 group-hover/hero:scale-[1.06]"
+                          />
+                        )
+                      }
+                      title={
+                        isRenaming ? (
+                          <input
+                            type="text"
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={finishRename}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                              if (e.key === 'Enter') finishRename();
+                              if (e.key === 'Escape') cancelRename();
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            className="w-full bg-black/50 text-white border border-stroke-brand rounded px-1.5 py-0.5 text-[13px] font-semibold focus:outline-none"
+                          />
+                        ) : (
+                          file.name
+                        )
+                      }
+                      subtitle={!isRenaming ? subtitle : undefined}
+                      action={
+                        !isRenaming && (
+                          <button
+                            type="button"
+                            onClick={handleOpen}
+                            className="px-3 py-1.5 text-[11px] font-medium text-white bg-black/55 hover:bg-black/75 backdrop-blur-sm rounded-full border border-white/15 transition-colors"
+                          >
+                            {file.type === 'folder' ? 'Open' : 'View'}
+                          </button>
+                        )
+                      }
+                      stats={stats}
+                      description={description}
+                      detailActions={
                         <>
-                          <span className={cn(
-                            "text-sm font-semibold text-center line-clamp-1 transition-colors px-2",
-                            isSelected ? "text-primary-400" : "text-white/90 group-hover/file:text-white"
-                          )}>
-                            {file.name}
-                          </span>
-                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">
-                            {file.type === 'folder' ? `${childCount} items` : file.type}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={handleOpen}
+                            className="px-2.5 py-1 text-[11px] font-medium rounded-md border border-os-line-dark bg-os-ink-800 text-white/80 hover:bg-os-ink-700 hover:text-white transition-colors"
+                          >
+                            {file.type === 'folder' ? 'Open folder' : 'Open'}
+                          </button>
+                          {thumbnailSrc && file.type !== 'folder' && (
+                            <a
+                              href={thumbnailSrc}
+                              download={file.name}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-2.5 py-1 text-[11px] font-medium rounded-md border border-os-line-dark bg-os-ink-800 text-white/80 hover:bg-os-ink-700 hover:text-white transition-colors"
+                            >
+                              Download
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startRename(file.id);
+                            }}
+                            className="px-2.5 py-1 text-[11px] font-medium rounded-md border border-os-line-dark bg-os-ink-800 text-white/80 hover:bg-os-ink-700 hover:text-white transition-colors"
+                          >
+                            Rename
+                          </button>
                         </>
-                      )}
-                    </div>
-                  </motion.button>
+                      }
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -1059,13 +1404,25 @@ export function FileExplorer() {
                     onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
-                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 text-left border-b border-os-line-dark transition-all ${
-                      isSelected ? 'bg-primary-500/20 border-stroke-brand' : 'hover:bg-os-ink-900'
+                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 py-2 text-left border-b border-os-line-dark transition-all ${
+                      isSelected
+                        ? 'bg-primary-500/25 pl-2 border-l-2 border-l-primary-400 pr-3'
+                        : 'px-3 hover:bg-os-ink-900'
                     } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
                   >
                     <div className="flex items-center justify-center">
-                      {file.type === 'image' && file.dataUrl
-                        ? <MediaSurface className="w-6 h-6 rounded"><img src={file.dataUrl} alt={file.name} className="w-full h-full object-cover" /></MediaSurface>
+                      {file.type === 'image' && (file.thumbnailUrl || file.previewUrl || file.dataUrl)
+                        ? (
+                          <MediaSurface className="w-6 h-6 rounded">
+                            <img
+                              src={file.thumbnailUrl || file.previewUrl || file.dataUrl}
+                              alt={file.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-cover"
+                            />
+                          </MediaSurface>
+                        )
                         : <FileIcon className={`w-6 h-6 ${fileColor}`} />
                       }
                     </div>
@@ -1170,6 +1527,6 @@ export function FileExplorer() {
       </AnimatePresence>
 
       <UploadProgressToast uploads={uploadProgress} onClose={() => setUploadProgress([])} />
-    </div>
+    </AppShell>
   );
 }

@@ -45,13 +45,13 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {upload.status === 'uploading' && (
-                  <Loader className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />
+                  <Loader className="w-4 h-4 text-fg-info animate-spin flex-shrink-0" />
                 )}
                 {upload.status === 'success' && (
-                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-fg-success flex-shrink-0" />
                 )}
                 {upload.status === 'error' && (
-                  <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <XCircle className="w-4 h-4 text-fg-error flex-shrink-0" />
                 )}
                 <span className="text-sm text-white/60 truncate" title={upload.fileName}>
                   {upload.fileName}
@@ -67,10 +67,10 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
               <div
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   upload.status === 'error'
-                    ? 'bg-red-500'
+                    ? 'bg-fg-error'
                     : upload.status === 'success'
-                    ? 'bg-green-500'
-                    : 'bg-blue-500'
+                    ? 'bg-fg-success'
+                    : 'bg-fg-info'
                 }`}
                 style={{ width: `${upload.progress}%` }}
               />
@@ -78,7 +78,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
 
             {/* Error message */}
             {upload.error && (
-              <p className="text-xs text-red-300 mt-1">{upload.error}</p>
+              <p className="text-xs text-fg-error mt-1">{upload.error}</p>
             )}
           </div>
         ))}

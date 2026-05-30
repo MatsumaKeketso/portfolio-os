@@ -4,17 +4,43 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 /**
- * Button component with Framer-inspired styling
- * Provides multiple variants for different use cases across GenOS
+ * Button — canonical button primitive for GenOS.
  *
- * Color System:
- * - Primary: Red (main actions, CTAs)
- * - Secondary: White/Gray (neutral actions)
- * - Tertiary: Orange (accent actions, highlights)
- * - System: Ghost/minimal buttons for UI chrome
+ * Variant naming follows {prominence}-{tone}-{rank} for the brand/system
+ * pairs, and shorthand names for utility roles. The 2026-05-30 ui/
+ * reconciliation pass kept all variants in place for backward compatibility
+ * but marked the original `primary`/`secondary`/`tertiary`/`danger`/
+ * `success`/`menuItem`/`ghostDanger` aliases as @deprecated.
  *
- * @example Basic usage
- * <Button variant="primary" size="md">Click me</Button>
+ * Use the explicit name in new code so prominence/tone/rank is readable
+ * at the call site. See `docs/DESIGN_SYSTEM.md` §Component Primitives for
+ * the full guide.
+ *
+ * Current variant catalog:
+ *
+ * Soft prominence (translucent, thin border):
+ *  - soft-brand-primary  / soft-brand-secondary  / soft-brand-tertiary
+ *  - soft-system-primary / soft-system-secondary / soft-system-tertiary
+ *
+ * Solid prominence (filled, shadow glow):
+ *  - solid-brand-primary  / solid-brand-secondary  / solid-brand-tertiary
+ *  - solid-system-primary / solid-system-secondary / solid-system-tertiary
+ *
+ * Utility:
+ *  - ghost           — minimal UI chrome
+ *  - ghost-danger    — close/destructive icon buttons
+ *  - outline         — outlined brand button
+ *  - taskbar         — taskbar app launchers
+ *  - menu-item       — context menu rows
+ *
+ * Product Mono (use on light content surfaces):
+ *  - ink             — black-filled primary
+ *  - ink-outline     — outlined ink secondary
+ *  - ink-ghost       — ghost button on dark chrome
+ *  - content-ghost   — ghost button on light content
+ *
+ * @example Brand primary (Generative Studio red, prominent CTA)
+ * <Button variant="solid-brand-primary" size="md">Publish</Button>
  *
  * @example Window control button
  * <Button variant="ghost" size="icon"><X /></Button>
@@ -116,12 +142,19 @@ const buttonVariants = cva(
           'bg-transparent text-os-text-muted hover:bg-black/[0.05] hover:text-os-text-strong font-medium',
 
         // === LEGACY ALIASES (backward compatibility) ===
+        // @deprecated Use `soft-brand-primary` (toggle row) or `solid-brand-primary` (CTA) instead.
         primary: 'bg-os-ink-950/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 data-[active=true]:bg-primary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        // @deprecated Use `soft-brand-secondary` or `solid-brand-secondary` instead.
         secondary: 'bg-os-ink-950/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 data-[active=true]:bg-secondary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        // @deprecated Use `soft-brand-tertiary` or `solid-brand-tertiary` instead.
         tertiary: 'bg-os-ink-950/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 data-[active=true]:bg-tertiary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-tertiary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        // @deprecated Use `ghost-danger` for icon-only close actions, or compose a destructive button explicitly.
         danger: 'bg-os-ink-950/50 text-red-400/70 border border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-400 data-[active=true]:bg-red-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        // @deprecated Tie success state to the semantic `fg-success` token explicitly instead.
         success: 'bg-os-ink-950/50 text-accent-400/70 border border-accent-500/30 hover:border-accent-500/60 hover:bg-accent-500/10 hover:text-accent-400 data-[active=true]:bg-accent-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        // @deprecated Use `menu-item` (kebab-case) instead.
         menuItem: 'w-full justify-start hover:bg-os-ink-800/70 text-os-text-inverse/80 rounded-none',
+        // @deprecated Use `ghost-danger` (kebab-case) instead.
         ghostDanger: 'bg-transparent border border-transparent text-white/60 hover:bg-red-500/20 hover:text-red-300',
       },
 

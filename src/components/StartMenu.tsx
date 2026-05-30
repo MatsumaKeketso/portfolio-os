@@ -11,10 +11,10 @@ import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
-import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { ContextMenuItemDef, ContextPermission, MenuGroup, resolveAndSort } from '../lib/contextMenuRegistry';
 
-const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
-  sortAndSeparate(defs).map((item) => ({
+const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPermission[]): ContextMenuItem[] =>
+  resolveAndSort(defs, permissions).map((item) => ({
     label: item.label,
     icon: item.icon,
     onClick: item.action,
@@ -98,6 +98,14 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
     setStartMenuOpen(false);
   };
 
+  // Permissions available in the StartMenu context — 'admin' covers the
+  // superuser when Admin Mode is on; everyone gets 'visitor'.
+  const menuPermissions: ContextPermission[] = [
+    'visitor',
+    ...(isAuthenticated ? ['owner' as ContextPermission] : []),
+    ...(isAdmin && isAdminMode ? ['admin' as ContextPermission] : []),
+  ];
+
   const getAppMenuDefs = (app: App): ContextMenuItemDef[] => [
     {
       id: 'open',
@@ -137,22 +145,21 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
         });
       },
     },
-    ...(isAdmin && isAdminMode
-      ? [{
-          id: 'edit-admin',
-          label: 'Edit in Admin',
-          icon: Icons.Settings,
-          group: 'system' as MenuGroup,
-          action: () => {
-            const adminApp = apps.find(a => a.id === 'admin-panel');
-            if (adminApp) {
-              setAdminEditTarget(app.id);
-              openWindow(adminApp);
-            }
-            setStartMenuOpen(false);
-          },
-        }]
-      : []),
+    {
+      id: 'edit-admin',
+      label: 'Edit in Admin',
+      icon: Icons.Settings,
+      group: 'system' as MenuGroup,
+      requires: ['admin'],
+      action: () => {
+        const adminApp = apps.find(a => a.id === 'admin-panel');
+        if (adminApp) {
+          setAdminEditTarget(app.id);
+          openWindow(adminApp);
+        }
+        setStartMenuOpen(false);
+      },
+    },
   ];
 
   // Determine which apps to show
@@ -310,15 +317,15 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                     isAdmin
                       ? 'bg-primary-500/15 border-primary-500/35'
                       : isAuthenticated
-                        ? 'bg-emerald-500/12 border-emerald-500/30'
+                        ? 'bg-success-subtle border-stroke-success/40'
                         : 'bg-os-ink-800 border-transparent'
                   }`}>
                     <Icons.User className={`w-3 h-3 ${
-                      isAdmin ? 'text-primary-300' : isAuthenticated ? 'text-emerald-300' : 'text-white/50'
+                      isAdmin ? 'text-primary-300' : isAuthenticated ? 'text-fg-success' : 'text-white/50'
                     }`} />
                     {isAuthenticated && (
                       <span className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-background-chrome ${
-                        isAdmin ? 'bg-primary-400' : 'bg-emerald-400'
+                        isAdmin ? 'bg-primary-400' : 'bg-fg-success'
                       }`} />
                     )}
                   </div>
@@ -327,7 +334,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                       {isAdmin ? 'Keketso' : isAuthenticated ? user?.email || 'Guest' : 'Visitor'}
                     </div>
                     {isAdmin && isAdminMode ? (
-                      <div className="text-[10px] text-emerald-400">Superuser mode on</div>
+                      <div className="text-[10px] text-fg-success">Superuser mode on</div>
                     ) : (
                       <div className="text-[10px] text-white/25">
                         {role === 'guest' ? 'Guest session' : isAdmin ? 'Superuser' : 'View only'}
@@ -347,7 +354,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                     <button
                       onClick={() => setShowLogoutConfirm(true)}
                       title="Logout"
-                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-red-500/[0.12] hover:text-red-400 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-error-subtle hover:text-fg-error transition-colors"
                     >
                       <Icons.LogOut className="w-3.5 h-3.5" />
                     </button>
@@ -423,7 +430,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
               <ContextMenu
                 x={appMenu.x}
                 y={appMenu.y}
-                items={toContextMenuItems(getAppMenuDefs(appMenu.app))}
+                items={toContextMenuItems(getAppMenuDefs(appMenu.app), menuPermissions)}
                 onClose={() => setAppMenu(null)}
               />
             )}

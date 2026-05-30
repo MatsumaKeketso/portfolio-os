@@ -24,6 +24,12 @@ Article pages include previous/next navigation. The previous button is hidden on
 
 Article pages include a Discuss section powered by the existing Disqus setup. The Disqus page identifier is the article slug.
 
+The Browser home page also includes Saved Pages below Quick Links. Saved Pages are short owner-curated resource links stored in `os-site_content/browser-shortcuts`. They support name, URL, description, category, uploaded thumbnail URL/path, constrained layout preset, and creation timestamp fields. Existing shortcut records without a category are treated as `Tool`.
+
+Saved Pages are readable by visitors and editable by the superuser. The home-page section shows thumbnail cards with sticky search, category filtering, sorting, and view controls so the Browser can act as a useful discovery surface without sending visitors to a separate page.
+
+The resource shelf supports Card, List, Bento, Custom, and Grouped views. The selected shelf view is stored in `settings.viewMode` on the same Firestore document so visitors see the owner-curated layout. Custom view uses constrained per-resource layout presets (`standard`, `wide`, `tall`, `feature`, `hero`) rather than arbitrary sizing. Grouped view groups resources by category and allows the superuser to choose a per-group view through `settings.groupViews`.
+
 ## Rules & Constraints
 Visitors can read published reads.
 
@@ -50,6 +56,6 @@ If an article slug is missing from the loaded data, Browser shows a read unavail
 If images are remote URLs, the importer keeps them as-is. If images are local files, the importer can upload them when run with `--upload-images`.
 
 ## Open Questions
-Project bookmarks are undefined. The Browser has a controlled bookmark area, but the source for future project-specific bookmarks still needs to be defined.
+Project bookmarks are partly defined through Saved Pages, but future project-specific bookmark sources still need to be defined if they should be generated from project/app metadata instead of manually curated.
 
 Article moderation workflow is undefined. Current import assumes owner-curated CSV content.

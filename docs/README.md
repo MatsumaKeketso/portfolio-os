@@ -6,6 +6,15 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
 
 ### Core Documentation
 
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - **Canonical design system reference** ⭐
+  - Layered architecture (primitive tokens → CSS variables → theme presets → Tailwind utilities → primitives → apps)
+  - Full token reference (OS ink/canvas/line/text, semantic bg/fg/stroke, typography scale, interaction primitives)
+  - Component primitive inventory (what's in use, what's dead legacy)
+  - The five-step AppShell app contract
+  - Surface taxonomy (chrome / content / floating / inset / media)
+  - Visual rules, migration guide, audit of current app adoption
+  - This doc takes precedence over older planning docs for current implementation behavior
+
 - **[PROJECT_KNOWLEDGE_BASE.md](./PROJECT_KNOWLEDGE_BASE.md)** - Current documentation source of truth
   - Defines the web-based operating system portfolio intent
   - Records terminology constraints and unresolved naming decisions
@@ -63,6 +72,12 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
   - Identifies next smallest actions by section
   - Tracks future sections for Feedback and system components
 
+- **[APP_MEDIA_SYSTEM_PLAN.md](./APP_MEDIA_SYSTEM_PLAN.md)** - Media app and mini player implementation plan
+  - Defines audio, PDF, video, and image app routing from Archive
+  - Specifies Music app and floating mini player behavior
+  - Keeps the taskbar untouched while adding a separate playback surface
+  - Provides Claude-ready implementation notes and acceptance criteria
+
 - **[LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md)** - Build spec for the new OS experience
   - Defines the phased UI and IA update plan
   - Maps changes to likely source files
@@ -107,18 +122,20 @@ The following documentation files are kept in the project root for easy access:
 3. Review [CHANGELOG.md](./CHANGELOG.md) for latest features
 
 ### For Developers
-1. Read [PROJECT_KNOWLEDGE_BASE.md](./PROJECT_KNOWLEDGE_BASE.md) for documentation rules, current intent, and unresolved decisions
-2. Read [CLAUDE_HANDOFF_SYSTEM_UPDATES.md](./CLAUDE_HANDOFF_SYSTEM_UPDATES.md) for the current implementation handoff
-3. Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
+1. Read [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) **first** — it is the canonical reference for tokens, primitives, and the app contract
+2. Read [PROJECT_KNOWLEDGE_BASE.md](./PROJECT_KNOWLEDGE_BASE.md) for documentation rules, current intent, and unresolved decisions
+3. Read [CLAUDE_HANDOFF_SYSTEM_UPDATES.md](./CLAUDE_HANDOFF_SYSTEM_UPDATES.md) for the current implementation handoff
+4. Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
 4. Read [PRODUCT_DIRECTION.md](./PRODUCT_DIRECTION.md) for product architecture
 5. Read [OS_BEHAVIOR_MODEL.md](./OS_BEHAVIOR_MODEL.md) for OS-like interaction behavior
 6. Check [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) for current actioned vs pending work
-7. Use [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md) for codebase-aware sequencing
-8. Use [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md) for the implementation plan
-9. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
-10. Follow [LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md) for the target OS visual language
-11. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
-12. Review component examples in source code
+7. Use [APP_MEDIA_SYSTEM_PLAN.md](./APP_MEDIA_SYSTEM_PLAN.md) for the next app/media wave
+8. Use [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md) for codebase-aware sequencing
+9. Use [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md) for the implementation plan
+10. Study [../THEME_SYSTEM.md](../THEME_SYSTEM.md) for styling
+11. Follow [LOOK_AND_FEEL.md](./LOOK_AND_FEEL.md) for the target OS visual language
+12. Check [ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md) for admin features
+13. Review component examples in source code
 
 ### For Contributors
 1. Review [../README.md](../README.md) Contributing section
@@ -134,6 +151,7 @@ portfolio-os/
 ├── THEME_SYSTEM.md             # Theme system guide
 ├── docs/                       # Additional documentation
 │   ├── README.md              # This file
+│   ├── DESIGN_SYSTEM.md       # Canonical design system reference
 │   ├── ARCHITECTURE.md        # System architecture
 │   ├── CHANGELOG.md           # Version history
 │   ├── IMPLEMENTATION_PROGRESS.md # Current actioned vs pending tracker

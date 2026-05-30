@@ -93,7 +93,7 @@ portfolio-os/
 │   │   │   ├── TaskManager.tsx
 │   │   │   └── Weather.tsx
 │   │   ├── ui/                # Shared design-system primitives
-│   │   │   ├── surface.tsx        # Surface, ChromeSurface, ContentSurface, FloatingSurface, InsetSurface, MediaSurface
+│   │   │   ├── surface.tsx        # MediaSurface only
 │   │   │   ├── SystemRow.tsx      # SystemRow, SystemRowGroup, SystemRowDivider
 │   │   │   ├── button.tsx
 │   │   │   ├── card.tsx
@@ -389,31 +389,56 @@ interface FileItem {
 
 ## 🎨 Design System
 
-### Surface Primitives (`src/components/ui/surface.tsx`)
-- `ChromeSurface` — dark taskbar, start menu, title bars, menus, admin nav
-- `ContentSurface` — light app body for CV, Settings, File Explorer, AboutOS
-- `FloatingSurface` — dropdowns, context menus, date pickers, notification panels
-- `InsetSurface` — input wells, selected rows, nested controls
-- `MediaSurface` — image previews with optional halftone dot hover treatment
-- `SurfaceHeader`, `SurfaceContent`, `SurfaceFooter`, `SurfaceDivider`
+> Full reference: **[docs/DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** — canonical source for tokens, primitives, and the app contract. The summary below covers structure only.
 
-### System Row (`src/components/ui/SystemRow.tsx`)
-- `SystemRow` — 36–44px rows with icon, label, metadata, hover/selected state
-- `SystemRowGroup` — grouped section with optional header
-- `SystemRowDivider` — visual separator
-- Used in Start Menu, AboutOS; planned for File Explorer sidebar, Settings, Admin
+### Layered architecture
 
-### Default Theme Preset — Product Mono
-| Token | Value |
-|-------|-------|
-| `primary` (ink) | `#111111` |
-| `secondary` | `#666666` |
-| `tertiary` (canvas) | `#f5f5f3` |
-| `accent` | `#10b981` (emerald) |
-| `borderRadius` | `md` (8px) |
-| `spacing` | `compact` |
+```
+primitive grays  →  OS + semantic CSS variables  →  theme presets
+   ↓
+Tailwind utilities + os-* CSS  →  shared primitives  →  app components
+```
 
-Additional theme presets remain available: Default, Ocean Blue, Forest Green, Purple Haze, Sunset Orange, Monochrome, Cyberpunk, Star Citizen.
+Apps must source color from semantic Tailwind utilities (`bg-os-ink-*`, `text-os-text-*`, `bg-brand-solid`, etc.) rather than raw hex or palette colors.
+
+### Shared primitives (`src/components/ui/`)
+
+Currently in use:
+
+- **`AppShell.tsx`** — the canonical app layout contract: `AppShell`, `AppToolbar`, `AppBody`, `AppSidebar`, `AppContent`, `AppSection`, `AppCard`, `AppDivider`, `AppModal`, `AppStickyHeader`. Class helpers: `appInputClass`, `appSelectClass`, `appIconButtonClass`, `appSoftButtonClass`, `appTable*`.
+- **`button.tsx`** — `Button` primitive with CVA variants. Brand prominence pairs (`soft-brand-*` / `solid-brand-*`), system prominence pairs (`soft-system-*` / `solid-system-*`), utility variants (`ghost`, `outline`, `ink`, `ink-outline`, `ink-ghost`, `taskbar`, `menu-item`). Legacy aliases (`primary`, `secondary`, `tertiary`, `danger`, `success`) remain for backward compatibility.
+- **`SystemRow.tsx`** — `SystemRow`, `SystemRowGroup`, `SystemRowDivider` — shared 36–44px row pattern for Start Menu, settings sidebars, file explorer nav, admin nav.
+- **`Typography.tsx`** — canonical text primitive over the `os-type-*` utility scale. Shared shell components should use this instead of hardcoded text sizes.
+- **`control.tsx`** — `ControlInput`, `ControlSelect`, `AnchoredPanel` (icon-prefixed inputs used by Browser, Finance).
+- **`surface.tsx`** — only `MediaSurface` is exported and in active use (halftone hover for image previews). The old Aceternity-coupled surface exports were removed and should not be reintroduced.
+
+Dead/legacy (do not import):
+
+- `ui/card.tsx`, `ui/input.tsx`, non-`MediaSurface` exports of `ui/surface.tsx`. See `docs/DESIGN_SYSTEM.md` §Component Primitives.
+
+### Surface taxonomy
+
+| Role | Primitive / token |
+|---|---|
+| Chrome (taskbar, start menu, title bar, menus) | `bg-background-chrome` + `border-os-line-dark` |
+| Window body | `Window.tsx` — solid `#141414`, no blur on drag |
+| App content | `<AppShell>` / `<AppContent>` / `<AppCard>` |
+| Floating (popovers, modals, panels) | `bg-background-floating` + blur OK |
+| Inset (inputs, selected rows) | `bg-os-ink-800` |
+| Media (image previews) | `<MediaSurface halftone>` |
+
+### Default theme — Generative Studio
+
+| Channel | Value | Use |
+|---|---|---|
+| primary | `#ef4444` (red 500) | brand main, focus rings, accent |
+| secondary | `#dc2626` (red 600) | brand hover, solid backgrounds |
+| tertiary | `#f97316` (orange 500) | tertiary brand accent |
+| accent | `#fbbf24` (amber 400) | highlight/notification accent |
+
+Default border radius is `lg` (12px); spacing scale is `normal`. Product Mono (ink + emerald) is the secondary preset. Star Citizen (cyan), Ocean Blue, Forest Green, Purple Haze, Sunset Orange, Monochrome, Cyberpunk remain selectable for legacy variants.
+
+See [docs/DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) for the full token reference and migration guide.
 
 ### Typography
 - **Default**: System font stack
@@ -576,7 +601,7 @@ The `WindowManager` component dynamically loads app components based on the `com
 1. **Static Weather Data**: No API integration for real weather
 2. **No Multi-User Support**: Single-user experience; visitor uploads are not authenticated
 3. **No Mobile Optimization**: Desktop-focused experience; mobile window behavior is not yet intentionally handled
-4. **Surface Adoption Incomplete**: `ChromeSurface`/`ContentSurface` primitives exist but are not yet fully adopted across Window, ContextMenu, FileExplorer, Settings, and dialogs
+4. **Surface Adoption Incomplete**: Window, ContextMenu, FileExplorer, Settings, and dialogs still use a mix of local classes and AppShell helpers rather than one fully normalized surface API.
 5. **Context Menu Registry**: Partially wired — File Explorer uses it; Desktop, Start Menu, Taskbar, Window, and Admin still use local assembly
 
 ---
@@ -589,7 +614,7 @@ See `docs/INCREMENTAL_REFINEMENT_PLAN.md` and `docs/IMPLEMENTATION_PROGRESS.md` 
 - Finish context menu registry adoption (Desktop, Start Menu, Taskbar, Window)
 - Server/storage-side Visitor Gallery upload enforcement
 - `minSize` / `mobileBehavior` window enforcement
-- Adopt `FloatingSurface` in `ContextMenu.tsx`; `MediaSurface` in File Explorer image grid
+- Continue normalizing floating/context surfaces through AppShell helpers and keep `MediaSurface` for image/video preview grids.
 - Real App Info panel + Admin deep-link from Start Menu
 
 ### Planned

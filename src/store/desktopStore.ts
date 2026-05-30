@@ -18,6 +18,7 @@ interface SystemPreferences {
   iconSize: 'small' | 'medium' | 'large';
   windowAnimations: boolean;
   autoHideTaskbar: boolean;
+  startIconVariant: 'color' | 'white' | 'black';
 }
 
 interface PublishResult {
@@ -80,7 +81,7 @@ interface DesktopStore {
 const defaultApps: App[] = [
   {
     id: 'file-explorer',
-    name: 'File Explorer',
+    name: 'Archive',
     icon: 'folder',
     type: 'component',
     component: 'FileExplorer',
@@ -122,6 +123,21 @@ const defaultApps: App[] = [
     minSize: { width: 480, height: 360 },
     mobileBehavior: 'maximize',
     description: 'Browse the web and project links',
+  },
+  {
+    id: 'finance',
+    name: 'Finance',
+    icon: 'wallet-cards',
+    type: 'component',
+    component: 'Finance',
+    surfaceMode: 'glass',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: true,
+    desktopPosition: { x: 350, y: 50 },
+    defaultSize: { width: 880, height: 640 },
+    minSize: { width: 620, height: 440 },
+    mobileBehavior: 'maximize',
+    description: 'Quote, budget, and runway planner',
   },
   {
     id: 'settings',
@@ -192,6 +208,63 @@ const defaultApps: App[] = [
     pinnedToDesktop: false,
     defaultSize: { width: 600, height: 400 },
     description: 'Plain text editor',
+  },
+  {
+    id: 'music',
+    name: 'Music',
+    icon: 'music',
+    type: 'component',
+    component: 'Music',
+    surfaceMode: 'glass',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 420, height: 580 },
+    minSize: { width: 340, height: 480 },
+    mobileBehavior: 'maximize',
+    singleInstance: true,
+    description: 'Audio player for Archive tracks',
+  },
+  {
+    id: 'pdf-reader',
+    name: 'PDF Reader',
+    icon: 'file-type',
+    type: 'component',
+    component: 'PDFReader',
+    surfaceMode: 'glass',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 820, height: 700 },
+    minSize: { width: 480, height: 400 },
+    mobileBehavior: 'maximize',
+    description: 'PDF document viewer',
+  },
+  {
+    id: 'video-player',
+    name: 'Video Player',
+    icon: 'play-circle',
+    type: 'component',
+    component: 'VideoPlayer',
+    surfaceMode: 'glass',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 860, height: 560 },
+    minSize: { width: 480, height: 320 },
+    mobileBehavior: 'maximize',
+    description: 'Video file player',
+  },
+  {
+    id: 'image-viewer',
+    name: 'Image Viewer',
+    icon: 'image',
+    type: 'component',
+    component: 'ImageViewer',
+    surfaceMode: 'glass',
+    pinnedToTaskbar: false,
+    pinnedToDesktop: false,
+    defaultSize: { width: 900, height: 680 },
+    minSize: { width: 480, height: 360 },
+    mobileBehavior: 'maximize',
+    description: 'Image viewer with zoom and pan',
   },
   {
     id: 'weather',
@@ -311,12 +384,19 @@ const fetchAppsFromFirestore = async (): Promise<App[]> => {
   try {
     const docSnap = await getDoc(doc(db, 'os-site_content', 'apps'));
     if (docSnap.exists() && docSnap.data().data) {
-      const dbApps = docSnap.data().data as App[];
+      const dbApps = (docSnap.data().data as App[]).map((app) =>
+        app.id === 'file-explorer' && app.name === 'File Explorer'
+          ? { ...app, name: 'Archive' }
+          : app
+      );
       const missingApps = defaultApps.filter(defApp => !dbApps.some(dbApp => dbApp.id === defApp.id));
       if (missingApps.length > 0) {
         const mergedApps = [...dbApps, ...missingApps];
         if (canWrite()) await saveAppsToFirestore(mergedApps);
         return mergedApps;
+      }
+      if (canWrite() && (docSnap.data().data as App[]).some((app) => app.id === 'file-explorer' && app.name === 'File Explorer')) {
+        await saveAppsToFirestore(dbApps);
       }
       return dbApps;
     }
@@ -505,6 +585,7 @@ const defaultSystemPreferences: SystemPreferences = {
   iconSize: 'medium',
   windowAnimations: true,
   autoHideTaskbar: false,
+  startIconVariant: 'color',
 };
 
 const loadSystemPreferences = (): SystemPreferences => {
@@ -598,15 +679,31 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     }
     const windowType: WindowState['type'] = app.type === 'link' ? 'iframe' : app.type;
     set((state) => {
-    // If opening a file, check if we already have this specific file open
-    const existingWindow = fileData
-      ? state.windows.find(w => w.fileId === fileData.fileId)
-      : state.windows.find(w => w.appId === app.id && !w.fileId);
+    // Window match priority:
+    //   1. singleInstance apps reuse the existing window for that appId regardless of file
+    //   2. file-mode opens reuse any window already bound to the same fileId
+    //   3. non-file opens reuse the existing empty (no fileId) window for that appId
+    const existingWindow = app.singleInstance
+      ? state.windows.find(w => w.appId === app.id)
+      : fileData
+        ? state.windows.find(w => w.fileId === fileData.fileId)
+        : state.windows.find(w => w.appId === app.id && !w.fileId);
 
     if (existingWindow) {
       return {
         windows: state.windows.map(w =>
-          w.id === existingWindow.id ? { ...w, isMinimized: false, zIndex: state.maxZIndex + 1 } : w
+          w.id === existingWindow.id
+            ? {
+                ...w,
+                isMinimized: false,
+                zIndex: state.maxZIndex + 1,
+                // For singleInstance apps, swap in the new file binding so the
+                // title bar and `file` prop track the current item.
+                ...(app.singleInstance && fileData
+                  ? { fileId: fileData.fileId, file: fileData.file, title: fileData.title ?? w.title }
+                  : {}),
+              }
+            : w
         ),
         maxZIndex: state.maxZIndex + 1
       };

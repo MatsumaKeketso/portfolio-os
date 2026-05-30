@@ -1,15 +1,19 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { WindowState } from '../types';
 import { AppIcon } from '../lib/AppIcon';
 import { cn } from '../lib/utils';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
-import { ContextMenuItemDef, MenuGroup, sortAndSeparate } from '../lib/contextMenuRegistry';
+import { ContextMenuItemDef, ContextPermission, MenuGroup, resolveAndSort } from '../lib/contextMenuRegistry';
+import { useAuthStore } from '../store/authStore';
+import { WindowHeaderStrip } from './TaskbarStrip';
+import { WindowEdgeGlow } from './WindowEdgeGlow';
+import { Typography } from './ui/Typography';
 
-const toContextMenuItems = (defs: ContextMenuItemDef[]): ContextMenuItem[] =>
-  sortAndSeparate(defs).map((item) => ({
+const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPermission[]): ContextMenuItem[] =>
+  resolveAndSort(defs, permissions).map((item) => ({
     label: item.label,
     icon: item.icon,
     onClick: item.action,
@@ -25,8 +29,20 @@ interface WindowProps {
 }
 
 export function Window({ window, children }: WindowProps) {
+  const { isAuthenticated, isAdmin } = useAuthStore();
+  const menuPermissions: ContextPermission[] = [
+    'visitor',
+    ...(isAuthenticated ? ['owner' as ContextPermission] : []),
+    ...(isAdmin ? ['admin' as ContextPermission] : []),
+  ];
+  const outerWindowRef = useRef<HTMLDivElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const dragPreviewRef = useRef<{
+    origin: { x: number; y: number };
+    latest: { x: number; y: number };
+  } | null>(null);
+  const shouldReduceMotion = useReducedMotion();
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -110,7 +126,16 @@ export function Window({ window, children }: WindowProps) {
       if (isDragging && !window.isMaximized) {
         const newX = e.clientX - dragOffset.x;
         const newY = Math.max(0, e.clientY - dragOffset.y);
-        updateWindowPosition(window.id, { x: newX, y: newY });
+        dragPreviewRef.current = {
+          origin: dragPreviewRef.current?.origin ?? window.position,
+          latest: { x: newX, y: newY },
+        };
+
+        const deltaX = newX - dragPreviewRef.current.origin.x;
+        const deltaY = newY - dragPreviewRef.current.origin.y;
+        if (outerWindowRef.current) {
+          outerWindowRef.current.style.translate = `${deltaX}px ${deltaY}px`;
+        }
 
         // Detect snap zones
         const screenWidth = globalThis.window.innerWidth;
@@ -139,6 +164,13 @@ export function Window({ window, children }: WindowProps) {
     };
 
     const handleMouseUp = () => {
+      const dragPreview = dragPreviewRef.current;
+      if (outerWindowRef.current) {
+        outerWindowRef.current.style.translate = '';
+        outerWindowRef.current.style.willChange = '';
+      }
+      dragPreviewRef.current = null;
+
       if (isDragging && snapZone) {
         const screenWidth = globalThis.window.innerWidth;
         const screenHeight = globalThis.window.innerHeight - TASKBAR_HEIGHT;
@@ -166,6 +198,8 @@ export function Window({ window, children }: WindowProps) {
         }
 
         setSnapZone(null);
+      } else if (isDragging && dragPreview) {
+        updateWindowPosition(window.id, dragPreview.latest);
       }
 
       setIsDragging(false);
@@ -190,6 +224,13 @@ export function Window({ window, children }: WindowProps) {
           x: e.clientX - rect.left,
           y: e.clientY - rect.top
         });
+        dragPreviewRef.current = {
+          origin: window.position,
+          latest: window.position,
+        };
+        if (outerWindowRef.current) {
+          outerWindowRef.current.style.willChange = 'translate';
+        }
         setIsDragging(true);
         bringToFront(window.id);
       }
@@ -251,6 +292,10 @@ export function Window({ window, children }: WindowProps) {
 
   if (window.isMinimized) return null;
 
+  const focusedWindowId = windows
+    .filter((item) => !item.isMinimized)
+    .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null;
+  const isFocusedWindow = focusedWindowId === window.id;
   const openTaskbarWindowCount = windows.filter((w) => !w.isMinimized && !apps.some((app) => app.id === w.appId && app.pinnedToTaskbar)).length;
   const taskbarIconCount = apps.filter((app) => app.pinnedToTaskbar).length + openTaskbarWindowCount;
   const estimatedTaskbarWidth = Math.max(260, 154 + taskbarIconCount * 44);
@@ -277,6 +322,13 @@ export function Window({ window, children }: WindowProps) {
   );
   const taskbarCutoutWidth = cutoutRight - cutoutLeft;
   const cutoutHeight = viewportHeight - cutoutTop;
+  const cutoutStrokeInset = 0.5;
+  const cutoutStrokeLeft = cutoutStrokeInset;
+  const cutoutStrokeRight = Math.max(cutoutStrokeInset, viewportWidth - cutoutStrokeInset);
+  const cutoutStrokeTop = cutoutStrokeInset;
+  const cutoutStrokeBottom = Math.max(cutoutStrokeInset, viewportHeight - cutoutStrokeInset);
+  const cutoutStrokeStartX = Math.min(cutoutStrokeRight, cutoutRight + cutoutRadius);
+  const cutoutStrokeEndX = Math.max(cutoutStrokeLeft, cutoutLeft - cutoutRadius);
   const roundedCutoutPath = [
     `M 0 0`,
     `H ${viewportWidth}`,
@@ -290,6 +342,21 @@ export function Window({ window, children }: WindowProps) {
     `V ${viewportHeight - cutoutRadius}`,
     `Q ${cutoutLeft} ${viewportHeight} ${cutoutLeft - cutoutRadius} ${viewportHeight}`,
     `H 0`,
+    `Z`,
+  ].join(' ');
+  const roundedCutoutBorderPath = [
+    `M ${cutoutStrokeLeft} ${cutoutStrokeTop}`,
+    `H ${cutoutStrokeRight}`,
+    `V ${cutoutStrokeBottom}`,
+    `H ${cutoutStrokeStartX}`,
+    `Q ${cutoutRight} ${cutoutStrokeBottom} ${cutoutRight} ${viewportHeight - cutoutRadius}`,
+    `V ${cutoutTop + cutoutRadius}`,
+    `Q ${cutoutRight} ${cutoutTop} ${cutoutRight - cutoutRadius} ${cutoutTop}`,
+    `H ${cutoutLeft + cutoutRadius}`,
+    `Q ${cutoutLeft} ${cutoutTop} ${cutoutLeft} ${cutoutTop + cutoutRadius}`,
+    `V ${viewportHeight - cutoutRadius}`,
+    `Q ${cutoutLeft} ${cutoutStrokeBottom} ${cutoutStrokeEndX} ${cutoutStrokeBottom}`,
+    `H ${cutoutStrokeLeft}`,
     `Z`,
   ].join(' ');
   const isCenteredReadingWindow = window.appId === 'cv';
@@ -334,12 +401,22 @@ export function Window({ window, children }: WindowProps) {
 
   return (
     <motion.div
+      ref={outerWindowRef}
       initial={{ opacity: 0, scale: 0.95, y: 16 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 16 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        'absolute flex flex-col overflow-hidden bg-background-chrome shadow-os-window border border-os-line-dark',
+        'absolute flex flex-col overflow-hidden bg-background-chrome shadow-os-window',
+        // Persistent border — visible only when the window is focused. The
+        // transparent fallback keeps the 1px border box so the cursor-reactive
+        // glow ring stays anchored at the same inset across focus changes.
+        // Brighter than the os-line-dark token so the line actually reads.
+        showTaskbarCutout && !isCenteredReadingWindow
+          ? 'border border-transparent'
+          : isFocusedWindow
+            ? 'border border-os-line-dark-hover'
+            : 'border border-transparent',
         window.isMaximized && !isCenteredReadingWindow ? 'rounded-none' : 'rounded-lg',
       )}
       style={{
@@ -351,6 +428,22 @@ export function Window({ window, children }: WindowProps) {
       onMouseDown={() => bringToFront(window.id)}
       data-os-window="true"
     >
+      <WindowEdgeGlow
+        active={isFocusedWindow}
+        rounded={!window.isMaximized || isCenteredReadingWindow}
+        cutout={
+          showTaskbarCutout && !isCenteredReadingWindow
+            ? {
+                path: roundedCutoutBorderPath,
+                viewportWidth,
+                viewportHeight,
+                left: cutoutLeft,
+                right: cutoutRight,
+                top: cutoutTop,
+              }
+            : undefined
+        }
+      />
       <div
         ref={windowRef}
         className="flex-1 flex flex-col overflow-hidden bg-background-chrome"
@@ -361,17 +454,18 @@ export function Window({ window, children }: WindowProps) {
           onMouseDown={handleMouseDown}
           onDoubleClick={handleTitlebarDoubleClick}
           onContextMenu={handleTitleBarContextMenu}
-          className="flex items-center justify-between px-3 py-0 h-10 cursor-move select-none shrink-0 bg-background-chrome border-b border-os-line-dark"
+          className="relative flex items-center justify-between overflow-visible px-3 py-0 h-10 cursor-move select-none shrink-0 bg-background-chrome border-b border-os-line-dark"
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <WindowHeaderStrip active={isFocusedWindow} />
+          <div className="relative z-10 flex items-center gap-2 min-w-0">
             {renderIcon(window.icon, window.customIcon, 'w-[14px] h-[14px] text-white/40 flex-shrink-0')}
-            <span className="text-[13px] font-medium text-white/70 truncate leading-none">
+            <Typography as="span" variant="windowTitle" tone="inverseMuted" truncate>
               {window.title}
-            </span>
+            </Typography>
           </div>
 
           {/* Window controls */}
-          <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
+          <div className="relative z-10 flex items-center gap-0.5 flex-shrink-0 ml-2">
             <button
               onClick={() => minimizeWindow(window.id)}
               className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-os-ink-800 hover:text-white/80 transition-colors"
@@ -388,7 +482,7 @@ export function Window({ window, children }: WindowProps) {
             </button>
             <button
               onClick={() => closeWindow(window.id)}
-              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-white/40 hover:bg-error-subtle hover:text-fg-error transition-colors"
             >
               <Icons.X className="w-3.5 h-3.5" />
             </button>
@@ -397,12 +491,40 @@ export function Window({ window, children }: WindowProps) {
 
         {/* Window body */}
         <div className={cn('flex-1 overflow-hidden relative', bodyBg)}>
-          {children}
+          {surfaceMode !== 'iframe' && (
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0"
+              animate={shouldReduceMotion
+                ? { opacity: isFocusedWindow ? 0.16 : 0.05 }
+                : {
+                    opacity: isFocusedWindow ? 0.24 : 0.07,
+                    backgroundPosition: isFocusedWindow
+                      ? ['18% 8%', '82% 92%', '18% 8%']
+                      : '50% 50%',
+                  }}
+              transition={shouldReduceMotion
+                ? { duration: 0.2 }
+                : {
+                    opacity: { duration: 0.24 },
+                    backgroundPosition: { duration: 16, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+              style={{
+                backgroundImage: isFocusedWindow
+                  ? 'radial-gradient(circle at 20% 12%, rgba(var(--color-primary), 0.36), transparent 34%), radial-gradient(circle at 86% 86%, rgba(var(--color-tertiary), 0.24), transparent 38%)'
+                  : 'radial-gradient(circle at 50% 50%, rgba(var(--color-primary), 0.18), transparent 44%)',
+                backgroundSize: '145% 145%',
+              }}
+            />
+          )}
+          <div className="relative z-10 h-full">
+            {children}
+          </div>
         </div>
 
         {showTaskbarCutout && !isCenteredReadingWindow && (
           <div
-            className="pointer-events-none fixed bottom-0 z-[1] border border-b-0 border-os-line-dark bg-os-ink-950/20 shadow-[0_-18px_50px_rgba(0,0,0,0.30)]"
+            className="pointer-events-none fixed bottom-0 z-[1] bg-os-ink-950/20 shadow-[0_-18px_50px_rgba(0,0,0,0.30)]"
             style={{
               left: `${cutoutLeft}px`,
               width: `${taskbarCutoutWidth}px`,
@@ -435,7 +557,7 @@ export function Window({ window, children }: WindowProps) {
           <ContextMenu
             x={titleBarMenu.x}
             y={titleBarMenu.y}
-            items={toContextMenuItems(getTitleBarMenuDefs())}
+            items={toContextMenuItems(getTitleBarMenuDefs(), menuPermissions)}
             onClose={() => setTitleBarMenu(null)}
           />
         )}

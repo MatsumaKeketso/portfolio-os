@@ -44,19 +44,16 @@ VITE_ADMIN_PASSWORD=...
 ## Step 3: Security Rules
 
 ### Firestore Rules
-Ensure `os-site_content` collection is writable by admin and readable by all:
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /os-site_content/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-  }
-}
-```
+Use the checked-in `firestore.rules` file as the source of truth.
+
+The current model is:
+
+- `os-site_content`: public read, `admin@os.com` write.
+- `os-feedback`: public create, approved public read, superuser moderation.
+- `os-comments`: public article discussion and lightweight stats, with superuser moderation.
+- `os-gallery`: public upload records start as pending; approved items are public.
+- Non-GenOS/non-CRM collections remain available to the other apps in the same Firebase project.
 
 ### Storage Rules
 See [UPLOAD_SETUP.md](./UPLOAD_SETUP.md) for the recommended Storage rules that permit visitor uploads to the `visitor-gallery` path.
@@ -71,7 +68,7 @@ See [UPLOAD_SETUP.md](./UPLOAD_SETUP.md) for the recommended Storage rules that 
 ## Step 5: Visitor Gallery Behavior
 
 The Visitor Gallery is a special location (`VISITOR_GALLERY_ID`) that allows anyone to upload images:
-- Located at `/portfolio-files/visitor-gallery/` in Storage.
+- Located at `/visitor-gallery/` in Storage.
 - Files are marked with `isVisitorOwned: true` in the metadata.
 - Rejects non-image types (SVG, videos, etc.) for visitors.
 - Max size is enforced at 5MB.

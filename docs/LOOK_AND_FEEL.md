@@ -421,20 +421,28 @@ This preset gives the OS the black-and-white base from the reference while prese
 
 ## Typography
 
-Use the existing system font stack. The reference depends on clean proportions, not a novelty typeface.
+Use the existing system font stack. The reference depends on clean proportions, not a novelty typeface. GenOS follows an Ant Design-inspired type rhythm for enterprise readability without importing Ant Design or changing the OS identity.
 
-Recommended scale:
+System roles:
 
 ```text
-Chrome label        11px / 16px, medium, uppercase optional
-Chrome body         12px to 13px / 18px
+Display             38px / 46px, semibold
+Title 1             30px / 38px, semibold
+Title 2             24px / 32px, semibold
+Title 3             20px / 28px, semibold
+Title 4             16px / 24px, semibold
+Body                14px / 22px, regular
+Body strong         14px / 20px, semibold
+Secondary           14px / 22px, regular, muted color
+Caption             12px / 16px, regular
+Label               12px / 16px, semibold, uppercase only for metadata
 Menu item title     13px / 18px, semibold
 Menu description    12px / 16px, regular
 Window title        13px / 18px, semibold
-App body            14px / 20px
-App section title   16px / 24px, semibold
-Large value         32px to 40px, semibold
+Large value         32px / 40px, semibold
 ```
+
+Implementation classes live in `src/index.css` as `os-type-*` utilities. Shared shell components should use these roles instead of hard-coded `text-[...]`, `leading-[...]`, or `tracking-[...]` values.
 
 Rules:
 

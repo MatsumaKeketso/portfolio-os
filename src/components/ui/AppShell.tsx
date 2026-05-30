@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '../../lib/utils'
+import { Typography } from './Typography'
 
 /**
  * AppShell — layout primitives for every app window.
@@ -119,9 +120,9 @@ export const AppSection = React.forwardRef<HTMLDivElement, AppSectionProps>(
   ({ className, title, children, ...props }, ref) => (
     <div ref={ref} className={cn('flex flex-col', className)} {...props}>
       {title && (
-        <div className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 select-none">
+        <Typography as="div" variant="label" tone="inverseFaint" className="px-3 pt-4 pb-1 select-none">
           {title}
-        </div>
+        </Typography>
       )}
       {children}
     </div>
@@ -169,13 +170,23 @@ export const appTableClass =
   'overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900'
 
 export const appTableHeaderClass =
-  'grid gap-4 border-b border-os-line-dark bg-os-ink-950/70 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/40'
+  'grid gap-4 border-b border-os-line-dark bg-os-ink-950/70 px-4 py-2.5 os-type-label text-os-text-inverse/40'
 
 export const appTableBodyClass =
   'divide-y divide-os-line-dark'
 
 export const appTableRowClass =
   'os-row-hover grid gap-4 items-center px-4 py-2.5'
+
+// Settings/admin-style outer panel — same surface tone as <AppCard> but without
+// forced padding. Compose with `cn(appPanelClass, 'p-6')` at the call site.
+export const appPanelClass =
+  'bg-os-ink-900 border border-os-line-dark rounded-lg'
+
+// Settings/admin-style interior row — slightly darker tone, indicates a single
+// settings line. Compose with `cn(appRowClass, 'p-4')` at the call site.
+export const appRowClass =
+  'flex items-center gap-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg transition-colors'
 
 // ---------------------------------------------------------------------------
 // AppDivider — thin 1px separator between sections
@@ -229,12 +240,15 @@ AppModal.displayName = 'AppModal'
 
 export const AppStickyHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
+    <Typography
+      as="div"
+      variant="label"
+      tone="inverseFaint"
       ref={ref}
       className={cn(
         'sticky top-0 z-10',
         'bg-os-ink-950 border-b border-os-line-dark',
-        'text-xs font-semibold text-os-text-inverse/40 select-none',
+        'select-none',
         className
       )}
       {...props}

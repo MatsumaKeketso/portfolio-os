@@ -32,9 +32,9 @@ Users should experience:
 
 ### 0. Upload Persistence Production Blocker
 
-Status: critical unresolved issue.
+Status: verified in browser by owner; keep regression testing active.
 
-Uploaded content is not persisting.
+Uploaded content previously did not persist.
 
 Observed behavior:
 
@@ -88,14 +88,12 @@ Actioned mitigation on 2026-05-05:
 - After login, the app refetches profile, file system, apps, and backgrounds so recovered owner data can sync back to Firebase.
 - Uploads now use explicit Storage folders for `file-explorer`, `desktop-uploads`, `backgrounds`, `milestones`, and `visitor-gallery`.
 
-Still required:
+Current verification:
 
-- Browser-test the full persistence path.
-- Confirm Firestore records are created.
-- Confirm Storage files exist in the expected folders.
-- Confirm refresh restores uploaded items.
-- Confirm public/visitor pages can read approved public assets.
-- Close this blocker only after the production path is verified, not only after typecheck.
+- Owner verified background uploads persist after refresh.
+- Owner verified uploaded documents and videos persist after refresh.
+- Owner verified Visitor Gallery uploads persist for visitors.
+- Continue testing new upload surfaces against Firestore metadata and Storage paths before release.
 
 ### 1. About App
 
@@ -226,22 +224,11 @@ Do not add heavy animated backgrounds before resolving drag performance.
 
 ### 7. Taskbar Icon Configuration
 
-Status: unclear configuration path.
+Status: complete.
 
-The taskbar currently uses a square grid icon.
-
-Add or expose a clear admin/settings path to update the taskbar/start icon.
-
-Do not hardcode a new icon without also documenting where it is configured.
-
-New asset direction:
-
-- The owner added an asset folder with three logo variants: black, red, and white.
-- Locate these assets before implementation.
-- Use the appropriate logo for the taskbar/start icon and brand surfaces.
-- If the exact asset paths are unclear, document the paths once found instead of inventing names.
-
-The current start button border and active states are still visually blue and do not fully follow theme changes. Fix this so the start button uses the same brand/theme token path as the rest of the system.
+- `startIconVariant: 'color' | 'white' | 'black'` added to `SystemPreferences` in `desktopStore.ts`.
+- Settings app (System tab) exposes a 3-button picker that live-updates the start button logo.
+- Taskbar reads `systemPreferences.startIconVariant ?? 'color'` and maps it through `LOGO_VARIANTS` to the correct `src/assets/png-{color,white,black}-symbol.png`.
 
 ### 7A. Brand Theme Direction
 
@@ -402,14 +389,36 @@ Mobile milestone forms must remain usable with the on-screen keyboard.
 - What tags should be available in the milestone dropdown?
 - What maximum image size should milestone uploads use?
 
+### 10. App Media System
+
+Status: complete.
+
+Four file-viewer apps added: Music, PDFReader, VideoPlayer, ImageViewer. All registered in `desktopStore.ts` and `WindowManager.tsx`.
+
+Key implementation decisions:
+
+- **Audio engine**: `src/lib/audioEngine.ts` is a module-level singleton (not a React component). `audio.play()` is called synchronously within the user-gesture event handler in `fileRouter.ts` — this is required for browser autoplay policy compliance. A `useEffect` approach was tried and breaks autoplay.
+- **File routing**: `src/lib/fileRouter.ts` is a shared utility used by both FileExplorer and DesktopIcons so routing logic is not duplicated.
+- **MiniPlayer**: `src/components/MiniPlayer.tsx` floats at `bottom-20 right-4`, appears whenever a track is registered in `mediaStore` (even if playback fails). All controls call `audioEngine.*` directly — calling Zustand store actions directly does not move the audio element.
+- **PDF rendering**: Direct `<iframe src={file.dataUrl} />` — no fetch/blob conversion. Firebase Storage URLs serve PDFs with the correct MIME type; the browser's native PDF viewer handles rendering.
+- **No double header**: Music and PDFReader do not use `<AppToolbar>` for the title/filename — the OS Window chrome already shows this. PDFReader toolbar contains only action buttons (file size, Download, Open).
+- **Audio upload bug**: FileExplorer `handleUpload` and `handleExternalFileDrop` previously classified `audio/` MIME types as `'file'` and skipped the Firebase Storage upload, leaving `dataUrl` empty. Fixed in both handlers. Desktop drag-drop fixed too. No storage rule changes were required — `file-explorer/` is an unmanaged path that accepts any content type.
+
+### 11. Taskbar Minimized Window Restore
+
+Status: complete.
+
+Non-pinned app windows that are minimized now remain visible in the taskbar (previously they disappeared). Minimized icons show at `text-white/35` opacity with a faint underline to distinguish them from active windows. Clicking a minimized icon restores it. Context menu correctly shows "Restore" vs "Minimize" depending on state.
+
 ## Recommended Work Order
 
-1. Fix admin/user permission boundary so standard users do not trigger insufficient-permission errors.
-2. Fix background upload persistence in Firestore and Storage.
-3. Replace heavy window backdrop blur with performant solid/gradient surfaces.
-4. Add constrained About app editing for owner/system information.
-5. Expose taskbar/start icon configuration.
-6. Improve Milestones form, tag selection, and mobile layout.
-7. Populate CV app after the owner provides the CV.
-8. Tune File Explorer sitemap/sidebar color treatment.
-9. Add more engaging persisted background presets.
+1. ~~Fix admin/user permission boundary~~ — done (session 3).
+2. ~~Fix background upload persistence in Firestore and Storage~~ — verified by owner.
+3. Add constrained About app editing — blocked on correct email and Generative Studio URL (item 1).
+4. Populate CV app after owner provides the CV content (item 2).
+5. Tune File Explorer sitemap/sidebar color treatment (item 3).
+6. Improve Milestones form, tag selection, and mobile layout (item 8).
+7. Add more engaging persisted background presets (item 6 follow-on).
+8. Context menu permission filtering — `resolveMenuItems` enforcement.
+9. Token cleanup pass on legacy apps (Browser, older CV/About edit forms).
+10. `surfaceMode: 'content'` adoption for CV, AboutOS, FileExplorer, Settings.

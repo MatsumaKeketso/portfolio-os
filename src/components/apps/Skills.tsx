@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { Button } from '../ui/button';
+import { AppShell } from '../ui/AppShell';
 
 type ProficiencyLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 
@@ -45,7 +46,7 @@ export function Skills() {
       case 'Beginner':
         return 'bg-white/40';
       case 'Intermediate':
-        return 'bg-green-500';
+        return 'bg-fg-success';
       case 'Advanced':
         return 'bg-primary-500';
       case 'Expert':
@@ -89,9 +90,9 @@ export function Skills() {
   const filteredSkillsCount = filteredCategories.reduce((sum, cat) => sum + cat.skills.length, 0);
 
   return (
-    <div className="w-full h-full bg-black/50 flex flex-col">
+    <AppShell className="bg-os-ink-950/50">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-white/[0.08]">
+      <div className="px-6 py-4 border-b border-os-line-dark">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -113,7 +114,7 @@ export function Skills() {
       </div>
 
       {/* Controls */}
-      <div className="px-6 py-3 border-b border-white/[0.08] bg-white/[0.04]">
+      <div className="px-6 py-3 border-b border-os-line-dark bg-os-ink-800/40">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -124,7 +125,7 @@ export function Skills() {
                 placeholder="Search skills..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.06] border border-white/[0.08] rounded px-9 py-1.5 text-white text-sm placeholder-white/30"
+                className="w-full bg-os-ink-800/60 border border-os-line-dark rounded px-9 py-1.5 text-white text-sm placeholder-white/30"
               />
             </div>
           </div>
@@ -133,7 +134,7 @@ export function Skills() {
           <select
             value={filterProficiency}
             onChange={(e) => setFilterProficiency(e.target.value)}
-            className="bg-white/[0.06] border border-white/[0.08] rounded px-3 py-1.5 text-white text-sm"
+            className="bg-os-ink-800/60 border border-os-line-dark rounded px-3 py-1.5 text-white text-sm"
           >
             <option value="all" className="bg-black/30">All Levels</option>
             <option value="Beginner" className="bg-black/30">Beginner</option>
@@ -165,7 +166,7 @@ export function Skills() {
             {filteredCategories.map((category) => (
               <div
                 key={category.id}
-                className="bg-black/30 rounded p-6 border border-white/[0.08]"
+                className="bg-black/30 rounded p-6 border border-os-line-dark"
               >
                 {/* Category Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -180,7 +181,7 @@ export function Skills() {
                   {category.skills.map((skill, skillIndex) => (
                     <div
                       key={skillIndex}
-                      className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.08] hover:border-white/[0.16] transition-all"
+                      className="bg-os-ink-800/40 rounded-lg p-4 border border-os-line-dark hover:border-os-line-dark-hover transition-all"
                     >
                       {/* Skill Name and Stars */}
                       <div className="flex items-center justify-between mb-2">
@@ -191,7 +192,7 @@ export function Skills() {
                               key={index}
                               className={`w-4 h-4 ${
                                 index < getProficiencyStars(skill.proficiency)
-                                  ? 'text-yellow-400 fill-yellow-400'
+                                  ? 'text-fg-warning fill-current'
                                   : 'text-white/20'
                               }`}
                             />
@@ -201,7 +202,7 @@ export function Skills() {
 
                       {/* Proficiency Bar */}
                       <div className="mb-2">
-                        <div className="w-full bg-white/[0.12] rounded-full h-2 overflow-hidden">
+                        <div className="w-full bg-os-ink-700/80 rounded-full h-2 overflow-hidden">
                           <div
                             className={`h-full ${getProficiencyColor(skill.proficiency)} transition-all`}
                             style={{ width: `${getProficiencyPercentage(skill.proficiency)}%` }}
@@ -231,7 +232,7 @@ export function Skills() {
 
       {/* Stats Footer */}
       {totalSkills > 0 && (
-        <div className="px-6 py-3 border-t border-white/[0.08] bg-white/[0.04]">
+        <div className="px-6 py-3 border-t border-os-line-dark bg-os-ink-800/40">
           <div className="flex justify-center gap-8 text-sm">
             <div className="text-center">
               <div className="text-2xl font-bold text-white">{totalSkills}</div>
@@ -252,6 +253,6 @@ export function Skills() {
           </div>
         </div>
       )}
-    </div>
+    </AppShell>
   );
 }

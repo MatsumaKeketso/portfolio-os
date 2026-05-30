@@ -2,6 +2,7 @@ import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { AppShell } from '../ui/AppShell';
 
 interface WeatherData {
   temp: number;
@@ -143,7 +144,7 @@ export function Weather() {
   ];
 
   return (
-    <div className="w-full h-full overflow-hidden bg-os-ink-950 text-white">
+    <AppShell className="bg-os-ink-950 text-white">
       <div className="relative h-full overflow-y-auto">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_22%_12%,rgba(239,68,68,0.18),transparent_32%),radial-gradient(circle_at_88%_4%,rgba(255,255,255,0.10),transparent_28%),linear-gradient(150deg,#0f0f10_0%,#18181b_48%,#0b0b0c_100%)]" />
         <div className="relative min-h-full p-5 lg:p-7">
@@ -302,6 +303,6 @@ export function Weather() {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

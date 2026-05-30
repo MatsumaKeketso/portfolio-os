@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { Button } from '../ui/button';
+import { AppShell, AppBody, AppSidebar, AppContent } from '../ui/AppShell';
 
 interface HistoryEntry {
   expression: string;
@@ -171,11 +172,12 @@ export function Calculator() {
   };
 
   return (
-    <div className="w-full h-full bg-background-chrome flex text-os-text-inverse select-none">
-      {/* History Sidebar */}
-      {showHistory && (
-        <div className="w-64 border-r border-os-line-dark bg-os-ink-950 flex flex-col">
-          <div className="p-3 border-b border-os-line-dark flex items-center justify-between">
+    <AppShell className="bg-background-chrome text-os-text-inverse select-none">
+      <AppBody>
+        {/* History Sidebar */}
+        {showHistory && (
+          <AppSidebar width="w-64" className="flex flex-col">
+            <div className="p-3 border-b border-os-line-dark flex items-center justify-between">
             <h3 className="text-white font-semibold flex items-center gap-2">
               <Icons.History className="w-4 h-4" />
               History
@@ -190,43 +192,43 @@ export function Calculator() {
               Clear
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
-            {history.length === 0 ? (
-              <p className="text-white/30 text-sm text-center mt-4">No calculations yet</p>
-            ) : (
-              history.map((entry, index) => (
-                <Button
-                  key={index}
-                  onClick={() => {
-                    setDisplay(entry.result);
-                    setNewNumber(true);
-                  }}
-                  variant="ghost"
-                  className="w-full text-left p-2 h-auto justify-start mb-1"
-                >
-                  <div className="w-full">
-                    <div className="text-white/40 text-xs truncate">{entry.expression}</div>
-                    <div className="text-white font-semibold truncate">= {entry.result}</div>
-                  </div>
-                </Button>
-              ))
+            <div className="flex-1 overflow-y-auto p-2">
+              {history.length === 0 ? (
+                <p className="text-white/30 text-sm text-center mt-4">No calculations yet</p>
+              ) : (
+                history.map((entry, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => {
+                      setDisplay(entry.result);
+                      setNewNumber(true);
+                    }}
+                    variant="ghost"
+                    className="w-full text-left p-2 h-auto justify-start mb-1"
+                  >
+                    <div className="w-full">
+                      <div className="text-white/40 text-xs truncate">{entry.expression}</div>
+                      <div className="text-white font-semibold truncate">= {entry.result}</div>
+                    </div>
+                  </Button>
+                ))
+              )}
+            </div>
+          </AppSidebar>
+        )}
+
+        {/* Main Calculator */}
+        <AppContent className="p-4 flex flex-col min-h-0">
+          {/* Display */}
+          <div className="bg-os-ink-950 rounded-lg p-4 text-right border border-os-line-dark mb-3 shadow-inner">
+            <div className="text-white/40 text-sm mb-1 h-5">
+              {previousValue !== null && operation && `${previousValue} ${operation}`}
+            </div>
+            <div className="text-white text-3xl font-bold truncate">{display}</div>
+            {memory !== 0 && (
+              <div className="text-tertiary-300 text-xs mt-1">M: {memory}</div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Main Calculator */}
-      <div className="flex-1 p-4 flex flex-col min-h-0">
-        {/* Display */}
-        <div className="bg-os-ink-950 rounded-lg p-4 text-right border border-os-line-dark mb-3 shadow-inner">
-          <div className="text-white/40 text-sm mb-1 h-5">
-            {previousValue !== null && operation && `${previousValue} ${operation}`}
-          </div>
-          <div className="text-white text-3xl font-bold truncate">{display}</div>
-          {memory !== 0 && (
-            <div className="text-purple-400 text-xs mt-1">M: {memory}</div>
-          )}
-        </div>
 
         {/* Mode toggles */}
         <div className="flex gap-2 mb-3">
@@ -302,7 +304,8 @@ export function Calculator() {
           <CalcButton onClick={handleDecimal}>.</CalcButton>
           <CalcButton variant="equals" onClick={handleEquals} >=</CalcButton>
         </div>
-      </div>
-    </div>
+        </AppContent>
+      </AppBody>
+    </AppShell>
   );
 }

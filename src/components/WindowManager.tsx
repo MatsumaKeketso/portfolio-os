@@ -2,6 +2,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useState, lazy, Suspense } from 'react';
 import { ExternalLink, Github, Loader2 } from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
+import { WindowState } from '../types';
 import { Window } from './Window';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -11,12 +12,17 @@ const Notepad = lazy(() => import('./apps/Notepad').then(m => ({ default: m.Note
 const FileExplorer = lazy(() => import('./apps/FileExplorer').then(m => ({ default: m.FileExplorer })));
 const FileViewer = lazy(() => import('./apps/FileViewer').then(m => ({ default: m.FileViewer })));
 const Browser = lazy(() => import('./apps/Browser').then(m => ({ default: m.Browser })));
+const Finance = lazy(() => import('./apps/Finance').then(m => ({ default: m.Finance })));
 const Weather = lazy(() => import('./apps/Weather').then(m => ({ default: m.Weather })));
 const TaskManager = lazy(() => import('./apps/TaskManager').then(m => ({ default: m.TaskManager })));
 const CV = lazy(() => import('./apps/CV').then(m => ({ default: m.CV })));
 const AboutOS = lazy(() => import('./apps/AboutOS').then(m => ({ default: m.AboutOS })));
 const Feedback = lazy(() => import('./apps/Feedback').then(m => ({ default: m.Feedback })));
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })));
+const Music = lazy(() => import('./apps/Music').then(m => ({ default: m.Music })));
+const PDFReader = lazy(() => import('./apps/PDFReader').then(m => ({ default: m.PDFReader })));
+const VideoPlayer = lazy(() => import('./apps/VideoPlayer').then(m => ({ default: m.VideoPlayer })));
+const ImageViewer = lazy(() => import('./apps/ImageViewer').then(m => ({ default: m.ImageViewer })));
 // Legacy apps — still launchable if pinned/bookmarked, not in default app list
 const About = lazy(() => import('./apps/About').then(m => ({ default: m.About })));
 const Settings = lazy(() => import('./apps/Settings').then(m => ({ default: m.Settings })));
@@ -40,8 +46,8 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
   if (isBlockedEmbedHost) {
     return (
       <div className="w-full h-full bg-os-ink-950 text-white flex items-center justify-center p-8">
-        <div className="max-w-md rounded-2xl border border-white/[0.10] bg-white/[0.04] p-6 text-center shadow-os-card">
-          <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.10] flex items-center justify-center">
+        <div className="max-w-md rounded-2xl border border-os-line-dark-hover bg-os-ink-900 p-6 text-center shadow-os-card">
+          <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-os-ink-800 border border-os-line-dark flex items-center justify-center">
             <Github className="w-7 h-7 text-white/75" />
           </div>
           <h2 className="text-lg font-semibold text-white mb-2">{title}</h2>
@@ -73,7 +79,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
       {hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950 z-10">
           <div className="text-center p-6">
-            <p className="text-sm text-red-300 mb-2">Failed to load content</p>
+            <p className="text-sm text-fg-error mb-2">Failed to load content</p>
             <p className="text-xs text-white/40">{url}</p>
             <button
               onClick={() => {
@@ -106,7 +112,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
 export function WindowManager() {
   const { windows } = useDesktopStore();
 
-  const renderWindowContent = (window: any) => {
+  const renderWindowContent = (window: WindowState) => {
     if (window.type === 'iframe' && window.url) {
       return <IFrameContent url={window.url} title={window.title} />;
     }
@@ -122,9 +128,15 @@ export function WindowManager() {
           case 'FileExplorer':
             return <FileExplorer />;
           case 'FileViewer':
-            return <FileViewer file={window.file} />;
+            return window.file ? <FileViewer file={window.file} /> : (
+              <div className="w-full h-full flex items-center justify-center bg-os-ink-950">
+                <p className="text-white/40">No file available</p>
+              </div>
+            );
           case 'Browser':
-            return <Browser initialUrl={window.url} />;
+            return <Browser initialUrl={window.url ?? ''} />;
+          case 'Finance':
+            return <Finance />;
           case 'Weather':
             return <Weather />;
           case 'TaskManager':
@@ -137,6 +149,14 @@ export function WindowManager() {
             return <Feedback />;
           case 'AdminPanel':
             return <AdminPanel />;
+          case 'Music':
+            return <Music file={window.file} />;
+          case 'PDFReader':
+            return <PDFReader file={window.file} />;
+          case 'VideoPlayer':
+            return <VideoPlayer file={window.file} />;
+          case 'ImageViewer':
+            return <ImageViewer file={window.file} windowId={window.id} />;
           case 'About':
             return <About />;
           case 'Settings':

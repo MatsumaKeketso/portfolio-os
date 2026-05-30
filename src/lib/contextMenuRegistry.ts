@@ -48,6 +48,12 @@ export interface ContextMenuItemDef {
   hidden?: boolean;
   danger?: boolean;
   divider?: boolean;
+  /**
+   * Permissions the current user must hold for this item to be visible.
+   * Empty/undefined = available to everyone (subject to other filters).
+   * If multiple are listed, ANY of them is sufficient.
+   */
+  requires?: ContextPermission[];
   action: () => void;
 }
 
@@ -77,8 +83,13 @@ export type ContextPermission =
 
 /**
  * Resolve which menu items to show for a given context request.
- * Each surface calls this with its context ID and available actions,
- * and gets back a flat ordered list ready for <ContextMenu />.
+ *
+ * Filtering rules, in order:
+ *   1. Items marked `hidden` are dropped.
+ *   2. Items with `requires` are dropped unless the user holds at least one
+ *      of the listed permissions.
+ *   3. Danger-group items (delete, remove, uninstall) are admin/owner only —
+ *      unless the item explicitly declares `requires` covering its visibility.
  */
 export function resolveMenuItems(
   items: ContextMenuItemDef[],
@@ -89,13 +100,31 @@ export function resolveMenuItems(
 
   return items.filter((item) => {
     if (item.hidden) return false;
-    // Danger-group items (delete, remove, uninstall) are admin/owner only
+
+    if (item.requires && item.requires.length > 0) {
+      const hasRequired = item.requires.some((p) => permissions.includes(p));
+      if (!hasRequired) return false;
+      // `requires` explicitly authorizes this item; skip the implicit danger gate.
+      return true;
+    }
+
     if (item.danger && !isAdmin && !isOwner) return false;
     return true;
   }).map((item) => ({
     ...item,
     disabled: item.disabled ?? false,
   }));
+}
+
+/**
+ * Convenience helper: filter by permissions, then sort+separate by group.
+ * Most surfaces want both steps; this avoids each one calling them in turn.
+ */
+export function resolveAndSort(
+  items: ContextMenuItemDef[],
+  permissions: ContextPermission[] = ['visitor'],
+): ContextMenuItemDef[] {
+  return sortAndSeparate(resolveMenuItems(items, permissions));
 }
 
 // ---------------------------------------------------------------------------

@@ -427,6 +427,12 @@ What is actioned:
 - The CSS fallback theme now defaults to Generative Studio red/orange values instead of the old Star Citizen cyan/blue values, preventing blue flashes before the persisted theme loads.
 - Weather and Task Manager received the first app-level interaction pass: old raw white/cyan/black alpha surfaces were replaced with OS ink/line tokens, active states use brand red with readable white text, and cards/rows now respond with shared hover feedback.
 - Settings, Feedback, and AboutOS had remaining high-traffic blue/white-alpha controls replaced with token-backed borders, brand accents, and shared interaction states.
+- Fullscreen window taskbar cutout border now follows the cutout geometry with an SVG path overlay, so the border runs down, curves around the notch, and reconnects instead of being visibly cut by the clip path.
+- Taskbar now includes an ambient top-edge activity strip. It reacts to cursor proximity, clicks, window open/close events, focus changes, and then settles into a quieter idle drift. The strip uses interwoven SVG wave strokes centered on the taskbar edge, with crisp color-separated strands, localized glow accumulation near the active point, and edge blending into the taskbar border. Reduced-motion users receive a static brand line instead of the animated ambient behavior.
+- Window title bars now use a dim variant of the same luminous strip language. Active windows show stronger color, larger outward-from-center trough motion, and faster wave movement; inactive windows lose glow, become gray, and move more quietly. The header strip is clipped inside the draggable title bar and does not affect taskbar geometry.
+- Window bodies now include a subtle ambient glow layer. Focused windows get a warmer looping brand glow; unfocused windows keep a much dimmer static glow so attention stays on the active surface.
+- File Explorer is now surfaced to users as `Archive` while preserving internal `file-explorer` ids and storage paths to avoid migration risk.
+- Added `docs/APP_MEDIA_SYSTEM_PLAN.md` as the next Claude handoff for app/media work: dedicated Music, PDF Reader, Video Player/Image Viewer routing, Archive launch behavior, and a floating mini player outside the taskbar.
 
 Still pending:
 
@@ -434,5 +440,60 @@ Still pending:
 - Taskbar/start icon configuration is not exposed in Settings or Admin Panel yet.
 - Milestones still need the future V2 daily-update/content strategy, but the current UI cleanup pass is actioned.
 - App animations and transitions need a focused pass after the current surface cleanup. The new shared interaction utilities are the baseline for that pass.
+- App media handling is now actioned for the first pass. Archive routes audio, PDF, video, and image files into dedicated app surfaces, while generic `FileViewer` remains as fallback. Continue with visual polish, curated music metadata, and deeper PDF/video controls in later app-focused passes.
 - Older legacy app screens still contain raw white-alpha border classes and should be converted incrementally as each app receives its next design pass.
 - Active shell token cleanup is currently actioned for the surfaces listed above; future cleanup should focus on remaining app-specific screens such as Browser, legacy Portfolio/Skills/Resume, detailed File Explorer file-type viewers, and older CV/About edit forms.
+
+---
+
+## Design System Full-Sweep (2026-05-30 — actioned)
+
+Status: **Complete.** Raw-color debt reduced from **261 → 8** intentional brand/print exceptions across `src/components/`. Every app and every shell component now uses the documented semantic tokens.
+
+### Foundation
+
+- **`docs/DESIGN_SYSTEM.md`** written as canonical source of truth (layered architecture, token inventory, app contract, surface taxonomy, visual rules, current-app audit).
+- **`THEME_SYSTEM.md`** rewritten to point at DESIGN_SYSTEM.md and clarify that the theme layer only owns brand/preset overrides — OS ink/canvas/line/text tokens are static.
+- **`docs/ARCHITECTURE.md`** design-system section updated to reflect what's in `ui/` today (Generative Studio default, only `MediaSurface` live in `surface.tsx`, dead exports in `card.tsx`/`input.tsx` quarantined).
+- **`docs/README.md`** index + **`CLAUDE.md`** anchor on DESIGN_SYSTEM.md.
+- **`src/index.css`** semantic foreground tokens (`--color-fg-success/warning/error/info`) tuned for dark OS chrome (brighter values like `#4ade80` instead of `#16a34a`); subtle feedback bg variants moved to `rgba(…, 0.10)` chrome-friendly tints. Original "true light surface" values preserved under `.dark` for future opt-in.
+- **`tailwind.config.js`** short flat aliases added: `bg-brand-solid`, `text-fg-success`, `border-stroke-error`, `bg-success-subtle`, `bg-warning-subtle`, `bg-info-subtle`, `bg-control`, etc. — so the utility names documented in DESIGN_SYSTEM.md actually resolve.
+
+### Primitives reconciled
+
+- **`ui/surface.tsx`** slimmed to just `MediaSurface` (only live export). All unused legacy variants (`Surface`, `ChromeSurface`, `ContentSurface`, `FloatingSurface`, `InsetSurface`, `SurfaceGlow`) removed. Aceternity background imports (`AuroraBackground`, `BackgroundBeams`) severed.
+- **`ui/card.tsx`** rewritten with tokenized variants; removed Cyberpunk angled clip-path, `BorderGlow` Aceternity dep, gradient `CardIcon` glow. Added semantic `<CardBadge>` with brand/success/info/warning/error/neutral variants.
+- **`ui/input.tsx`** retokenized; stripped Aceternity/Cyberpunk wording.
+- **`ui/button.tsx`** legacy aliases (`primary`/`secondary`/`tertiary`/`danger`/`success`/`menuItem`/`ghostDanger`) marked `@deprecated` with migration paths. Documented variant catalog rewritten.
+- **`ui/AppShell.tsx`** gained `appPanelClass`, `appRowClass` exports (extracted from Settings local helpers) so any settings-like app can share the pattern.
+
+### Dead code removed
+
+- `src/components/aceternity/` folder deleted (4 components: AuroraBackground, BackgroundBeams, GridBackground, BorderGlow). Zero importers after the primitive cleanup.
+
+### App migration matrix
+
+All 21 apps now use AppShell:
+
+| App | Status | Notes |
+|---|---|---|
+| AboutOS, About, Browser, Calculator, Contact, CV, Feedback, FileExplorer, FileViewer, Finance, ImageViewer, Music, Notepad, PDFReader, Portfolio, Resume, Settings, Skills, TaskManager, VideoPlayer, Weather | ✅ | All wrapped in `<AppShell>`, all raw alpha/hex/palette violations swept to semantic tokens |
+
+8 intentional exceptions remain (documented in `docs/DESIGN_SYSTEM.md` § "Intentional brand/print exceptions"):
+- Music play button, CV Populate button, ImageViewer active fit chip — brand CTAs (correct usage per Accent rules).
+- Resume tech pills (×2) — light-blue badges intentional for printed paper output.
+- Button.tsx legacy aliases (×3) — `@deprecated`, kept for backward compat.
+
+### Shell + supporting components
+
+All 25+ shell components now use semantic feedback tokens (`fg-error`, `bg-success-subtle`, `border-stroke-warning`, etc.) for status colors:
+
+- **Phase B:** AdminPanel (22 palette → 0), Desktop (6 alpha + 1 hex → 0), DesktopIcons (already clean), Taskbar, TaskbarStrip, StartMenu, ContextMenu, Window family (Window/WindowEdgeGlow/WindowManager), CustomizationSettings.
+- **Phase C:** MiniPlayer, NotificationContainer, NotificationPanel, UploadProgress, LoginModal, ErrorBoundary, WelcomeScreen, KeyboardShortcutsHelp, PWAInstallPrompt, CalendarPopup, VolumePopup, Timeline, MilestoneCard, DesktopWidgets, ArticleComments.
+
+### Risks/leftovers
+
+- The `.dark` class is never applied in this codebase; light-mode tokens were tuned for dark chrome readability. If a real light-surface mode is ever wanted (e.g., a printable CV view), the `.dark` overrides in `src/index.css` swap to the original darker fg values designed for light backgrounds.
+- `ui/card.tsx` and `ui/input.tsx` are now token-clean but still have zero importers — apps use `<AppCard>` and `appInputClass`/`<ControlInput>` instead. Decide whether to keep them as standalone primitives or delete entirely.
+- `<Typography>` primitive is documented (DESIGN_SYSTEM.md line 111 update) but not yet adopted across legacy components; most consumers still use `os-type-*` utility classes directly.
+- A canonical `DateRangePicker` and `<Badge>` primitive remain TODO per the surface-language consistency goals.

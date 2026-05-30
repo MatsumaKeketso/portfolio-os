@@ -3,7 +3,8 @@ import * as Icons from 'lucide-react';
 import { useNotificationStore } from '../store/notificationStore';
 
 export function NotificationContainer() {
-  const { notifications, removeNotification } = useNotificationStore();
+  const { notifications, toastIds, dismissToast } = useNotificationStore();
+  const toastNotifications = notifications.filter((notification) => toastIds.includes(notification.id));
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -26,7 +27,7 @@ export function NotificationContainer() {
   return (
     <div className="fixed top-4 right-4 z-[15001] flex flex-col gap-2 pointer-events-none">
       <AnimatePresence>
-        {notifications.map((notification) => (
+        {toastNotifications.map((notification) => (
           <motion.div
             key={notification.id}
             initial={{ opacity: 0, x: 80, scale: 0.92 }}
@@ -46,7 +47,7 @@ export function NotificationContainer() {
                 </div>
               </div>
               <button
-                onClick={() => removeNotification(notification.id)}
+                onClick={() => dismissToast(notification.id)}
                 className="absolute top-2 right-2 p-1.5 hover:bg-os-ink-800 rounded transition-colors"
                 aria-label="Close notification"
               >
