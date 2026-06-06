@@ -143,7 +143,7 @@ Press `?` to view all shortcuts. Key combinations:
 
 ### State & Data
 
-- **Zustand 5.0.9** - Lightweight state management (6 stores)
+- **Zustand 5.0.9** - Lightweight state management (9 stores)
 - **Firebase ^11.10.0** - Firestore database, Authentication, Cloud Storage
 - Real-time data synchronization with debounced saves
 
@@ -200,7 +200,7 @@ In the Firebase Console:
 2. **Authentication** - Enable Email/Password provider, create `admin@os.com` user
 3. **Storage** - Create a default storage bucket
 
-All data lives in the `os-site_content` Firestore collection with documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`.
+Most data lives in the `os-site_content` Firestore collection with documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`, `reads`, `timeline`, `observatory`, `changelog`, `widgets`, `browser-shortcuts`. Feature collections `os-feedback`, `os-gallery`, `os-comments`, and `os-users` live alongside it.
 
 ### Development Server
 
@@ -253,13 +253,16 @@ portfolio-os/
 │   │   ├── StartMenu.tsx
 │   │   ├── AdminPanel.tsx
 │   │   └── 20+ other components
-│   ├── store/              # Zustand stores (6)
+│   ├── store/              # Zustand stores (9)
 │   │   ├── desktopStore.ts
 │   │   ├── authStore.ts
 │   │   ├── themeStore.ts
 │   │   ├── fileStore.ts
 │   │   ├── userStore.ts
-│   │   └── notificationStore.ts
+│   │   ├── notificationStore.ts
+│   │   ├── mediaStore.ts
+│   │   ├── timelineStore.ts
+│   │   └── observatoryStore.ts
 │   ├── theme/              # Design system
 │   │   ├── theme.ts
 │   │   ├── ThemeProvider.tsx
@@ -327,10 +330,23 @@ portfolio-os/
 - Auto-dismiss (default 5s)
 - 4 types: success, error, info, warning
 
+#### 7. **mediaStore** - Media Playback
+- Active audio track + playback state for the Music app
+- Drives the floating MiniPlayer (controls call `audioEngine` directly)
+
+#### 8. **timelineStore** - Timeline
+- Timeline entries (`os-site_content/timeline`), seed fallback, role-aware visibility filter
+- Changelog import (`importChangelogEntries` / `importChangelogFromFirestore`)
+- Superuser-gated debounced saves — see `docs/TIMELINE_SYSTEM.md`
+
+#### 9. **observatoryStore** - Observatory
+- Observatory topics (`os-site_content/observatory`) that group timeline entries
+- Topic CRUD + timeline-entry attach/detach, superuser-gated
+
 ### Data Persistence
 
 **Firebase Integration:**
-- **Firestore:** `os-site_content` collection stores all configuration (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`)
+- **Firestore:** `os-site_content` collection stores most configuration (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`, `reads`, `timeline`, `observatory`, `changelog`, `widgets`, `browser-shortcuts`); feature collections `os-feedback`, `os-gallery`, `os-comments`, `os-users` live alongside it
 - **Storage:** Firebase Cloud Storage for uploaded files (path: `portfolio-files/`)
 - **Auth:** Email/password authentication via Firebase Auth
 - **Sync:** Automatic debounced saves (500–1000ms)
@@ -408,6 +424,12 @@ GenOS includes built-in system, portfolio, and media applications:
 - Music, PDF Reader, Video Player, and Image Viewer
 - Archive routes files into purpose-built apps instead of one generic viewer
 - Music playback can continue through the floating mini player
+
+### 11. **Timeline** 🕘
+- A live, owner-curated record of progress, updates, ideas, and system evolution
+- Entry types (win, milestone, system-update, idea, research, read, …) with per-type icons and `<Badge>` tones; featured "chapter" cards on a horizontal tape
+- Surfaces Observatory topics that group related entries
+- Role-aware visibility (superuser sees drafts/private; visitors see published+public) — see [docs/TIMELINE_SYSTEM.md](./docs/TIMELINE_SYSTEM.md)
 
 ### Legacy Apps
 - Resume, Portfolio, Skills, Contact, About, and Weather may remain loadable for compatibility.

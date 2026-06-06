@@ -83,14 +83,14 @@ Tailwind utilities expose these as `bg-os-ink-950`, `border-os-line-dark`, `text
 Used by buttons, cards, surfaces, and theme presets. These **do** flip on dark mode.
 
 ```
-Surface backgrounds          Brand backgrounds (Generative Studio red)
+Surface backgrounds          Brand backgrounds (from the brand ramp)
 bg-primary    bg-secondary   bg-brand-solid    bg-brand-subtle
 bg-tertiary   bg-elevated    bg-brand-solid-hover
 bg-overlay    bg-chrome      bg-brand-solid-focus
 bg-chrome-raised             bg-brand-subtle-hover
-bg-floating
+bg-floating                  bg-brand-50 … bg-brand-2100 (ramp stops)
 
-Accent backgrounds (Orion Lime)        Feedback
+Accent (folded into brand ramp)        Feedback
 bg-accent                              bg-success / bg-success-subtle
 bg-accent-hover                        bg-error   / bg-error-subtle
 
@@ -143,13 +143,28 @@ Defined in `src/index.css @layer utilities`. These encode the OS's motion + focu
 | `os-surface-raised` | `bg-os-ink-800/0.72` + `border-os-line-dark-hover`. |
 | `halftone-hover` | Editorial dot screen on hover; used by `MediaSurface`. |
 
-### Layer 3 — Theme presets
+### Layer 3 — Theme presets (single brand color)
 
-Themes only override Layer 2 semantic tokens and the four brand color CSS vars (`--color-primary/secondary/tertiary/accent`). They do not change OS ink/canvas/line tokens.
+As of 2026-06-06 the theme is **one brand color**. A preset is a single hex; `src/lib/brandRamp.ts` generates an 11-stop OKLCH tint/shade ramp from it (`--brand-50 … --brand-2100`, plus `--brand` = the verbatim hex). Themes only set that one color — they do not change OS ink/canvas/line/text tokens. Secondary, tertiary, and accent **no longer exist** as distinct theme colors (legacy `--color-secondary/tertiary/accent` are still emitted, pointed at the brand, for backward compatibility only).
 
-The default at startup is **Generative Studio** (red `#ef4444`/`#dc2626`/`#f97316`/`#fbbf24`). Star Citizen (cyan), Product Mono (mono), and the older preset list (Ocean Blue, Forest Green, Purple Haze, Sunset Orange, Monochrome, Cyberpunk) remain selectable for legacy/visual variety. New work targets Generative Studio + Product Mono.
+The brand **semantic** tokens cascade from the ramp in `src/index.css` and should not be set per preset:
 
-**Brand color usage rules:** accent is only for focus rings, active tab/row indicators, selection marks, small badges, critical CTAs, upload progress, and inline content links. Accent must never be a default surface, page background, or repeated divider.
+| Semantic token | Ramp stop |
+|---|---|
+| `--color-fg-brand` / `fg-brand` | `--brand-300` (light, for contrast on `#111`) |
+| `--color-fg-brand-hover` | `--brand-200` |
+| `--color-bg-brand-solid` | `--brand-600` |
+| `--color-bg-brand-solid-hover` | `--brand-800` |
+| `--color-bg-brand-subtle` | `rgb(var(--brand) / 0.10)` |
+| `--color-stroke-brand` | `--brand-600` |
+| `--color-stroke-focus` | `--brand-400` |
+| `--color-bg-accent` (legacy accent) | `--brand-300` |
+
+The default at startup is **Generative Studio** (red `#ef4444`). Product Mono, Star Citizen, and the older list (Ocean Blue, Forest Green, Purple Haze, Sunset Orange, Monochrome, Cyberpunk) remain selectable — each is now just one hex.
+
+**Light mode was dropped.** `:root` is the single canonical dark palette; there is no `.dark` block. Light islands use `--os-canvas`/`--os-text-strong` directly.
+
+**Brand usage rules:** the bright brand stops (`fg-brand`/`brand-300`) are for focus rings, active tab/row indicators, selection marks, small badges, critical CTAs, upload progress, and inline content links. Brand must never be a default surface, page background, or repeated divider. Tailwind exposes the ramp as `bg-brand-600`, `text-brand-300`, `border-brand`, etc. (with `/<alpha>` support).
 
 ---
 
@@ -169,6 +184,7 @@ Everything lives in `src/components/ui/`.
 | `surface.tsx` | `MediaSurface` only (other exports are unused legacy) | FileExplorer |
 | `SplitCard.tsx` | `SplitCard`, `SplitCardStat`, `SplitCardProps` | FileExplorer grid view (the "floating island" card pattern) |
 | `Icon3D.tsx` | `Icon3D`, `Icon3DType`, `Icon3DProps`, `resolveIcon3DType` | FileExplorer grid (rotating 3D file/folder icons) |
+| `Badge.tsx` | `Badge`, `BadgeTone`, `BadgeSize`, `BadgeProps` | Timeline chips, tags, status indicators — canonical chip/tag pill |
 
 ### Dead exports (do not adopt)
 
@@ -185,6 +201,29 @@ For card-like containers use `<AppCard>` from AppShell. For inputs use `<input c
 - `DateRangePicker` (see `LOOK_AND_FEEL.md`).
 - A canonical `SettingsShell` (Settings.tsx still defines local `panelClass`/`rowClass`).
 - A canonical `MediaToolbarButton` so PDFReader/VideoPlayer/Music/ImageViewer stop styling toolbar action buttons differently.
+
+### Badge — the canonical chip/tag pill
+
+`<Badge>` from `src/components/ui/Badge.tsx` replaces the ad-hoc `<span class="…px-2 py-0.5 rounded text-fg-brand…">` chips that were drifting across apps. Single surface treatment for every tone — color only ever arrives through the leading icon or accent dot, so a wall of badges reads as a family instead of a rainbow.
+
+```tsx
+<Badge tone="brand" leading={<Icons.Flag />}>Milestone</Badge>
+<Badge tone="warning" leading={<Icons.Lock />}>Private</Badge>
+<Badge tone="neutral">design-system</Badge>
+<Badge tone="success" indicator>Saved</Badge>   {/* dot instead of icon */}
+```
+
+Tone meaning:
+- `neutral` — default. Generic tag / category / metadata.
+- `brand` — theme-bound. Tracks `--color-primary`, so a "system" badge in the Forest Green theme reads green, and red in Generative Studio. Use for tags affiliated with the system but not carrying semantic state.
+- `success` / `warning` / `error` / `info` — fixed semantic meaning. Use sparingly for actual feedback signals (saved, private, restricted, sync state).
+
+Size: `sm` (default — 10px, matches existing chip language) or `md` (11px, used for toolbar pills).
+
+Replaces (do not write new instances of these patterns — refactor to `<Badge>`):
+- `<span class="px-2 py-0.5 rounded text-fg-brand bg-brand-subtle border-stroke-brand/40">`
+- `<span class="px-2 py-0.5 rounded text-white/55 bg-os-ink-800 border-os-line-dark">`
+- Any other inline "small uppercase pill with icon".
 
 ### Display cards (SplitCard) and 3D icons (Icon3D)
 
@@ -384,9 +423,9 @@ Section labels use `os-type-label text-white/30` on chrome or `os-type-label tex
 
 ---
 
-## What Apps Use Today (Audit, 2026-05-30 — post full sweep)
+## What Apps Use Today (Audit, 2026-05-30 — post full sweep; Timeline added 2026-06-06)
 
-All 21 apps now use AppShell and source color from semantic tokens. Total raw-color debt across `src/components/`: **8 intentional brand/print exceptions**, down from 261 pre-sweep (97% reduction).
+All 22 apps now use AppShell and source color from semantic tokens. Total raw-color debt across `src/components/`: **8 intentional brand/print exceptions**, down from 261 pre-sweep (97% reduction). (The 2026-05-30 sweep covered 21 apps; Timeline shipped after, already token-clean and built on `<Badge>`.)
 
 | App | Uses AppShell | Notes |
 |---|---|---|
@@ -409,6 +448,7 @@ All 21 apps now use AppShell and source color from semantic tokens. Total raw-co
 | Settings | ✅ | AppShell + appPanelClass + appRowClass + appSelectClass |
 | Skills | ✅ | AppShell wrap — token sweep complete |
 | TaskManager | ✅ | AppShell |
+| Timeline | ✅ | AppShell + AppToolbar + `<Badge>`; horizontal tape, per-type icon/tone, Observatory topics inline (see `docs/TIMELINE_SYSTEM.md`) |
 | VideoPlayer | ✅ | AppShell + AppToolbar + appSoftButtonClass |
 | Weather | ✅ | AppShell wrap — was already token-clean |
 
@@ -538,7 +578,7 @@ This design system depends on:
 
 - Should `ui/card.tsx` and `ui/input.tsx` be deleted outright, or refactored into clean tokenized primitives so apps can finally adopt a real `Card`/`Input`? Currently apps either skip them (using `<AppCard>` / raw `<input className={appInputClass}>`) or compose locally. A real `<Card>` and `<Input>` with the right semantics would simplify legacy app migration.
 - Should `ContentSurface` survive as a real primitive (light app body with token wrappers) once `surfaceMode: 'content'` apps actually exist, or should that role just be `<AppShell>` + an opt-in `lightCanvas` flag?
-- Should brand accent state live in the theme preset object only, or also in semantic tokens? Currently both paths exist (`--color-primary` legacy + `--color-bg-brand-*` semantic). Pick one.
+- ~~Should brand accent state live in the theme preset object only, or also in semantic tokens? Currently both paths exist (`--color-primary` legacy + `--color-bg-brand-*` semantic).~~ **Resolved 2026-05-31:** semantic brand tokens (`--color-fg-brand`, `--color-bg-brand-solid`, `--color-bg-brand-subtle`, `--color-stroke-brand`) now derive from `--color-primary` via `rgb()` / `rgba()` wrappers. Theme presets only write `--color-primary` and `--color-primary-hover`; everything brand-related cascades. Do **not** hardcode brand hex in `index.css` going forward.
 - Should the remaining app-level `os-type-*` usages be migrated to `<Typography>` opportunistically as each app is touched, or should app interiors continue using utility classes where that keeps markup simpler?
-- Should there be a `<Badge>` primitive for status pills (`Live`, `Featured`, `Admin`, `Private`, `WIP`, `Coming soon`)? CV uses raw classes for these; AdminPanel does too.
+- ~~Should there be a `<Badge>` primitive for status pills?~~ **Resolved 2026-05-31:** `<Badge>` shipped at `src/components/ui/Badge.tsx`. New chips/tags/status pills must use it. CV and AdminPanel still hold raw chip spans — refactor opportunistically when each app is touched.
 - Should AppShell expose a `<SettingsShell>`/`<SettingsRow>` pair so Settings.tsx stops defining `panelClass`/`rowClass` locally?

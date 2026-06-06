@@ -67,6 +67,24 @@ export default {
           DEFAULT: 'rgb(var(--color-accent))',
         },
 
+        // Brand ramp — single-hex theme. 11 stops auto-generated from one
+        // brand color (src/lib/brandRamp.ts) + DEFAULT = verbatim brand.
+        // Space-separated channels → support `bg-brand-600/40` alpha.
+        brand: {
+          50:   'rgb(var(--brand-50) / <alpha-value>)',
+          100:  'rgb(var(--brand-100) / <alpha-value>)',
+          200:  'rgb(var(--brand-200) / <alpha-value>)',
+          300:  'rgb(var(--brand-300) / <alpha-value>)',
+          400:  'rgb(var(--brand-400) / <alpha-value>)',
+          600:  'rgb(var(--brand-600) / <alpha-value>)',
+          800:  'rgb(var(--brand-800) / <alpha-value>)',
+          1000: 'rgb(var(--brand-1000) / <alpha-value>)',
+          1300: 'rgb(var(--brand-1300) / <alpha-value>)',
+          1700: 'rgb(var(--brand-1700) / <alpha-value>)',
+          2100: 'rgb(var(--brand-2100) / <alpha-value>)',
+          DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+        },
+
         // System - Dark surfaces (Framer-inspired)
         system: {
           bg: {
@@ -333,13 +351,13 @@ export default {
         window: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         elevated: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
 
-        // Primary (Red) glow effects
-        'glow-primary': '0 0 20px rgba(239, 68, 68, 0.3)',
-        'glow-primary-hover': '0 0 30px rgba(239, 68, 68, 0.5)',
+        // Brand glow effects — theme-bound (track the brand ramp)
+        'glow-primary': '0 0 20px rgb(var(--brand) / 0.3)',
+        'glow-primary-hover': '0 0 30px rgb(var(--brand) / 0.5)',
 
-        // Tertiary (Orange) glow effects
-        'glow-tertiary': '0 0 20px rgba(249, 115, 22, 0.3)',
-        'glow-tertiary-hover': '0 0 30px rgba(249, 115, 22, 0.5)',
+        // Brand glow (alias kept for legacy `shadow-glow-tertiary` usage)
+        'glow-tertiary': '0 0 20px rgb(var(--brand) / 0.3)',
+        'glow-tertiary-hover': '0 0 30px rgb(var(--brand) / 0.5)',
 
         // Legacy color glows (for backwards compatibility)
         'glow-blue': '0 0 20px rgba(59, 130, 246, 0.5)',

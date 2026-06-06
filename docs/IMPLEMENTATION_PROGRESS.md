@@ -497,3 +497,55 @@ All 25+ shell components now use semantic feedback tokens (`fg-error`, `bg-succe
 - `ui/card.tsx` and `ui/input.tsx` are now token-clean but still have zero importers — apps use `<AppCard>` and `appInputClass`/`<ControlInput>` instead. Decide whether to keep them as standalone primitives or delete entirely.
 - `<Typography>` primitive is documented (DESIGN_SYSTEM.md line 111 update) but not yet adopted across legacy components; most consumers still use `os-type-*` utility classes directly.
 - A canonical `DateRangePicker` and `<Badge>` primitive remain TODO per the surface-language consistency goals.
+
+---
+
+## Timeline / Observatory / Changelog Subsystem (2026-06-06 — partially actioned)
+
+Status: **Data layer + read-only app complete; admin authoring UI pending.**
+
+A new content subsystem was added. Full reference: `docs/TIMELINE_SYSTEM.md`. Summary of state vs. code:
+
+What is actioned:
+
+- **Types** — `TimelineEntry`, `TimelineEntryType`, `TimelineEntryStatus`, `TimelineEntrySource`, `TimelineMedia`, `TimelineLink`, `TimelineMetric`, `ObservatoryTopic`, `ObservatoryTopicStatus`, `ChangelogEntry`, and shared `ContentVisibility` added to `src/types.ts`.
+- **Storage libraries** — `src/lib/timeline.ts`, `src/lib/observatory.ts`, `src/lib/changelog.ts` (single-document `data`-array pattern under `os-site_content/{timeline,observatory,changelog}`, mirroring Reads), plus `src/lib/timelineMedia.ts`.
+- **Stores** — `src/store/timelineStore.ts` and `src/store/observatoryStore.ts` (the 8th and 9th Zustand stores). Both guard writes with the `admin@os.com` superuser check and debounce saves; both fall back to seed data when the remote document is empty.
+- **Role-aware visibility** — `filterTimelineByVisibility` / `filterObservatoryByVisibility`: superuser sees everything; everyone else sees `public` + `published` only.
+- **Seeds** — `src/data/timelineSeed.ts`, `src/data/observatorySeed.ts`.
+- **Timeline app** — `src/components/apps/Timeline.tsx`: AppShell + `<Badge>`, horizontal "tape" with featured chapters, per-type icon/tone mapping, Observatory topics surfaced inside. Registered in `desktopStore.ts` (`id: 'timeline'`, pinned to desktop) and `WindowManager.tsx`.
+- **Boot wiring** — `Desktop.tsx` runs `loadTimeline`/`loadObservatory` as boot tasks and re-runs them after auth changes.
+- **Changelog import** — `timelineStore.importChangelogEntries` / `importChangelogFromFirestore`: idempotent mapping of changelog records to `system-update` timeline entries, deduped on `(source: 'changelog', sourceId)`.
+
+Still pending:
+
+- **Admin authoring UI** — the Admin Panel has no Timeline/Observatory/Changelog tab. Entry/topic creation, editing, and the changelog import all exist as store actions but have no UI entry point. This is the primary remaining work.
+- Decide single-document vs. per-entry Firestore storage as the working set grows.
+- Optional: auto-generate `source: 'read'` timeline entries from the Reads system.
+
+Next smallest action:
+
+Add an Admin Panel tab (or extend an existing one) that calls `timelineStore.addEntry`/`updateEntry` and `importChangelogFromFirestore`, plus `observatoryStore.addTopic`/`updateTopic`.
+
+---
+
+## Theming Overhaul — Single Brand Ramp, No Light Mode, Phosphor Icons (2026-06-06 — actioned, build-verified)
+
+Status: **Complete and build-verified** (`npm run typecheck` + `npm run build` both green).
+
+Owner direction: color theming was the most neglected area and no longer worked as intended. Decisions: one brand color (drop secondary/tertiary/accent), auto-generate a tint/shade range from a single hex, drop light mode and improve dark-mode contrast, move icons off MUI to an independent currentColor-native library.
+
+What is actioned:
+
+- **Brand ramp engine** — `src/lib/brandRamp.ts`: OKLCH single-hex → 11-stop ramp (`--brand-50…2100`) + `--brand` = the verbatim hex. Lighter stops are tints toward white, darker are shades toward black; hue/chroma preserved, chroma gently relaxed at the extremes.
+- **themeStore** — `ThemeColors` reduced to `{ primary }`. Presets are one hex each (radius/spacing/icon-style kept, independent of color). `applyThemeToDom` emits the ramp (space-separated `r g b`) plus legacy `--color-primary` (comma) and points `--color-secondary/tertiary/accent` at the brand for backward compatibility.
+- **Tokens** — `index.css` brand/accent/focus semantic tokens now derive from ramp stops (`fg-brand`→`--brand-300`, `bg-brand-solid`→`--brand-600`, `stroke-focus`→`--brand-400`, accent→brand). `tailwind.config.js` gained a `brand` color key (`bg-brand-600`, `text-brand-300`, `/<alpha>` support); `glow-*` shadows are theme-bound via `--brand`. Static `--brand-*` fallback added to `:root`.
+- **Light mode dropped** — `:root` promoted to the canonical dark palette (surfaces/controls/foregrounds/strokes); dead `.dark` block deleted. Muted foregrounds brightened (`fg-secondary` `#c4c4c4`, `fg-tertiary` `#8a8a8a`) for contrast on `#111`. The dark-on-dark bug (semantic `fg-primary` was `#171717`) is fixed.
+- **Customization UI** — single Brand Color picker + live ramp preview; preset swatches show one color; removed the 4-channel editor.
+- **Icons → Phosphor** — `src/lib/phosphorIconCatalog.tsx` (keyed by the same display names the old MUI catalog used, so saved `mui:` refs still resolve). `AppIcon` handles `ph:` and legacy `mui:`; `iconScale` source type is now `'phosphor'`; AdminPanel picker writes `ph:`. `src/lib/muiIconCatalog.tsx` deleted; `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled` uninstalled.
+
+Still pending / follow-ups:
+
+- **Bundle size:** Phosphor bundles all 6 weights per icon and `AppIcon` is in the main chunk → main chunk grew ~430 kB raw (~79 kB gzip). Consider code-splitting the catalog (lazy-load the picker; keep `AppIcon` resolving only assigned icons) in a later pass.
+- **"Smart" icon contrast vs brand background:** icons already inherit `currentColor`; an automatic light/dark icon choice based on brand-stop luminance (for icons sitting *on* a brand fill) is not yet implemented.
+- A machine-level Windows file lock corrupted `node_modules` mid-migration (vite + @types/react-dom went missing); fixed by restoring `vite@^5.4.21` in package.json and a clean reinstall. If typecheck suddenly reports missing `vite/client`/png/`react-dom/client` types, it is a broken install, not a code regression.

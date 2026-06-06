@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { muiIconCatalog, muiIconCategories } from '../lib/muiIconCatalog';
+import { phosphorIconCatalog, phosphorIconCategories } from '../lib/phosphorIconCatalog';
 import { AppIcon } from '../lib/AppIcon';
 import {
   collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, getDoc, setDoc,
@@ -441,11 +441,11 @@ export function AdminPanel() {
   const galleryPendingCount = galleryImages.filter(g => g.status === 'pending').length;
   const filteredGallery = galleryFilter === 'all' ? galleryImages : galleryImages.filter(g => g.status === galleryFilter);
 
-  // ── MUI icon filter (for the app form panel) ────────────────────────────────
-  const _allMuiNames = Object.keys(muiIconCatalog);
-  const filteredMuiIcons = (iconCategory === 'All'
-    ? _allMuiNames
-    : muiIconCategories.find(c => c.label === iconCategory)?.names ?? _allMuiNames
+  // ── Phosphor icon filter (for the app form panel) ───────────────────────────
+  const _allIconNames = Object.keys(phosphorIconCatalog);
+  const filteredIcons = (iconCategory === 'All'
+    ? _allIconNames
+    : phosphorIconCategories.find(c => c.label === iconCategory)?.names ?? _allIconNames
   ).filter(n => !iconSearch || n.toLowerCase().includes(iconSearch.toLowerCase()));
 
   // ── Stats for overview ──────────────────────────────────────────────────────
@@ -713,7 +713,7 @@ export function AdminPanel() {
                                   <button type="button" onClick={() => setIconTab('browse')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'browse' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Browse</button>
                                   <button type="button" onClick={() => setIconTab('upload')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'upload' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Upload Image</button>
                                 </div>
-                                {(formData.customIcon || (formData.icon || '').startsWith('mui:')) && (
+                                {(formData.customIcon || (formData.icon || '').startsWith('ph:') || (formData.icon || '').startsWith('mui:')) && (
                                   <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto text-[11px] text-fg-error/60 hover:text-fg-error transition-colors">Clear</button>
                                 )}
                               </div>
@@ -723,29 +723,29 @@ export function AdminPanel() {
                                   <div className="flex gap-2">
                                     <select value={iconCategory} onChange={e => setIconCategory(e.target.value)} className={cn(appSelectClass, 'px-2 py-1.5 text-xs flex-none w-32')}>
                                       <option value="All">All</option>
-                                      {muiIconCategories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
+                                      {phosphorIconCategories.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
                                     </select>
                                     <input value={iconSearch} onChange={e => setIconSearch(e.target.value)} placeholder="Search icons…" className={cn(appInputClass, 'px-2.5 py-1.5 text-xs flex-1')} />
                                   </div>
                                   <div className="grid grid-cols-8 gap-0.5 max-h-44 overflow-y-auto rounded border border-os-line-dark bg-os-ink-900 p-1.5">
-                                    {filteredMuiIcons.length === 0 && (
+                                    {filteredIcons.length === 0 && (
                                       <div className="col-span-8 py-4 text-center text-[11px] text-os-text-inverse/30">No icons match</div>
                                     )}
-                                    {filteredMuiIcons.map(name => {
-                                      const selected = formData.icon === `mui:${name}`;
+                                    {filteredIcons.map(name => {
+                                      const selected = formData.icon === `ph:${name}`;
                                       return (
                                         <button key={name} type="button" title={name}
-                                          onClick={() => setFormData({ ...formData, icon: `mui:${name}`, customIcon: undefined })}
+                                          onClick={() => setFormData({ ...formData, icon: `ph:${name}`, customIcon: undefined })}
                                           className={cn('p-1.5 rounded flex items-center justify-center transition-colors',
-                                            selected ? 'bg-primary-500/20 text-primary-400' : 'text-os-text-inverse/50 hover:bg-os-ink-800 hover:text-os-text-inverse/80'
+                                            selected ? 'bg-brand-subtle text-fg-brand' : 'text-os-text-inverse/50 hover:bg-os-ink-800 hover:text-os-text-inverse/80'
                                           )}>
-                                          <AppIcon icon={`mui:${name}`} className="h-4 w-4" />
+                                          <AppIcon icon={`ph:${name}`} className="h-4 w-4" />
                                         </button>
                                       );
                                     })}
                                   </div>
-                                  {formData.icon?.startsWith('mui:') && (
-                                    <p className="text-[10px] text-os-text-inverse/30">Selected: {formData.icon.slice(4)}</p>
+                                  {(formData.icon?.startsWith('ph:') || formData.icon?.startsWith('mui:')) && (
+                                    <p className="text-[10px] text-os-text-inverse/30">Selected: {formData.icon.slice(formData.icon.indexOf(':') + 1)}</p>
                                   )}
                                 </div>
                               )}

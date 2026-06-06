@@ -33,18 +33,22 @@
 - **Lucide React 0.344.0** - Icon library (29+ icon options)
 
 #### State Management
-- **Zustand 5.0.9** - Lightweight state management (6 stores)
+- **Zustand 5.0.9** - Lightweight state management (9 stores)
   - `desktopStore` - Window, app, background management
   - `authStore` - Firebase Auth session
   - `themeStore` - Theme presets and CSS variable injection
   - `userStore` - User profile, resume, skills, projects
   - `fileStore` - Virtual file system
   - `notificationStore` - Toast notification queue
+  - `mediaStore` - Audio/media playback state (Music app + floating MiniPlayer)
+  - `timelineStore` - Timeline entries + changelog import (see `TIMELINE_SYSTEM.md`)
+  - `observatoryStore` - Observatory topics
 
 #### Backend
 - **Firebase ^11.10.0** — Firestore (database), Authentication, Cloud Storage
   - `src/lib/firebase.ts` — exports `auth`, `db`, `storage`
-  - Firestore collection: `os-site_content` (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`)
+  - Firestore collection: `os-site_content` (documents: `profile`, `apps`, `backgrounds`, `selectedBackground`, `filesystem`, `theme`, `reads`, `timeline`, `observatory`, `changelog`, `widgets`, `browser-shortcuts`)
+  - Other Firestore collections: `os-feedback`, `os-gallery`, `os-comments`, `os-users`
   - Storage path: `portfolio-files/`
   - Env vars: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`
 
@@ -112,7 +116,10 @@ portfolio-os/
 │   │   ├── themeStore.ts      # Theme presets + CSS variable injection
 │   │   ├── userStore.ts       # User profile, CV, projects
 │   │   ├── fileStore.ts       # Virtual file system + Visitor Gallery
-│   │   └── notificationStore.ts # Toast queue
+│   │   ├── notificationStore.ts # Toast queue
+│   │   ├── mediaStore.ts      # Audio/media playback (Music + MiniPlayer)
+│   │   ├── timelineStore.ts   # Timeline entries + changelog import
+│   │   └── observatoryStore.ts # Observatory topics
 │   ├── lib/
 │   │   ├── firebase.ts            # Firebase app init (auth, db, storage)
 │   │   ├── uploadUtils.ts         # Firebase Storage upload helpers
@@ -509,9 +516,11 @@ http://localhost:5173?admin=1
 ## 💾 Data Persistence
 
 ### Firebase (primary backend)
-All backend state is persisted via Firebase. Firestore collection: `os-site_content`.
+All backend state is persisted via Firebase. Most config lives in the `os-site_content` collection as single documents; some features use their own collections.
 
-| Document | Store | Contents |
+`os-site_content` documents:
+
+| Document | Store / source | Contents |
 |----------|-------|----------|
 | `profile` | `userStore` | Name, bio, experience, skills, projects, social links |
 | `apps` | `desktopStore` | App registry |
@@ -519,6 +528,21 @@ All backend state is persisted via Firebase. Firestore collection: `os-site_cont
 | `selectedBackground` | `desktopStore` | Active background ID |
 | `filesystem` | `fileStore` | Virtual file tree |
 | `theme` | `themeStore` | Active theme settings |
+| `reads` | `lib/reads.ts` (Browser) | Reads articles (`data` array) — see `READS_SYSTEM.md` |
+| `timeline` | `timelineStore` | Timeline entries (`data` array) — see `TIMELINE_SYSTEM.md` |
+| `observatory` | `observatoryStore` | Observatory topics (`data` array) |
+| `changelog` | `lib/changelog.ts` | System-update records imported into the Timeline |
+| `widgets` | `DesktopWidgets` | Desktop widget config |
+| `browser-shortcuts` | Browser | Saved Pages / resource shelf |
+
+Other collections (not under `os-site_content`):
+
+| Collection | Source | Contents |
+|----------|-------|----------|
+| `os-feedback` | `Feedback` app / AdminPanel | Visitor feedback + moderation status |
+| `os-gallery` | `FileExplorer` / AdminPanel | Visitor Gallery image records |
+| `os-comments` | `ArticleComments` | Per-article (slug) comment threads |
+| `os-users` | `authStore` | Per-uid sign-in records (`source`, `app`, role) |
 
 Media files (images, videos) are stored in Firebase Storage under `portfolio-files/`.
 

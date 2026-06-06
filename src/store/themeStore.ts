@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { generateBrandRamp, brandLegacyChannels, BRAND_STOPS } from '../lib/brandRamp';
 
+// The OS theme is a SINGLE brand color. Everything else (focus rings, hovers,
+// subtle fills, borders) is derived from it via the brand ramp — see
+// src/lib/brandRamp.ts. Secondary/tertiary/accent were removed; legacy CSS
+// vars are still populated (pointed at the brand) for backward compatibility
+// with components that haven't migrated off `primary-*`/`accent-*` utilities.
 export interface ThemeColors {
   primary: string;
-  secondary: string;
-  tertiary: string;
-  accent: string;
 }
 
 export interface ThemeSettings {
@@ -30,75 +33,24 @@ interface ThemeState {
 }
 
 const generativeStudioTheme: ThemeSettings = {
-  colors: {
-    primary: '#ef4444',
-    secondary: '#dc2626',
-    tertiary: '#f97316',
-    accent: '#fbbf24',
-  },
+  colors: { primary: '#ef4444' },
   borderRadius: 'lg',
   spacing: 'normal',
   iconStyle: 'default',
 };
 
+// Presets are now a single brand hex each. Layout prefs (radius/spacing/icon)
+// are carried per-preset for variety but are independent of the color system.
 const presets = [
   { name: 'Generative Studio', theme: generativeStudioTheme },
-  {
-    name: 'Ocean Blue',
-    theme: {
-      colors: { primary: '#0ea5e9', secondary: '#06b6d4', tertiary: '#3b82f6', accent: '#14b8a6' },
-      borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'rounded' as const,
-    },
-  },
-  {
-    name: 'Forest Green',
-    theme: {
-      colors: { primary: '#22c55e', secondary: '#10b981', tertiary: '#84cc16', accent: '#eab308' },
-      borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'default' as const,
-    },
-  },
-  {
-    name: 'Purple Haze',
-    theme: {
-      colors: { primary: '#a855f7', secondary: '#8b5cf6', tertiary: '#d946ef', accent: '#ec4899' },
-      borderRadius: 'xl' as const, spacing: 'comfortable' as const, iconStyle: 'rounded' as const,
-    },
-  },
-  {
-    name: 'Sunset Orange',
-    theme: {
-      colors: { primary: '#f97316', secondary: '#fb923c', tertiary: '#f59e0b', accent: '#ef4444' },
-      borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'default' as const,
-    },
-  },
-  {
-    name: 'Monochrome',
-    theme: {
-      colors: { primary: '#64748b', secondary: '#6b7280', tertiary: '#78716c', accent: '#71717a' },
-      borderRadius: 'sm' as const, spacing: 'compact' as const, iconStyle: 'sharp' as const,
-    },
-  },
-  {
-    name: 'Cyberpunk',
-    theme: {
-      colors: { primary: '#06b6d4', secondary: '#ec4899', tertiary: '#a855f7', accent: '#eab308' },
-      borderRadius: 'none' as const, spacing: 'compact' as const, iconStyle: 'sharp' as const,
-    },
-  },
-  {
-    name: 'Star Citizen',
-    theme: {
-      colors: { primary: '#00d9ff', secondary: '#0066ff', tertiary: '#00e5cc', accent: '#00ffff' },
-      borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'rounded' as const,
-    },
-  },
-  {
-    name: 'Product Mono',
-    theme: {
-      colors: { primary: '#111111', secondary: '#666666', tertiary: '#f5f5f3', accent: '#10b981' },
-      borderRadius: 'md' as const, spacing: 'compact' as const, iconStyle: 'default' as const,
-    },
-  },
+  { name: 'Ocean Blue',   theme: { colors: { primary: '#0ea5e9' }, borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'rounded' as const } },
+  { name: 'Forest Green',  theme: { colors: { primary: '#22c55e' }, borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'default' as const } },
+  { name: 'Purple Haze',   theme: { colors: { primary: '#a855f7' }, borderRadius: 'xl' as const, spacing: 'comfortable' as const, iconStyle: 'rounded' as const } },
+  { name: 'Sunset Orange', theme: { colors: { primary: '#f97316' }, borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'default' as const } },
+  { name: 'Monochrome',    theme: { colors: { primary: '#64748b' }, borderRadius: 'sm' as const, spacing: 'compact' as const, iconStyle: 'sharp' as const } },
+  { name: 'Cyberpunk',     theme: { colors: { primary: '#06b6d4' }, borderRadius: 'none' as const, spacing: 'compact' as const, iconStyle: 'sharp' as const } },
+  { name: 'Star Citizen',  theme: { colors: { primary: '#00d9ff' }, borderRadius: 'lg' as const, spacing: 'normal' as const, iconStyle: 'rounded' as const } },
+  { name: 'Product Mono',  theme: { colors: { primary: '#111111' }, borderRadius: 'md' as const, spacing: 'compact' as const, iconStyle: 'default' as const } },
 ];
 
 
@@ -130,12 +82,6 @@ const saveThemeToFirestore = (theme: ThemeSettings): void => {
   }, 500);
 };
 
-const hexToRgb = (hex: string): string => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return '239, 68, 68';
-  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
-};
-
 const darkenColor = (hex: string, percent: number): string => {
   const num = parseInt(hex.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
@@ -147,14 +93,33 @@ const darkenColor = (hex: string, percent: number): string => {
 
 const applyThemeToDom = (theme: ThemeSettings): void => {
   const root = document.documentElement;
-  root.style.setProperty('--color-primary', hexToRgb(theme.colors.primary));
-  root.style.setProperty('--color-secondary', hexToRgb(theme.colors.secondary));
-  root.style.setProperty('--color-tertiary', hexToRgb(theme.colors.tertiary));
-  root.style.setProperty('--color-accent', hexToRgb(theme.colors.accent));
-  root.style.setProperty('--color-primary-hover', darkenColor(theme.colors.primary, 10));
-  root.style.setProperty('--color-secondary-hover', darkenColor(theme.colors.secondary, 10));
-  root.style.setProperty('--color-tertiary-hover', darkenColor(theme.colors.tertiary, 10));
-  root.style.setProperty('--color-accent-hover', darkenColor(theme.colors.accent, 10));
+  const brandHex = theme.colors.primary;
+
+  // ── Brand ramp (canonical) ─────────────────────────────────────────────
+  // 11 space-separated "r g b" stops + DEFAULT (verbatim brand). Consumed via
+  // `rgb(var(--brand-600) / <alpha>)` in tailwind.config.js and index.css.
+  const ramp = generateBrandRamp(brandHex);
+  for (const stop of BRAND_STOPS) {
+    root.style.setProperty(`--brand-${stop}`, ramp[stop]);
+  }
+  root.style.setProperty('--brand', ramp.DEFAULT);
+
+  // ── Legacy compatibility ───────────────────────────────────────────────
+  // `--color-primary` stays comma-separated for the legacy `primary-*`
+  // Tailwind utilities that use `rgba(var(--color-primary), 0.05)`. Secondary
+  // / tertiary / accent no longer exist as distinct theme colors; they point
+  // at the brand so any un-migrated `secondary-*`/`accent-*` usage stays
+  // on-brand instead of breaking.
+  const legacy = brandLegacyChannels(brandHex);
+  const legacyHover = darkenColor(brandHex, 10);
+  root.style.setProperty('--color-primary', legacy);
+  root.style.setProperty('--color-secondary', legacy);
+  root.style.setProperty('--color-tertiary', legacy);
+  root.style.setProperty('--color-accent', legacy);
+  root.style.setProperty('--color-primary-hover', legacyHover);
+  root.style.setProperty('--color-secondary-hover', legacyHover);
+  root.style.setProperty('--color-tertiary-hover', legacyHover);
+  root.style.setProperty('--color-accent-hover', legacyHover);
   const radiusMap = { none: '0px', sm: '0.375rem', md: '0.5rem', lg: '0.75rem', xl: '1rem' };
   root.style.setProperty('--border-radius', radiusMap[theme.borderRadius]);
   const spacingMap = { compact: '0.75', normal: '1', comfortable: '1.25' };

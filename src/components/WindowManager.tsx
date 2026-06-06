@@ -23,6 +23,7 @@ const Music = lazy(() => import('./apps/Music').then(m => ({ default: m.Music })
 const PDFReader = lazy(() => import('./apps/PDFReader').then(m => ({ default: m.PDFReader })));
 const VideoPlayer = lazy(() => import('./apps/VideoPlayer').then(m => ({ default: m.VideoPlayer })));
 const ImageViewer = lazy(() => import('./apps/ImageViewer').then(m => ({ default: m.ImageViewer })));
+const TimelineApp = lazy(() => import('./apps/Timeline').then(m => ({ default: m.Timeline })));
 // Legacy apps — still launchable if pinned/bookmarked, not in default app list
 const About = lazy(() => import('./apps/About').then(m => ({ default: m.About })));
 const Settings = lazy(() => import('./apps/Settings').then(m => ({ default: m.Settings })));
@@ -157,6 +158,8 @@ export function WindowManager() {
             return <VideoPlayer file={window.file} />;
           case 'ImageViewer':
             return <ImageViewer file={window.file} windowId={window.id} />;
+          case 'Timeline':
+            return <TimelineApp />;
           case 'About':
             return <About />;
           case 'Settings':

@@ -95,6 +95,8 @@ This knowledge base connects to:
 - [LOOK_AND_FEEL_UPDATE_SPEC.md](./LOOK_AND_FEEL_UPDATE_SPEC.md)
 - [INCREMENTAL_REFINEMENT_PLAN.md](./INCREMENTAL_REFINEMENT_PLAN.md)
 - [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+- [TIMELINE_SYSTEM.md](./TIMELINE_SYSTEM.md)
+- [READS_SYSTEM.md](./READS_SYSTEM.md)
 - [../THEME_SYSTEM.md](../THEME_SYSTEM.md)
 
 The implementation currently depends on the project codebase for actual behavior. Documentation should not claim a feature is complete unless it is visible in code or verified in the running app.

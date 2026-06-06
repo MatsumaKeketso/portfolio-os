@@ -1,5 +1,5 @@
 import * as LucideIcons from 'lucide-react';
-import { muiIconCatalog } from './muiIconCatalog';
+import { phosphorIconCatalog } from './phosphorIconCatalog';
 import { cn } from './utils';
 import { iconSizeClass, iconVisualScale, type IconSizeToken } from './iconScale';
 
@@ -33,18 +33,20 @@ export function AppIcon({ icon, customIcon, size, className, style }: AppIconPro
     );
   }
 
-  if (icon.startsWith('mui:')) {
-    const name = icon.slice(4);
-    const Icon = muiIconCatalog[name];
+  // `ph:` is the current prefix; `mui:` is kept as a back-compat alias since
+  // the Phosphor catalog is keyed by the same display names the old MUI
+  // catalog used, so previously-saved `mui:<Name>` icons still resolve.
+  if (icon.startsWith('ph:') || icon.startsWith('mui:')) {
+    const name = icon.slice(icon.indexOf(':') + 1);
+    const Icon = phosphorIconCatalog[name];
     if (Icon) {
       return (
         <span className={shellClassName} style={style}>
           <Icon
             className="block h-full w-full"
             style={{
-              fontSize: 'inherit',
               height: '100%',
-              transform: `scale(${iconVisualScale.mui})`,
+              transform: `scale(${iconVisualScale.phosphor})`,
               width: '100%',
             }}
           />

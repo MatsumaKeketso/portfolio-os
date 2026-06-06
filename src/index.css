@@ -17,6 +17,22 @@
     --border-radius: 0.75rem;
     --spacing-scale: 1;
 
+    /* Brand ramp fallback (Generative Studio red). Overwritten at runtime by
+       themeStore.applyThemeToDom() → src/lib/brandRamp.ts. Space-separated
+       channels for `rgb(var(--brand-600) / <alpha>)`. */
+    --brand-50:   254 242 242;
+    --brand-100:  254 226 226;
+    --brand-200:  254 202 202;
+    --brand-300:  252 165 165;
+    --brand-400:  248 113 113;
+    --brand-600:  239 68 68;
+    --brand-800:  220 38 38;
+    --brand-1000: 185 28 28;
+    --brand-1300: 153 27 27;
+    --brand-1700: 127 29 29;
+    --brand-2100: 69 10 10;
+    --brand:      239 68 68;
+
     /* Primitive color channels. Semantic tokens must source from these. */
     --primitive-gray-50: 250 250 250;
     --primitive-gray-100: 245 245 243;
@@ -50,26 +66,32 @@
     /* ── Semantic tokens (light mode defaults) ─────────────────────────────── */
     /* All values reference primitives from tailwind.config.js — no bare hex. */
 
-    /* Surface backgrounds */
-    --color-bg-primary:   #fafafa;   /* primitive.gray.50   */
-    --color-bg-secondary: #f5f5f3;   /* primitive.gray.100  */
-    --color-bg-tertiary:  #ebebeb;   /* primitive.gray.200  */
-    --color-bg-elevated:  #ffffff;   /* pure white for cards */
-    --color-bg-overlay:   rgba(0, 0, 0, 0.48);
+    /* Surface backgrounds — the OS renders on dark chrome only (light mode
+       was dropped). These are the canonical dark values; the genuine light
+       islands (start button, content-mode windows) use the separate --os-*
+       canvas tokens, not these. */
+    --color-bg-primary:   #111111;   /* primitive.gray.1700 */
+    --color-bg-secondary: #1a1a1a;   /* primitive.gray.1300 */
+    --color-bg-tertiary:  #2c2c2c;   /* primitive.gray.1000 */
+    --color-bg-elevated:  #1f1f1f;   /* raised card on chrome */
+    --color-bg-overlay:   rgba(0, 0, 0, 0.72);
     --color-bg-chrome: var(--primitive-gray-1700);
     --color-bg-chrome-raised: var(--primitive-gray-1300);
     --color-bg-floating: var(--primitive-gray-1300);
 
-    /* Brand backgrounds — Generative Studio red */
-    --color-bg-brand-solid:        #dc2626;  /* primitive.red.600   */
-    --color-bg-brand-solid-hover:  #b91c1c;  /* primitive.red.1000  */
-    --color-bg-brand-solid-focus:  #ef4444;  /* primitive.red.500   */
-    --color-bg-brand-subtle:       #fef2f2;  /* primitive.red.50    */
-    --color-bg-brand-subtle-hover: #fee2e2;  /* primitive.red.100   */
+    /* Brand backgrounds — derived from the single-hex brand ramp
+       (--brand-* set at runtime by themeStore → src/lib/brandRamp.ts).
+       Stops chosen for legibility on the dark OS chrome (#111). Do NOT
+       hardcode hex values here. */
+    --color-bg-brand-solid:        rgb(var(--brand-600));
+    --color-bg-brand-solid-hover:  rgb(var(--brand-800));
+    --color-bg-brand-solid-focus:  rgb(var(--brand-400));
+    --color-bg-brand-subtle:       rgb(var(--brand) / 0.10);
+    --color-bg-brand-subtle-hover: rgb(var(--brand) / 0.16);
 
-    /* Accent backgrounds (Orion Lime) */
-    --color-bg-accent:        #bef264;  /* primitive.lime.300  */
-    --color-bg-accent-hover:  #a3e635;  /* primitive.lime.400  */
+    /* Accent — folded into the brand ramp (no separate accent color). */
+    --color-bg-accent:        rgb(var(--brand-300));
+    --color-bg-accent-hover:  rgb(var(--brand-200));
 
     /* Feedback backgrounds — subtle variants tinted for dark OS chrome.
        (The original #f0fdf4 / #fef2f2 light values are preserved under `.dark`
@@ -83,28 +105,28 @@
     --color-bg-info:           #2563eb;  /* primitive.blue.600 */
     --color-bg-info-subtle:    rgba(96, 165, 250, 0.10); /* blue 400 @10% — chrome-friendly */
 
-    /* Control / interactive backgrounds */
-    --color-bg-control:          #f5f5f3;  /* primitive.gray.100  */
-    --color-bg-control-hover:    #ebebeb;  /* primitive.gray.200  */
-    --color-bg-control-active:   #d6d6d6;  /* primitive.gray.300  */
-    --color-bg-control-disabled: #f5f5f3;  /* primitive.gray.100  */
+    /* Control / interactive backgrounds (on dark chrome) */
+    --color-bg-control:          #2c2c2c;  /* primitive.gray.1000 */
+    --color-bg-control-hover:    #454545;  /* primitive.gray.800  */
+    --color-bg-control-active:   #737373;  /* primitive.gray.600  */
+    --color-bg-control-disabled: #1a1a1a;  /* primitive.gray.1300 */
 
-    /* Foreground / text */
-    --color-fg-primary:   #171717;  /* close to primitive.gray.1700 */
-    --color-fg-secondary: #666666;  /* primitive.gray.600-range     */
-    --color-fg-tertiary:  #9a9a9a;  /* primitive.gray.400-range     */
-    --color-fg-disabled:  #b8b8b8;  /* primitive.gray.400           */
+    /* Foreground / text (on dark chrome) — muted steps brightened vs the old
+       dark palette for stronger legibility against #111. */
+    --color-fg-primary:   #fafafa;  /* primitive.gray.50  — primary text */
+    --color-fg-secondary: #c4c4c4;  /* brighter than gray.400 — secondary */
+    --color-fg-tertiary:  #8a8a8a;  /* brighter than gray.600 — muted     */
+    --color-fg-disabled:  #565656;  /* dim but discernible — disabled      */
 
     /* "On" foreground — for text placed on solid colored surfaces */
     --color-fg-on-primary:   #ffffff;  /* white on brand/dark solid   */
     --color-fg-on-secondary: #111111;  /* primitive.gray.1700 on soft */
 
-    /* Brand foreground — Generative Studio red. Values tuned for the dark OS
-       chrome (#111) which is the OS's default render context. The `.dark`
-       overrides below preserve the original darker values for a future
-       opt-in light-surface mode that does not exist yet. */
-    --color-fg-brand:       #ef4444;  /* primitive.red.500 — readable on chrome */
-    --color-fg-brand-hover: #f87171;  /* primitive.red.400 — readable on chrome */
+    /* Brand foreground — uses the LIGHT end of the brand ramp so brand text
+       and icons keep strong contrast against the dark OS chrome (#111),
+       regardless of how dark the chosen brand hex is. */
+    --color-fg-brand:       rgb(var(--brand-300));
+    --color-fg-brand-hover: rgb(var(--brand-200));
 
     /* Feedback foreground — tuned for dark OS chrome (see comment above) */
     --color-fg-success: #4ade80;  /* primitive.green.400 — readable on chrome */
@@ -112,11 +134,11 @@
     --color-fg-error:   #fb7185;  /* primitive.red.400 — readable on chrome */
     --color-fg-info:    #60a5fa;  /* primitive.blue.400 — readable on chrome */
 
-    /* Stroke / border */
-    --color-stroke-primary:   #e8e8e5;  /* aligns with os-line-light   */
-    --color-stroke-secondary: #ebebeb;  /* primitive.gray.200          */
-    --color-stroke-focus:     #dc2626;  /* primitive.red.600           */
-    --color-stroke-brand:     #ef4444;  /* primitive.red.500           */
+    /* Stroke / border (on dark chrome) */
+    --color-stroke-primary:   #454545;  /* primitive.gray.800  */
+    --color-stroke-secondary: #2c2c2c;  /* primitive.gray.1000 */
+    --color-stroke-focus:     rgb(var(--brand-400));  /* brand ramp */
+    --color-stroke-brand:     rgb(var(--brand-600));  /* brand ramp */
 
     /* Feedback stroke */
     --color-stroke-success: #16a34a;  /* primitive.green.600  */
@@ -145,51 +167,10 @@
     --os-type-line-display: 2.875rem;     /* 46px */
   }
 
-  /* Dark mode overrides — apply .dark on <html> or a wrapping element */
-  .dark {
-    /* Surface backgrounds */
-    --color-bg-primary:   #111111;  /* primitive.gray.1700 */
-    --color-bg-secondary: #1a1a1a;  /* primitive.gray.1300 */
-    --color-bg-tertiary:  #2c2c2c;  /* primitive.gray.1000 */
-    --color-bg-elevated:  #1f1f1f;  /* primitive.gray.1000-range */
-    --color-bg-overlay:   rgba(0, 0, 0, 0.72);
-
-    /* Brand overrides — Generative Studio red dark mode */
-    --color-bg-brand-subtle:       #450a0a;  /* primitive.red.1700  */
-    --color-bg-brand-subtle-hover: #7f1d1d;  /* primitive.red.1300  */
-
-    /* Accent backgrounds (Orion Lime) */
-    --color-bg-accent:        #bef264;  /* primitive.lime.300  */
-    --color-bg-accent-hover:  #a3e635;  /* primitive.lime.400  */
-
-    /* Feedback backgrounds */
-    --color-bg-success:        #15803d;  /* primitive.green.1000 */
-    --color-bg-success-subtle: #14532d;  /* primitive.green.1700 */
-    --color-bg-error:          #b91c1c;  /* primitive.red.1000   */
-    --color-bg-error-subtle:   #7f1d1d;  /* primitive.red.1700   */
-
-    /* Control / interactive backgrounds */
-    --color-bg-control:          #2c2c2c;  /* primitive.gray.1000 */
-    --color-bg-control-hover:    #454545;  /* primitive.gray.800  */
-    --color-bg-control-active:   #737373;  /* primitive.gray.600  */
-    --color-bg-control-disabled: #1a1a1a;  /* primitive.gray.1300 */
-
-    /* Foreground / text */
-    --color-fg-primary:   #fafafa;  /* primitive.gray.50  */
-    --color-fg-secondary: #b8b8b8;  /* primitive.gray.400 */
-    --color-fg-tertiary:  #737373;  /* primitive.gray.600 */
-    --color-fg-disabled:  #454545;  /* primitive.gray.800 */
-
-    /* Feedback foreground */
-    --color-fg-success: #4ade80;  /* primitive.green.400  */
-    --color-fg-warning: #facc15;  /* primitive.yellow.400 */
-    --color-fg-error:   #fb7185;  /* primitive.red.400    */
-    --color-fg-info:    #60a5fa;  /* primitive.blue.400   */
-
-    /* Stroke / border */
-    --color-stroke-primary:   #454545;  /* primitive.gray.800  */
-    --color-stroke-secondary: #2c2c2c;  /* primitive.gray.1000 */
-  }
+  /* Light mode was removed — :root above is the single canonical dark
+     palette. (The old `.dark` override block is gone; do not reintroduce a
+     light/dark token split. Genuine light islands use the --os-canvas /
+     --os-text-strong tokens directly.) */
 
   /* Custom Scrollbar - Futuristic Minimal Space UI */
   * {
@@ -575,6 +556,17 @@
 }
 
 @layer utilities {
+  /* Hide native scrollbars on an element that still needs to scroll (e.g.
+     a horizontal pill row inside a toolbar). Visible focus and arrow-key
+     scrolling still work. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Halftone dot hover effect — use on project/preview imagery */
   .halftone-hover {
     position: relative;

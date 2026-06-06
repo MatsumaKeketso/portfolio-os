@@ -1,6 +1,6 @@
-# Keketso OS — Contributor Guide
+# GenOS — Contributor Guide
 
-Built by Generative Studio. This is a browser-native OS simulator, not a website with a desktop theme.
+Built by Generative Studio. This is a browser-native OS simulator, not a website with a desktop theme. ("GenOS" is the canonical name — matches the `genos` package, the boot/About copy, and genos.dev. An earlier "Keketso OS" working name was retired.)
 
 **Read this first:** [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) is the canonical reference for tokens, primitives, and the app contract. The "Surface Contract" and "Visual Rules" sections below are the short version — the full reference (token inventory, surface taxonomy, migration guide, current-app audit) lives there.
 
@@ -16,7 +16,7 @@ Current priority handoff: read `docs/CLAUDE_HANDOFF_SYSTEM_UPDATES.md` before co
 {
   id: 'my-app',
   name: 'My App',
-  icon: 'lucide-icon-name',      // kebab-case Lucide icon
+  icon: 'lucide-icon-name',      // kebab-case Lucide, or 'ph:PascalName' (Phosphor)
   type: 'component',
   component: 'MyApp',
   surfaceMode: 'glass',          // ALWAYS set this — see Surface Contract below
@@ -149,10 +149,16 @@ The older glass contract below may still describe existing code, but it is no lo
 
 ---
 
+## Theming & Icons
+
+- **Single brand color.** The theme is one hex; `src/lib/brandRamp.ts` generates an 11-stop OKLCH ramp (`--brand-50…2100` + `--brand` = the verbatim hex). Brand utilities: `bg-brand-600`, `text-brand-300`, `border-brand`, etc. No secondary/tertiary/accent (legacy `--color-secondary/tertiary/accent` still emit, pointed at brand). Set the brand in Settings → Customization; presets are one hex each in `themeStore.ts`. See `THEME_SYSTEM.md` / `docs/DESIGN_SYSTEM.md`.
+- **No light mode.** `:root` is the single dark palette; there is no `.dark` block. Brand foreground uses the light ramp end (`fg-brand` → `--brand-300`) for contrast on `#111`.
+- **Icons:** Lucide (kebab-case, primary) + Phosphor (`ph:PascalName`, via `src/lib/phosphorIconCatalog.tsx`). Render through `<AppIcon icon={…} />`. MUI/Emotion were removed — do not reintroduce `@mui/*` or `mui:` icons (legacy `mui:` refs still resolve via the Phosphor catalog's matching keys).
+
 ## State & Data
 
-- **6 Zustand stores** in `src/store/` — never create a new store for local UI state; use `useState`.
-- Apps read user data from `userStore`, files from `fileStore`, app list from `desktopStore`.
+- **9 Zustand stores** in `src/store/` (`desktopStore`, `authStore`, `themeStore`, `fileStore`, `userStore`, `notificationStore`, `mediaStore`, `timelineStore`, `observatoryStore`) — never create a new store for local UI state; use `useState`.
+- Apps read user data from `userStore`, files from `fileStore`, app list from `desktopStore`. Timeline/Observatory/Changelog content lives in `timelineStore`/`observatoryStore` — see `docs/TIMELINE_SYSTEM.md`.
 - Backend is **Firebase only** — Firestore (`db`), Storage (`storage`), Auth (`auth`) from `src/lib/firebase.ts`.
 - Never import from or reference Supabase.
 

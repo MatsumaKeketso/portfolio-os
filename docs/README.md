@@ -84,6 +84,17 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
   - Specifies Product Mono, CV tabs, project apps, Visitor Gallery, chrome restyling, system components, and OS behavior
   - Includes acceptance criteria for implementation
 
+### Feature / Subsystem Docs
+
+- **[TIMELINE_SYSTEM.md](./TIMELINE_SYSTEM.md)** - Timeline, Observatory, and Changelog subsystem
+  - Single-document Firestore storage pattern (`os-site_content/{timeline,observatory,changelog}`)
+  - Role-aware visibility model and superuser-gated writes
+  - Timeline app, seeds, boot wiring, and the idempotent changelog importer
+  - Notes the pending Admin authoring UI
+
+- **[READS_SYSTEM.md](./READS_SYSTEM.md)** - Reads (Browser articles) subsystem
+  - Database-backed articles, CSV import, tag pages, and saved-page resource shelf
+
 ### Technical References
 
 - **[ADMINPANEL_AUDIT.md](./ADMINPANEL_AUDIT.md)** - Admin panel functionality audit
@@ -162,6 +173,8 @@ portfolio-os/
 │   ├── PRODUCT_DIRECTION.md   # Product architecture
 │   ├── ADMINPANEL_AUDIT.md    # Admin panel audit
 │   ├── CLAUDE_HANDOFF_SYSTEM_UPDATES.md # Current Claude implementation handoff
+│   ├── TIMELINE_SYSTEM.md     # Timeline / Observatory / Changelog subsystem
+│   ├── READS_SYSTEM.md        # Reads (Browser articles) subsystem
 │   └── PROJECT_KNOWLEDGE_BASE.md # Documentation source of truth
 ├── firebase.json              # Firebase deploy config
 └── .firebaserc                # Firebase project aliases
@@ -209,5 +222,5 @@ For documentation questions or improvements:
 
 ---
 
-**Last Updated:** 2026-05-01
+**Last Updated:** 2026-06-06
 **Maintained by:** Keketso Matsuma

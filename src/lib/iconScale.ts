@@ -11,7 +11,7 @@ export type IconSizeToken =
   | 'preview'
   | 'hero';
 
-export type IconSourceType = 'lucide' | 'mui' | 'image';
+export type IconSourceType = 'lucide' | 'phosphor' | 'image';
 
 export const iconSizeClass: Record<IconSizeToken, string> = {
   micro: 'h-3 w-3',
@@ -29,7 +29,7 @@ export const iconSizeClass: Record<IconSizeToken, string> = {
 
 export const iconVisualScale: Record<IconSourceType, number> = {
   lucide: 0.9,
-  mui: 0.94,
+  phosphor: 0.96,
   image: 0.82,
 };
 

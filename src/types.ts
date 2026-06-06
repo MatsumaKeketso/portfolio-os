@@ -173,6 +173,25 @@ export interface TimelineEntry {
   media?: TimelineMedia[];
   links?: TimelineLink[];
   metrics?: TimelineMetric[];
+  // Editorial flag: when true, this entry is promoted as a "chapter" on the
+  // horizontal Timeline tape — rendered larger and selected as the default
+  // hero. Set explicitly by the author; not derived from type or size.
+  featured?: boolean;
+}
+
+// ChangelogEntry — system-update records that can be imported into the
+// Timeline. Stored at `os-site_content/changelog`. Mapping rules live in
+// `src/store/timelineStore.ts::importChangelogEntries`.
+export interface ChangelogEntry {
+  id: string;
+  title: string;
+  description?: string;
+  date?: number;
+  tags?: string[];
+  visibility?: ContentVisibility;
+  // Free-form fields that don't impact the importer (kept for forward-compat)
+  category?: string;
+  links?: TimelineLink[];
 }
 
 export type ObservatoryTopicStatus = 'active' | 'watching' | 'paused' | 'archived';

@@ -37,6 +37,8 @@ const toContextMenuItems = (defs: ContextMenuItemDef[], permissions: ContextPerm
 
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
+import { useTimelineStore } from '../store/timelineStore';
+import { useObservatoryStore } from '../store/observatoryStore';
 
 const MOBILE_ABOUT_ITEMS = [
   { label: 'System', value: 'GenOS' },
@@ -45,7 +47,7 @@ const MOBILE_ABOUT_ITEMS = [
   { label: 'Builder', value: 'Generative Studio' },
 ];
 
-type BootTaskId = 'auth' | 'theme' | 'profile' | 'archive' | 'apps' | 'backgrounds' | 'modules';
+type BootTaskId = 'auth' | 'theme' | 'profile' | 'archive' | 'apps' | 'backgrounds' | 'modules' | 'timeline' | 'observatory';
 type BootTaskStatus = 'pending' | 'loading' | 'done' | 'error';
 
 type BootTask = {
@@ -64,6 +66,8 @@ const BOOT_TASKS: BootTask[] = [
   { id: 'apps', label: 'Apps', detail: 'Syncing desktop entries', status: 'pending' },
   { id: 'backgrounds', label: 'Backgrounds', detail: 'Preparing surfaces', status: 'pending' },
   { id: 'modules', label: 'Modules', detail: 'Warming core apps', status: 'pending' },
+  { id: 'timeline', label: 'Timeline', detail: 'Loading recent activity', status: 'pending' },
+  { id: 'observatory', label: 'Observatory', detail: 'Indexing topics', status: 'pending' },
 ];
 
 const MIN_BOOT_DURATION_MS = 950;
@@ -371,6 +375,8 @@ export function Desktop() {
   const { fetchProfile } = useUserStore();
   const { fetchFileSystem } = useFileStore();
   const { fetchTheme } = useThemeStore();
+  const { loadTimeline } = useTimelineStore();
+  const { loadObservatory } = useObservatoryStore();
 
   useEffect(() => {
     const mediaQuery = globalThis.window.matchMedia('(max-width: 767px)');
@@ -417,6 +423,8 @@ export function Desktop() {
         runBootTask('apps', fetchApps, 'Apps ready'),
         runBootTask('backgrounds', fetchBackgrounds, 'Background ready'),
         runBootTask('modules', warmStartupModules, 'Core apps warmed'),
+        runBootTask('timeline', loadTimeline, 'Timeline ready'),
+        runBootTask('observatory', loadObservatory, 'Observatory ready'),
       ]);
 
       const elapsed = performance.now() - startedAt;
@@ -429,7 +437,7 @@ export function Desktop() {
     };
 
     boot();
-  }, [checkSession, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, fetchTheme]);
+  }, [checkSession, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, fetchTheme, loadTimeline, loadObservatory]);
 
   useEffect(() => {
     if (!hasBootstrapped || !isAuthenticated) return;
@@ -441,7 +449,11 @@ export function Desktop() {
     fetchFileSystem();
     fetchApps();
     fetchBackgrounds();
-  }, [hasBootstrapped, isAuthenticated, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds]);
+    // Refetch with role-aware visibility filter: a superuser sign-in promotes
+    // their view from public-only to full content.
+    loadTimeline();
+    loadObservatory();
+  }, [hasBootstrapped, isAuthenticated, fetchProfile, fetchFileSystem, fetchApps, fetchBackgrounds, loadTimeline, loadObservatory]);
 
   useEffect(() => {
     if (!isAdmin) setAdminMode(false);

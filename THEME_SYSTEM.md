@@ -4,13 +4,17 @@
 
 ## What the theme layer actually does
 
-The theme layer is a thin runtime override on top of the static OS design tokens. It does **not** control most of the OS surface language — chrome, canvas, line, text, and ink tokens are defined statically in `src/index.css` and are not theme-variable. The theme layer is responsible for:
+The theme layer is a thin runtime override on top of the static OS design tokens. It does **not** control most of the OS surface language — chrome, canvas, line, text, and ink tokens are defined statically in `src/index.css` and are not theme-variable. As of 2026-06-06 the theme is a **single brand color**: there is no secondary/tertiary/accent and no light mode. The theme layer is responsible for:
 
-1. The four brand color channels (`primary`, `secondary`, `tertiary`, `accent`) that flow through the brand semantic tokens.
-2. The few semantic tokens that should shift with a preset (`bg-brand-solid`, `fg-brand`, `stroke-brand`, etc.).
+1. **One brand color** (`primary`). From that single hex, `src/lib/brandRamp.ts` generates an 11-stop tint/shade ramp (`--brand-50 … --brand-2100` + `--brand` = the verbatim hex) in OKLCH. Every brand-related decision (focus, hover, subtle fill, border, glow) derives from a ramp stop.
+2. The brand semantic tokens that resolve to ramp stops (`bg-brand-solid` → `--brand-600`, `fg-brand` → `--brand-300`, `stroke-brand` → `--brand-600`, `stroke-focus` → `--brand-400`, accent → brand).
 3. Border radius, spacing density, and icon style global preferences.
 
-If you want to change a surface color, a border treatment, or a text tone for every theme, do it in `src/index.css` or `tailwind.config.js`, not in a theme preset. Presets exist so visitors can pick a brand palette without us shipping nine different design systems.
+Secondary/tertiary/accent were removed from the theme model. The legacy `--color-secondary/tertiary/accent` CSS vars are still emitted (pointed at the brand) so any un-migrated `secondary-*`/`accent-*` utility stays on-brand instead of breaking, but they are not distinct colors anymore.
+
+**Light mode was dropped.** `:root` in `src/index.css` is now the single canonical dark palette; the old `.dark` override block is gone. Genuine light islands (the start button, content-mode windows) use the separate `--os-canvas` / `--os-text-strong` tokens directly — not a light/dark theme switch.
+
+If you want to change a surface color, a border treatment, or a text tone, do it in `src/index.css` or `tailwind.config.js`, not in a theme preset. Presets exist so visitors can pick a brand hex without us shipping multiple design systems.
 
 ## Architecture
 
@@ -27,34 +31,31 @@ src/
 
 ## Default theme
 
-The default preset is **Generative Studio** — red brand colors (`#ef4444`, `#dc2626`, `#f97316`, `#fbbf24`). It is the first entry in the preset list and the fallback both at startup and when CSS variables haven't loaded yet.
+The default preset is **Generative Studio** — brand red `#ef4444`. It is the first entry in the preset list and the fallback both at startup and when CSS variables haven't loaded yet. (A preset is now just one hex; the ramp does the rest.)
 
 Earlier docs described Star Citizen cyan as the default. That changed in session 3 (2026-05-05). Anywhere a doc shows `#667eea` blue, `glass.dark`, or a "blue → purple gradient" — that is legacy. The current direction uses Generative Studio red routed through `--color-bg-brand-*` and `--color-fg-brand` semantic tokens.
 
 ## Available presets
 
-| Preset | Primary | Use case |
+| Preset | Brand hex | Use case |
 |---|---|---|
 | **Generative Studio** (default) | red `#ef4444` | the brand default |
-| **Product Mono** | ink `#111111` + emerald accent | clean dashboard tone |
+| **Product Mono** | ink `#111111` | clean mono tone |
 | **Star Citizen** | cyan `#00d9ff` | legacy/sci-fi look |
-| **Ocean Blue / Forest Green / Purple Haze / Sunset Orange / Monochrome / Cyberpunk** | varied | legacy color variants |
+| **Ocean Blue / Forest Green / Purple Haze / Sunset Orange / Monochrome / Cyberpunk** | one hex each | legacy color variants |
 
-All presets live in `src/store/themeStore.ts`. Adding a new preset means adding an entry to the preset list — do not introduce a new component variant per theme.
+Each preset is now a single brand hex (plus the independent radius/spacing/icon-style prefs). All presets live in `src/store/themeStore.ts`. Adding a preset means adding `{ name, theme: { colors: { primary } } }` — do not introduce a new component variant per theme.
 
-## CSS variables a preset can override
+## How a preset applies
 
-A preset is expected to set:
+`themeStore.applyThemeToDom()` takes the one brand hex and:
 
-```css
---color-primary: R, G, B            /* brand main */
---color-secondary: R, G, B
---color-tertiary: R, G, B
---color-accent: R, G, B
---color-primary-hover: R, G, B      /* derived ~10% darker */
+```
+generateBrandRamp(hex) →  --brand-50 … --brand-2100  (space-separated "r g b")
+                          --brand                     (verbatim hex)
 ```
 
-Plus the brand semantic tokens (in dark mode the preset may also adjust `--color-bg-brand-subtle*` and `--color-bg-brand-solid-focus`).
+It also emits legacy `--color-primary` (comma `R, G, B`) and points `--color-secondary/tertiary/accent` at the same brand value for backward compatibility. The brand **semantic** tokens (`--color-bg-brand-*`, `--color-fg-brand`, `--color-stroke-brand`, `--color-stroke-focus`, accent) are wired in `src/index.css` to ramp stops and do **not** need to be set per preset — they cascade from `--brand-*`.
 
 A preset **must not** override:
 - `--os-ink-*`, `--os-canvas`, `--os-canvas-*`, `--os-line-*`, `--os-text-*` — these are the static OS surface system.

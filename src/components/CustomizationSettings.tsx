@@ -308,56 +308,69 @@ export function CustomizationSettings({ isOpen, onClose }: CustomizationSettings
                         Theme Presets
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {presets.map((preset) => (
-                          <Button
-                            key={preset.name}
-                            onClick={() => applyPreset(preset.name)}
-                            variant="soft-system-primary"
-                            className="p-4 h-auto hover:scale-105"
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <div
-                                className="w-6 h-6 rounded-full"
-                                style={{ backgroundColor: preset.theme.colors.primary }}
-                              />
-                              <div
-                                className="w-6 h-6 rounded-full"
-                                style={{ backgroundColor: preset.theme.colors.secondary }}
-                              />
-                              <div
-                                className="w-6 h-6 rounded-full"
-                                style={{ backgroundColor: preset.theme.colors.tertiary }}
-                              />
-                            </div>
-                            <div className="text-white font-semibold text-sm">{preset.name}</div>
-                          </Button>
-                        ))}
+                        {presets.map((preset) => {
+                          const isActive = theme.colors.primary === preset.theme.colors.primary;
+                          return (
+                            <Button
+                              key={preset.name}
+                              onClick={() => applyPreset(preset.name)}
+                              variant={isActive ? 'solid-brand-primary' : 'soft-system-primary'}
+                              className="p-4 h-auto hover:scale-105"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <div
+                                  className="w-6 h-6 rounded-full ring-1 ring-white/15"
+                                  style={{ backgroundColor: preset.theme.colors.primary }}
+                                />
+                                <div
+                                  className="w-6 h-6 rounded-full ring-1 ring-white/10 opacity-70"
+                                  style={{ backgroundColor: preset.theme.colors.primary, filter: 'brightness(1.4)' }}
+                                />
+                                <div
+                                  className="w-6 h-6 rounded-full ring-1 ring-white/10 opacity-70"
+                                  style={{ backgroundColor: preset.theme.colors.primary, filter: 'brightness(0.6)' }}
+                                />
+                              </div>
+                              <div className="text-white font-semibold text-sm">{preset.name}</div>
+                            </Button>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Color Customization */}
+                    {/* Brand Color — single hex drives the whole ramp */}
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                         <Icons.Palette className="w-5 h-5 text-primary-400" />
-                        Custom Colors
+                        Brand Color
                       </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        {(['primary', 'secondary', 'tertiary', 'accent'] as const).map((colorKey) => (
-                          <div key={colorKey} className="bg-os-ink-900 border border-os-line-dark rounded-lg p-4">
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="color"
-                                value={theme.colors[colorKey]}
-                                onChange={(e) => updateColors({ [colorKey]: e.target.value })}
-                                className="w-12 h-12 rounded cursor-pointer border-2 border-os-line-light"
-                              />
-                              <div className="flex-1">
-                                <p className="text-white font-semibold capitalize mb-1">{colorKey}</p>
-                                <p className="text-white/40 text-xs font-mono">{theme.colors[colorKey]}</p>
-                              </div>
-                            </div>
+                      <div className="bg-os-ink-900 border border-os-line-dark rounded-lg p-4">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={theme.colors.primary}
+                            onChange={(e) => updateColors({ primary: e.target.value })}
+                            className="w-12 h-12 rounded cursor-pointer border-2 border-os-line-light"
+                          />
+                          <div className="flex-1">
+                            <p className="text-white font-semibold mb-1">Brand</p>
+                            <p className="text-white/40 text-xs font-mono">{theme.colors.primary}</p>
                           </div>
-                        ))}
+                        </div>
+                        {/* Live ramp preview: tints → brand → shades */}
+                        <div className="mt-4 flex h-7 overflow-hidden rounded">
+                          {(['50','200','400','600','800','1000','1300','1700','2100'] as const).map((stop) => (
+                            <div
+                              key={stop}
+                              className="flex-1"
+                              style={{ backgroundColor: `rgb(var(--brand-${stop}))` }}
+                              title={`brand-${stop}`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-white/40 text-xs mt-2">
+                          The full tint/shade range is generated from this one color.
+                        </p>
                       </div>
                     </div>
 
