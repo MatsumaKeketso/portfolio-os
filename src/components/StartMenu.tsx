@@ -7,7 +7,6 @@ import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { App } from '../types';
-import { CustomizationSettings } from './CustomizationSettings';
 import { LoginModal } from './LoginModal';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
@@ -75,7 +74,6 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
   const { isAuthenticated, isAdmin, role, user, logout } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCustomization, setShowCustomization] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [appMenu, setAppMenu] = useState<{ app: App; x: number; y: number } | null>(null);
@@ -344,8 +342,11 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                 </div>
                 <div className="flex items-center gap-0.5">
                   <button
-                    onClick={() => setShowCustomization(true)}
-                    title="Appearance"
+                    onClick={() => {
+                      const settingsApp = apps.find(a => a.id === 'settings');
+                      if (settingsApp) handleOpenApp(settingsApp);
+                    }}
+                    title="Appearance & theme"
                     className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-os-ink-800 hover:text-white/70 transition-colors"
                   >
                     <Icons.Palette className="w-3.5 h-3.5" />
@@ -435,11 +436,6 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
               />
             )}
           </AnimatePresence>
-
-          <CustomizationSettings
-            isOpen={showCustomization}
-            onClose={() => setShowCustomization(false)}
-          />
 
           <LoginModal
             isOpen={showLoginModal}

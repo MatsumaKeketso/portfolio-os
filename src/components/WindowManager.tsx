@@ -57,7 +57,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
           </p>
           <button
             onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-os-ink-950 transition-all hover:bg-primary-400 hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-fg-on-primary px-4 py-2 text-sm font-semibold transition-all hover:bg-brand-400 hover:-translate-y-0.5"
           >
             Open GitHub
             <ExternalLink className="w-3.5 h-3.5" />

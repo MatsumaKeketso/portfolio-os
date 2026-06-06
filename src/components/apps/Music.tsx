@@ -109,13 +109,14 @@ export function Music({ file }: MusicProps) {
             disabled={!hasTrack || !hasUrl}
             className={cn(
               'w-12 h-12 rounded-full flex items-center justify-center transition-all',
-              'bg-primary-500 hover:bg-primary-400 active:scale-95 shadow-lg shadow-primary-500/25',
+              // Smart brand CTA: fill from ramp, icon inherits the auto-contrast on-brand color.
+              'bg-brand-600 text-fg-on-primary hover:bg-brand-400 active:scale-95 shadow-lg shadow-glow-primary',
               'disabled:opacity-25 disabled:pointer-events-none'
             )}
           >
             {isPlaying
-              ? <Icons.Pause className="w-5 h-5 text-white" />
-              : <Icons.Play className="w-5 h-5 text-white ml-0.5" />
+              ? <Icons.Pause className="w-5 h-5" />
+              : <Icons.Play className="w-5 h-5 ml-0.5" />
             }
           </button>
 

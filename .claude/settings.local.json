@@ -27,7 +27,8 @@
       "Bash(npm ci *)",
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|esbuild|vite' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize)",
       "Bash(npm list *)",
-      "Bash(tsc --noEmit -p tsconfig.app.json)"
+      "Bash(tsc --noEmit -p tsconfig.app.json)",
+      "Bash(echo \"build exit code: $?\")"
     ]
   }
 }

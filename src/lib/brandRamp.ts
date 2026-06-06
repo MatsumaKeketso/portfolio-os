@@ -147,3 +147,39 @@ export function brandLegacyChannels(hex: string): string {
   const [r, g, b] = hexToRgb(hex) ?? [239, 68, 68];
   return `${r}, ${g}, ${b}`;
 }
+
+// WCAG relative luminance of an sRGB triplet (0 = black, 1 = white).
+function relativeLuminance([r, g, b]: RGB): number {
+  const lin = (c: number) => {
+    const x = c / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+const NEAR_BLACK: RGB = [17, 17, 17]; // matches OS chrome ink
+const NEAR_BLACK_HEX = '#111111';
+const WHITE_HEX = '#ffffff';
+
+/**
+ * Smart on-color: given a background (the color a foreground sits ON), return
+ * the hex of whichever of near-black / white has the higher WCAG contrast.
+ * This is what makes brand foregrounds + currentColor icons legible on any
+ * brand hue — the author never has to pick black vs white by hand.
+ *
+ * Accepts either "r g b" / "r, g, b" channels or a #hex. Returns a full hex
+ * color (the consuming token `--color-fg-on-primary` is used directly, not
+ * wrapped in rgb()).
+ */
+export function idealOnColor(color: string): string {
+  const fromHex = color.trim().startsWith('#') ? hexToRgb(color) : null;
+  const parts = color.trim().split(/[\s,]+/).map(Number);
+  const bg: RGB = fromHex
+    ?? (parts.length === 3 && parts.every((n) => !Number.isNaN(n))
+      ? [parts[0], parts[1], parts[2]]
+      : [239, 68, 68]);
+  const L = relativeLuminance(bg);
+  const contrastWhite = (1.0 + 0.05) / (L + 0.05);
+  const contrastBlack = (L + 0.05) / (relativeLuminance(NEAR_BLACK) + 0.05);
+  return contrastWhite >= contrastBlack ? WHITE_HEX : NEAR_BLACK_HEX;
+}

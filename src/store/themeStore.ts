@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { generateBrandRamp, brandLegacyChannels, BRAND_STOPS } from '../lib/brandRamp';
+import { generateBrandRamp, brandLegacyChannels, idealOnColor, BRAND_STOPS } from '../lib/brandRamp';
 
 // The OS theme is a SINGLE brand color. Everything else (focus rings, hovers,
 // subtle fills, borders) is derived from it via the brand ramp — see
@@ -103,6 +103,11 @@ const applyThemeToDom = (theme: ThemeSettings): void => {
     root.style.setProperty(`--brand-${stop}`, ramp[stop]);
   }
   root.style.setProperty('--brand', ramp.DEFAULT);
+
+  // Smart on-brand foreground: black or white, whichever contrasts better with
+  // the brand SOLID fill (--brand-600). currentColor SVG icons inside a brand
+  // button inherit this automatically, so the brand hue never hurts legibility.
+  root.style.setProperty('--color-fg-on-primary', idealOnColor(ramp['600']));
 
   // ── Legacy compatibility ───────────────────────────────────────────────
   // `--color-primary` stays comma-separated for the legacy `primary-*`

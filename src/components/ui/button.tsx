@@ -81,15 +81,16 @@ const buttonVariants = cva(
 
         // === SOLID PROMINENCE (Timeline active state - solid fill, shadow glow) ===
 
-        // Solid Brand Colors
+        // Solid Brand Colors — fill from the brand ramp, foreground auto-contrasts
+        // (text-fg-on-primary = smart black/white per brand luminance, set in themeStore).
         'solid-brand-primary':
-          'bg-primary-500 text-gray-950 shadow-lg shadow-primary-500/50 hover:bg-primary-400 hover:shadow-primary-500/60 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
+          'bg-brand-600 text-fg-on-primary shadow-lg shadow-glow-primary hover:bg-brand-400 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
 
         'solid-brand-secondary':
-          'bg-secondary-500 text-gray-950 shadow-lg shadow-secondary-500/50 hover:bg-secondary-400 hover:shadow-secondary-500/60 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
+          'bg-brand-600 text-fg-on-primary shadow-lg shadow-glow-primary hover:bg-brand-400 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
 
         'solid-brand-tertiary':
-          'bg-tertiary-500 text-gray-950 shadow-lg shadow-tertiary-500/50 hover:bg-tertiary-400 hover:shadow-tertiary-500/60 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
+          'bg-brand-600 text-fg-on-primary shadow-lg shadow-glow-primary hover:bg-brand-400 hover:translate-y-[-1px] active:translate-y-[0px] font-bold uppercase tracking-wide',
 
         // Solid System Colors (neutral filled)
         'solid-system-primary':

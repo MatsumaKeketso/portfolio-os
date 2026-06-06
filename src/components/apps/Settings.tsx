@@ -4,6 +4,7 @@ import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useNotificationStore } from '../../store/notificationStore';
+import { useThemeStore } from '../../store/themeStore';
 import { Button } from '../ui/button';
 import { uploadFile, UploadProgress as UploadProgressType } from '../../lib/uploadUtils';
 import { UploadProgress } from '../UploadProgress';
@@ -40,6 +41,7 @@ export function Settings() {
     updateSystemPreferences,
   } = useDesktopStore();
   const { addNotification } = useNotificationStore();
+  const { theme, presets, updateColors, applyPreset, setBorderRadius, setSpacing, setIconStyle } = useThemeStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const panelClass = cn(appPanelClass, 'p-6');
   const rowClass = cn(appRowClass, 'p-4');
@@ -449,47 +451,88 @@ export function Settings() {
                 </div>
               </div>
 
-              {/* Display Settings */}
+              {/* Theme — single brand color drives the whole UI ramp.
+                  (This is the canonical theme surface; the legacy dead
+                  "Accent Color"/"Font Size" controls were removed — they wrote
+                  to userStore.preferences but nothing applied them.) */}
               <div className={panelClass}>
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                  <Icons.Type className="w-5 h-5" />
-                  Display Settings
+                <h3 className="text-xl font-semibold text-white mb-1 flex items-center gap-2">
+                  <Icons.Palette className="w-5 h-5" />
+                  Theme
                 </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-white text-sm mb-2 block">Font Size</label>
-                    <select
-                      value={preferences.fontSize}
-                      onChange={(e) => setPreferences({ ...preferences, fontSize: e.target.value as 'sm' | 'md' | 'lg' })}
-                      className={selectClass}
-                    >
-                      <option value="sm" className="bg-black/30">Small</option>
-                      <option value="md" className="bg-black/30">Medium</option>
-                      <option value="lg" className="bg-black/30">Large</option>
-                    </select>
-                    <p className="text-white/40 text-xs mt-1">Change the base font size for better readability</p>
-                  </div>
+                <p className="text-white/40 text-sm mb-4">
+                  One brand color drives the entire interface. Pick a preset or set a custom color — every tint, hover, focus ring, and active state is generated from it.
+                </p>
 
-                  <div>
-                    <label className="text-white text-sm mb-2 block">Accent Color</label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={preferences.accentColor || '#667eea'}
-                        onChange={(e) => setPreferences({ ...preferences, accentColor: e.target.value })}
-                        className="w-16 h-10 rounded border border-os-line-dark cursor-pointer"
-                      />
-                      <span className="text-white/60 text-sm">
-                        {preferences.accentColor || '#667eea'}
-                      </span>
+                {/* Presets — one hex each */}
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-5">
+                  {presets.map((preset) => {
+                    const isActive = theme.colors.primary === preset.theme.colors.primary;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => applyPreset(preset.name)}
+                        className={cn(
+                          'flex flex-col items-center gap-1.5 rounded-lg p-2 border transition-all',
+                          isActive ? 'border-stroke-brand bg-brand-subtle' : 'border-os-line-dark hover:border-os-line-dark-hover'
+                        )}
+                        title={preset.name}
+                      >
+                        <span className="w-7 h-7 rounded-full ring-1 ring-white/15" style={{ backgroundColor: preset.theme.colors.primary }} />
+                        <span className="text-[10px] text-white/60 text-center leading-tight">{preset.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Brand color picker + live ramp preview */}
+                <div className={rowClass}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={theme.colors.primary}
+                      onChange={(e) => updateColors({ primary: e.target.value })}
+                      className="w-12 h-12 rounded cursor-pointer border border-os-line-light"
+                    />
+                    <div className="flex-1">
+                      <p className="text-white font-semibold text-sm">Brand Color</p>
+                      <p className="text-white/40 text-xs font-mono">{theme.colors.primary}</p>
                     </div>
-                    <p className="text-white/40 text-xs mt-1">Customize the theme accent color</p>
                   </div>
+                  <div className="mt-3 flex h-6 overflow-hidden rounded">
+                    {(['50', '200', '400', '600', '800', '1000', '1300', '1700', '2100'] as const).map((stop) => (
+                      <div key={stop} className="flex-1" style={{ backgroundColor: `rgb(var(--brand-${stop}))` }} title={`brand-${stop}`} />
+                    ))}
+                  </div>
+                </div>
 
-                  <Button variant="soft-system-primary" size="sm" onClick={handlePreferencesSave}>
-                    <Icons.Save className="w-4 h-4 mr-2" />
-                    Save Display Settings
-                  </Button>
+                {/* Interface shape — global layout prefs (migrated from the old Customization modal) */}
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="text-white/70 text-xs mb-1.5 block">Corner radius</label>
+                    <select value={theme.borderRadius} onChange={(e) => setBorderRadius(e.target.value as any)} className={selectClass}>
+                      {(['none', 'sm', 'md', 'lg', 'xl'] as const).map((r) => (
+                        <option key={r} value={r} className="bg-black/30">{r === 'none' ? 'Sharp' : r.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-white/70 text-xs mb-1.5 block">Spacing</label>
+                    <select value={theme.spacing} onChange={(e) => setSpacing(e.target.value as any)} className={selectClass}>
+                      {(['compact', 'normal', 'comfortable'] as const).map((s) => (
+                        <option key={s} value={s} className="bg-black/30 capitalize">{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-white/70 text-xs mb-1.5 block">Icon style</label>
+                    <select value={theme.iconStyle} onChange={(e) => setIconStyle(e.target.value as any)} className={selectClass}>
+                      {(['default', 'rounded', 'sharp'] as const).map((s) => (
+                        <option key={s} value={s} className="bg-black/30 capitalize">{s}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
