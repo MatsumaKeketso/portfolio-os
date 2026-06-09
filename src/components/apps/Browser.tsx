@@ -1,4 +1,4 @@
-﻿import { ComponentType, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ComponentType, FormEvent, useEffect, useMemo, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
