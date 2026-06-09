@@ -1,4 +1,4 @@
-﻿import * as Icons from 'lucide-react';
+import * as Icons from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useDesktopStore } from '../../store/desktopStore';
