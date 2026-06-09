@@ -24,8 +24,8 @@ export const typographyVariants = cva('', {
     tone: {
       inherit: '',
       inverse: 'text-os-text-inverse',
-      inverseMuted: 'text-os-text-inverse/55',
-      inverseFaint: 'text-os-text-inverse/30',
+      inverseMuted: 'text-os-text-inverse/70',
+      inverseFaint: 'text-os-text-inverse/50',
       strong: 'text-os-text-strong',
       muted: 'text-os-text-muted',
       faint: 'text-os-text-faint',

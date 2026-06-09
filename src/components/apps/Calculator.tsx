@@ -187,7 +187,7 @@ export function Calculator() {
               variant="ghost"
               size="sm"
               title="Clear history"
-              className="text-xs text-secondary-400 hover:text-secondary-300"
+              className="text-xs text-fg-brand hover:text-fg-brand"
             >
               Clear
             </Button>
@@ -226,7 +226,7 @@ export function Calculator() {
             </div>
             <div className="text-white text-3xl font-bold truncate">{display}</div>
             {memory !== 0 && (
-              <div className="text-tertiary-300 text-xs mt-1">M: {memory}</div>
+              <div className="text-fg-brand text-xs mt-1">M: {memory}</div>
             )}
           </div>
 

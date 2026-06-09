@@ -106,15 +106,15 @@ export function PWAInstallPrompt() {
             <div className="mt-3 pt-3 border-t border-os-line-dark">
               <div className="grid grid-cols-3 gap-2 text-xs text-white/40">
                 <div className="flex items-center gap-1">
-                  <Icons.Zap className="w-3 h-3 text-primary-400" />
+                  <Icons.Zap className="w-3 h-3 text-fg-brand" />
                   <span>Fast</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Icons.Wifi className="w-3 h-3 text-primary-400" />
+                  <Icons.Wifi className="w-3 h-3 text-fg-brand" />
                   <span>Offline</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Icons.Smartphone className="w-3 h-3 text-primary-400" />
+                  <Icons.Smartphone className="w-3 h-3 text-fg-brand" />
                   <span>Native</span>
                 </div>
               </div>

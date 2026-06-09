@@ -212,7 +212,7 @@ export function ImageViewer({ file, windowId }: ImageViewerProps) {
   return (
     <AppShell>
       <AppToolbar>
-        <Icons.Image className="w-4 h-4 text-primary-400 shrink-0" />
+        <Icons.Image className="w-4 h-4 text-fg-brand shrink-0" />
 
         <div className="flex items-center rounded-lg bg-os-ink-900 border border-os-line-dark overflow-hidden shrink-0">
           <button
@@ -253,7 +253,7 @@ export function ImageViewer({ file, windowId }: ImageViewerProps) {
                 className={cn(
                   'os-interactive os-focus-ring px-2.5 py-1.5 text-xs flex items-center gap-1',
                   fit === mode
-                    ? 'bg-primary-500/20 text-primary-300 border-x border-stroke-brand/40'
+                    ? 'bg-brand-600/20 text-fg-brand border-x border-stroke-brand/40'
                     : 'text-os-text-inverse/40 hover:text-os-text-inverse/80 hover:bg-os-ink-800/60'
                 )}
               >
@@ -378,7 +378,7 @@ export function ImageViewer({ file, windowId }: ImageViewerProps) {
           )
         ) : (
           <div className="text-center p-8">
-            <Icons.AlertCircle className="w-12 h-12 text-red-400/60 mx-auto mb-4" />
+            <Icons.AlertCircle className="w-12 h-12 text-fg-error/60 mx-auto mb-4" />
             <p className="text-sm text-white/50">No URL available for this image.</p>
           </div>
         )}

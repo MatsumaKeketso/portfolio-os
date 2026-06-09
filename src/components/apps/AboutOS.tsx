@@ -92,15 +92,15 @@ export function AboutOS() {
                   <InfoRow label="Runtime" value="React + Vite, deployed via Firebase Hosting" />
                 </div>
 
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mt-5 mb-3">Stack</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/48 mt-5 mb-3">Stack</p>
                 <div className="space-y-1">
                   {STACK.map(({ name, role, icon }) => {
                     const Icon = (Icons as any)[icon] as React.ComponentType<{ className?: string }>;
                     return (
                       <div key={name} className="flex items-center gap-3 py-2 border-b border-os-line-dark last:border-0">
-                        <Icon className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
+                        <Icon className="w-3.5 h-3.5 text-white/60 flex-shrink-0" />
                         <span className="text-xs font-medium text-white/80 w-36">{name}</span>
-                        <span className="text-xs text-white/40">{role}</span>
+                        <span className="text-xs text-white/60">{role}</span>
                       </div>
                     );
                   })}
@@ -110,7 +110,7 @@ export function AboutOS() {
               {/* Concept */}
               <section id="about-concept">
                 <SectionHeader icon={<Icons.Lightbulb className="w-4 h-4" />} title="Concept" />
-                <div className="space-y-3 text-sm text-white/60 leading-relaxed">
+                <div className="space-y-3 text-sm text-white/75 leading-relaxed">
                   <p>
                     GenOS is not a portfolio website with desktop styling. It is a working environment where Keketso Matsuma's projects, process, tools, and design decisions can be explored through the logic of a system.
                   </p>
@@ -125,7 +125,7 @@ export function AboutOS() {
                   </p>
 
                   <div className="pt-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-3">Design Layers</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-white/48 mb-3">Design Layers</p>
                     <div className="space-y-3">
                       <p>
                         The operating system form was chosen because it can hold many domains at once without flattening them. Visual design, user experience, data, storage, publishing, permissions, and app behavior all have a place to live.
@@ -144,7 +144,7 @@ export function AboutOS() {
               {/* Keketso */}
               <section id="about-keketso">
                 <SectionHeader icon={<Icons.User className="w-4 h-4" />} title="Keketso" />
-                <div className="space-y-3 text-sm text-white/60 leading-relaxed">
+                <div className="space-y-3 text-sm text-white/75 leading-relaxed">
                   <p>
                     Keketso Matsuma is a software developer based in Johannesburg, South Africa. He works with React, TypeScript, and modern web platforms to build complex interactive systems.
                   </p>
@@ -185,7 +185,7 @@ export function AboutOS() {
               {/* Generative Studio */}
               <section id="about-studio">
                 <SectionHeader icon={<Icons.Cpu className="w-4 h-4" />} title="Generative Studio" />
-                <div className="space-y-3 text-sm text-white/60 leading-relaxed">
+                <div className="space-y-3 text-sm text-white/75 leading-relaxed">
                   <p>
                     GenOS was designed and built by <strong className="text-white/90">Generative Studio</strong> — a system-design practice focused on complex interactive products, motion systems, and developer tooling.
                   </p>
@@ -219,7 +219,7 @@ export function AboutOS() {
                   ].map(({ name, note }) => (
                     <div key={name} className="flex items-center gap-3 py-2 border-b border-os-line-dark last:border-0">
                       <span className="text-xs font-medium text-white/80 w-36">{name}</span>
-                      <span className="text-xs text-white/40">{note}</span>
+                      <span className="text-xs text-white/60">{note}</span>
                     </div>
                   ))}
                 </div>
@@ -261,7 +261,7 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 py-1.5 border-b border-os-line-dark last:border-0">
-      <span className="text-xs text-white/30 w-28 flex-shrink-0">{label}</span>
+      <span className="text-xs text-white/48 w-28 flex-shrink-0">{label}</span>
       <span className="text-xs text-white/70">{value}</span>
     </div>
   );

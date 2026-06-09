@@ -471,13 +471,13 @@ export function AdminPanel() {
                   {isActive && (
                     <motion.div
                       layoutId="admin-sidebar-active"
-                      className="absolute left-0 top-1 bottom-1 z-10 w-[3px] rounded-r-full bg-primary-400"
+                      className="absolute left-0 top-1 bottom-1 z-10 w-[3px] rounded-r-full bg-brand-400"
                       transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     />
                   )}
                   <SystemRow
                     label={TAB_LABELS[tab]}
-                    icon={<IconComp className={cn('w-4 h-4 transition-colors', isActive ? 'text-primary-400' : 'text-white/40')} />}
+                    icon={<IconComp className={cn('w-4 h-4 transition-colors', isActive ? 'text-fg-brand' : 'text-white/40')} />}
                     context="chrome"
                     selected={isActive}
                     accentRail={false}
@@ -563,7 +563,7 @@ export function AdminPanel() {
                         >
                           <IconComp className="w-3.5 h-3.5 text-os-text-inverse/60 shrink-0" />
                           <span className="text-xs text-os-text-inverse flex-1">{label}</span>
-                          {badge ? <span className="text-[10px] bg-primary-500/15 text-primary-400 px-1.5 py-0.5 rounded-full">{badge}</span> : null}
+                          {badge ? <span className="text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{badge}</span> : null}
                         </button>
                       );
                     })}
@@ -578,13 +578,13 @@ export function AdminPanel() {
                 {/* Header bar */}
                 <div className="flex items-center gap-2 px-5 py-3 shrink-0 border-b border-os-line-dark">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Apps <span className="text-os-text-inverse/35 font-normal">({apps.length})</span></h2>
-                  <button onClick={() => { setShowQuickAdd(!showQuickAdd); setShowAddForm(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showQuickAdd ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <button onClick={() => { setShowQuickAdd(!showQuickAdd); setShowAddForm(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showQuickAdd ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Zap className="w-3.5 h-3.5" /> Quick Add
                   </button>
-                  <button onClick={() => { setShowBulkImport(!showBulkImport); setShowAddForm(false); setShowQuickAdd(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showBulkImport ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <button onClick={() => { setShowBulkImport(!showBulkImport); setShowAddForm(false); setShowQuickAdd(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showBulkImport ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Package className="w-3.5 h-3.5" /> Bulk
                   </button>
-                  <button onClick={() => { if (showAddForm) { resetForm(); } else { setShowAddForm(true); setShowQuickAdd(false); setShowBulkImport(false); } }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-primary-500/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <button onClick={() => { if (showAddForm) { resetForm(); } else { setShowAddForm(true); setShowQuickAdd(false); setShowBulkImport(false); } }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Plus className="w-3.5 h-3.5" /> {editingApp ? 'Editing' : 'Add App'}
                   </button>
                 </div>
@@ -649,7 +649,7 @@ export function AdminPanel() {
                         </div>
                         <div className={appTableBodyClass}>
                           {apps.map((app) => (
-                            <div key={app.id} className={cn(appTableRowClass, 'grid-cols-12 group', highlightedAppId === app.id && 'bg-primary-500/15 ring-1 ring-inset ring-primary-500/30')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
+                            <div key={app.id} className={cn(appTableRowClass, 'grid-cols-12 group', highlightedAppId === app.id && 'bg-brand-600/15 ring-1 ring-inset ring-brand-600/30')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
                               <div className="col-span-4 flex items-center gap-2 min-w-0">
                                 <AppIcon icon={app.icon} customIcon={app.customIcon} className="w-4 h-4 text-os-text-inverse/35 flex-shrink-0" />
                                 <span className="text-sm text-os-text-inverse truncate">{app.name}</span>
@@ -751,7 +751,7 @@ export function AdminPanel() {
                               )}
 
                               {iconTab === 'upload' && (
-                                <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploadingIcon ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-primary-500/40 hover:bg-os-ink-900/60')}>
+                                <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploadingIcon ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-brand-600/40 hover:bg-os-ink-900/60')}>
                                   {isUploadingIcon ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
                                   <span className="text-xs text-os-text-inverse/40">{formData.customIcon ? 'Replace icon image' : 'Upload icon image'}</span>
                                   <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, SVG · max 2 MB</span>
@@ -822,7 +822,7 @@ export function AdminPanel() {
                             <div>
                               <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1">Preview Media</label>
                               <p className="text-[11px] text-os-text-inverse/30 mb-2">Screenshots and videos shown on desktop hover.</p>
-                              <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploading ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-primary-500/40 hover:bg-os-ink-900/60')}>
+                              <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploading ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-brand-600/40 hover:bg-os-ink-900/60')}>
                                 {isUploading ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
                                 <span className="text-xs text-os-text-inverse/40">Click to upload screenshots or video</span>
                                 <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, MP4 · max 25 MB each</span>
@@ -869,7 +869,7 @@ export function AdminPanel() {
                   <h2 className="text-sm font-semibold text-os-text-inverse">Backgrounds <span className="text-os-text-inverse/35 font-normal">({backgrounds.length})</span></h2>
                 </div>
 
-                <label className={cn('flex items-center justify-center gap-2 px-4 py-4 rounded-lg border border-dashed border-os-line-dark text-sm text-os-text-inverse/60 transition-all', isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary-500/40 hover:text-os-text-inverse hover:bg-os-ink-900')}>
+                <label className={cn('flex items-center justify-center gap-2 px-4 py-4 rounded-lg border border-dashed border-os-line-dark text-sm text-os-text-inverse/60 transition-all', isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-brand-600/40 hover:text-os-text-inverse hover:bg-os-ink-900')}>
                   {isUploading ? <><Icons.Loader className="w-4 h-4 animate-spin" /> Uploading…</> : <><Icons.Upload className="w-4 h-4" /> Upload background images (JPG, PNG, WebP)</>}
                   <input type="file" accept="image/*" multiple onChange={handleBackgroundUpload} className="hidden" disabled={isUploading} />
                 </label>
@@ -886,14 +886,14 @@ export function AdminPanel() {
                       const isDefault = bg.id.startsWith('default-');
                       const isGradient = bg.url.startsWith('linear-gradient');
                       return (
-                        <div key={bg.id} onClick={() => setSelectedBackground(bg.id)} className={cn('relative rounded-lg overflow-hidden border transition-all cursor-pointer group bg-background-chrome-raised', isSelected ? 'border-primary-500/40' : 'border-os-line-dark hover:border-os-line-dark')}>
+                        <div key={bg.id} onClick={() => setSelectedBackground(bg.id)} className={cn('relative rounded-lg overflow-hidden border transition-all cursor-pointer group bg-background-chrome-raised', isSelected ? 'border-brand-600/40' : 'border-os-line-dark hover:border-os-line-dark')}>
                           <div className="w-full h-36" style={{ background: isGradient ? bg.url : 'transparent', backgroundImage: !isGradient ? `url(${bg.url})` : undefined, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                           <div className="p-2.5 border-t border-os-line-dark bg-background-chrome-raised flex items-center justify-between gap-2">
                             <div className="min-w-0">
                               <p className="text-xs font-medium text-os-text-inverse truncate">{bg.name}</p>
                               {isDefault && <p className="text-[10px] text-os-text-inverse/35">Built-in</p>}
                             </div>
-                            {isSelected && <Icons.Check className="w-4 h-4 text-primary-400 flex-shrink-0" />}
+                            {isSelected && <Icons.Check className="w-4 h-4 text-fg-brand flex-shrink-0" />}
                           </div>
                           {!isDefault && (
                             <button onClick={(e) => { e.stopPropagation(); removeBackground(bg.id); }} className="absolute top-2 right-2 p-1 rounded bg-background-floating hover:bg-error-subtle text-os-text-inverse/60 hover:text-fg-error opacity-0 group-hover:opacity-100 transition-all">
@@ -980,7 +980,7 @@ export function AdminPanel() {
                                     className={cn(
                                       'px-2 py-0.5 rounded text-[11px] border transition-colors',
                                       active
-                                        ? 'bg-primary-500/15 border-primary-500/40 text-primary-400'
+                                        ? 'bg-brand-600/15 border-brand-600/40 text-fg-brand'
                                         : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/35 hover:bg-os-ink-800 hover:text-os-text-inverse/60',
                                     )}
                                   >
@@ -1086,7 +1086,7 @@ export function AdminPanel() {
                               {m.featured && <Icons.Star className="w-3.5 h-3.5 text-fg-warning fill-current" />}
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className={cn('text-[10px] px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-primary-500/15 text-primary-400' : m.category === 'achievement' ? 'bg-warning-subtle text-fg-warning' : m.category === 'education' ? 'bg-info-subtle text-fg-info' : m.category === 'career' ? 'bg-success-subtle text-fg-success' : m.category === 'personal' ? 'bg-error-subtle text-fg-error' : 'bg-os-ink-800 text-os-text-inverse/60')}>{m.category}</span>
+                              <span className={cn('text-[10px] px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-brand-600/15 text-fg-brand' : m.category === 'achievement' ? 'bg-warning-subtle text-fg-warning' : m.category === 'education' ? 'bg-info-subtle text-fg-info' : m.category === 'career' ? 'bg-success-subtle text-fg-success' : m.category === 'personal' ? 'bg-error-subtle text-fg-error' : 'bg-os-ink-800 text-os-text-inverse/60')}>{m.category}</span>
                               <span className="text-xs text-os-text-inverse/35">{new Date(m.date).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             </div>
                             {m.description && <p className="text-xs text-os-text-inverse/60 mb-2">{m.description}</p>}
@@ -1202,7 +1202,7 @@ export function AdminPanel() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">
                     Feedback Moderation
-                    {pendingCount > 0 && <span className="ml-2 text-[10px] bg-primary-500/15 text-primary-400 px-1.5 py-0.5 rounded-full">{pendingCount} pending</span>}
+                    {pendingCount > 0 && <span className="ml-2 text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{pendingCount} pending</span>}
                   </h2>
                   <div className="flex items-center gap-1 bg-os-ink-900 border border-os-line-dark rounded p-0.5">
                     {(['all', 'pending', 'approved', 'hidden'] as const).map((f) => (
@@ -1256,7 +1256,7 @@ export function AdminPanel() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">
                     Gallery Moderation
-                    {galleryPendingCount > 0 && <span className="ml-2 text-[10px] bg-primary-500/15 text-primary-400 px-1.5 py-0.5 rounded-full">{galleryPendingCount} pending</span>}
+                    {galleryPendingCount > 0 && <span className="ml-2 text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{galleryPendingCount} pending</span>}
                   </h2>
                   <div className="flex items-center gap-1 bg-os-ink-900 border border-os-line-dark rounded p-0.5">
                     {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (

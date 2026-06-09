@@ -155,7 +155,7 @@ export function Resume() {
   const ModernTemplate = () => (
     <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 p-12 shadow-lg print:shadow-none print:bg-white">
       {/* Header with accent */}
-      <div className="bg-gradient-to-r from-primary-600 to-tertiary-600 text-white p-8 rounded-lg mb-6 print:bg-gray-800">
+      <div className="bg-gradient-to-r from-brand-600 to-brand-800 text-white p-8 rounded-lg mb-6 print:bg-gray-800">
         <h1 className="text-4xl font-bold mb-2">{profile.personal.name}</h1>
         <h2 className="text-xl mb-3">{profile.personal.title}</h2>
         <div className="flex gap-4 text-sm">
@@ -183,7 +183,7 @@ export function Resume() {
       {/* Summary */}
       {profile.resume.summary && (
         <div className="mb-6 bg-white p-6 rounded-lg shadow-sm print:shadow-none">
-          <h3 className="text-lg font-bold mb-3 text-primary-600 flex items-center gap-2">
+          <h3 className="text-lg font-bold mb-3 text-brand-800 flex items-center gap-2">
             <Icons.User className="w-5 h-5" />
             Professional Summary
           </h3>
@@ -194,7 +194,7 @@ export function Resume() {
       {/* Experience */}
       {profile.resume.experience.length > 0 && (
         <div className="mb-6 bg-white p-6 rounded-lg shadow-sm print:shadow-none">
-          <h3 className="text-lg font-bold mb-4 text-primary-600 flex items-center gap-2">
+          <h3 className="text-lg font-bold mb-4 text-brand-800 flex items-center gap-2">
             <Icons.Briefcase className="w-5 h-5" />
             Experience
           </h3>
@@ -236,7 +236,7 @@ export function Resume() {
         {/* Education */}
         {profile.resume.education.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-sm print:shadow-none">
-            <h3 className="text-lg font-bold mb-4 text-primary-600 flex items-center gap-2">
+            <h3 className="text-lg font-bold mb-4 text-brand-800 flex items-center gap-2">
               <Icons.GraduationCap className="w-5 h-5" />
               Education
             </h3>
@@ -254,7 +254,7 @@ export function Resume() {
         {/* Certifications */}
         {profile.resume.certifications.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-sm print:shadow-none">
-            <h3 className="text-lg font-bold mb-4 text-primary-600 flex items-center gap-2">
+            <h3 className="text-lg font-bold mb-4 text-brand-800 flex items-center gap-2">
               <Icons.Award className="w-5 h-5" />
               Certifications
             </h3>
@@ -273,7 +273,7 @@ export function Resume() {
       {/* Skills */}
       {profile.skills.categories.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-sm print:shadow-none">
-          <h3 className="text-lg font-bold mb-4 text-primary-600 flex items-center gap-2">
+          <h3 className="text-lg font-bold mb-4 text-brand-800 flex items-center gap-2">
             <Icons.Zap className="w-5 h-5" />
             Skills
           </h3>

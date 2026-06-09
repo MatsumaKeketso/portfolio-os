@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, type ComponentType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { useFileStore } from '../../store/fileStore';
+import { useFileStore, SYSTEM_FOLDER_IDS } from '../../store/fileStore';
 import { useDesktopStore } from '../../store/desktopStore';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
@@ -23,6 +23,7 @@ import { cn } from '../../lib/utils';
 import { createThumbnail } from '../../lib/imageUtils';
 import { SplitCard, type SplitCardStat } from '../ui/SplitCard';
 import { Icon3D, resolveIcon3DType } from '../ui/Icon3D';
+import { ProjectCaseStudyPanel } from './ProjectCaseStudyPanel';
 
 // Compact relative-time formatter ("3d ago", "2h ago", "just now"). Pure UI
 // sugar — fine to inline here while it has no other caller.
@@ -170,6 +171,20 @@ export function FileExplorer() {
     [fileStore.files, currentFolderId],
   );
   const pathString = fileStore.getPathString();
+
+  // Projects is a special case-study surface: a side panel (no inline expand)
+  // shows the selected project's markdown case study without reflowing the grid.
+  const isProjectsView = fileStore.currentPath[0] === SYSTEM_FOLDER_IDS.projects;
+  const panelProject = useMemo<FileItem | undefined>(() => {
+    if (!isProjectsView) return undefined;
+    // Inside a project (or deeper) → the project is the folder at path depth 1.
+    const projectIdInPath = fileStore.currentPath[1];
+    if (projectIdInPath) return fileStore.files.find((f) => f.id === projectIdInPath);
+    // At the Projects root → show the currently selected project folder, if any.
+    const selId = fileStore.selectedFileIds[0];
+    const sel = selId ? fileStore.files.find((f) => f.id === selId) : undefined;
+    return sel && sel.type === 'folder' ? sel : undefined;
+  }, [isProjectsView, fileStore.currentPath, fileStore.selectedFileIds, fileStore.files]);
 
   // When navigating to Visitor Gallery, load approved uploads from Firestore
   useEffect(() => {
@@ -884,7 +899,7 @@ export function FileExplorer() {
 
         {/* Breadcrumb */}
         <div className="flex-1 bg-os-ink-800 px-3 py-1.5 rounded border border-os-line-dark text-sm text-white flex items-center gap-1 overflow-x-auto">
-          <button onClick={() => fileStore.navigateTo([])} className="hover:text-primary-400 transition-colors flex items-center gap-1 whitespace-nowrap">
+          <button onClick={() => fileStore.navigateTo([])} className="hover:text-fg-brand transition-colors flex items-center gap-1 whitespace-nowrap">
             <Icons.Home className="w-3.5 h-3.5" />
             Home
           </button>
@@ -896,7 +911,7 @@ export function FileExplorer() {
                 <Icons.ChevronRight className="w-3.5 h-3.5 text-white/20" />
                 <button
                   onClick={() => fileStore.navigateTo(fileStore.currentPath.slice(0, index + 1))}
-                  className="hover:text-primary-400 transition-colors whitespace-nowrap"
+                  className="hover:text-fg-brand transition-colors whitespace-nowrap"
                 >
                   {folder.name}
                 </button>
@@ -931,13 +946,13 @@ export function FileExplorer() {
         <div className="flex items-center gap-1 bg-os-ink-900 rounded-lg p-1 border border-os-line-dark">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
           >
             <Icons.Grid3x3 className="w-3 h-3" /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
           >
             <Icons.List className="w-3 h-3" /> List
           </button>
@@ -987,13 +1002,13 @@ export function FileExplorer() {
                         'w-full rounded-lg px-3 py-2 text-left text-xs transition-colors',
                         'grid grid-cols-[18px_1fr_16px] items-center gap-2.5',
                         isSelected
-                          ? 'bg-primary-500/20 text-white'
+                          ? 'bg-brand-600/20 text-white'
                           : 'text-white/55 hover:bg-os-ink-800 hover:text-white/85'
                       )}
                     >
-                      <Icon className={cn('w-3.5 h-3.5', isSelected ? 'text-primary-300' : 'text-white/35')} />
+                      <Icon className={cn('w-3.5 h-3.5', isSelected ? 'text-fg-brand' : 'text-white/35')} />
                       <span className="whitespace-nowrap pr-2">{option.label}</span>
-                      {isSelected && <Icons.Check className="w-3.5 h-3.5 text-primary-300" />}
+                      {isSelected && <Icons.Check className="w-3.5 h-3.5 text-fg-brand" />}
                     </button>
                   );
                 })}
@@ -1017,7 +1032,7 @@ export function FileExplorer() {
                 <button
                   key={s}
                   onClick={() => setIconSize(s)}
-                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-primary-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
                 >
                   {s[0].toUpperCase()}
                 </button>
@@ -1075,12 +1090,12 @@ export function FileExplorer() {
                     {isActive && (
                       <motion.div
                         layoutId="explorer-sidebar-active"
-                        className="absolute left-0 top-1 bottom-1 w-[3px] bg-primary-400 rounded-r-full z-10"
+                        className="absolute left-0 top-1 bottom-1 w-[3px] bg-brand-400 rounded-r-full z-10"
                         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                       />
                     )}
                     <SystemRow
-                      icon={<Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary-400" : "text-white/40")} />}
+                      icon={<Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-fg-brand" : "text-white/40")} />}
                       label={loc.label}
                       context="chrome"
                       selected={isActive}
@@ -1112,7 +1127,7 @@ export function FileExplorer() {
               <div className="group/footer relative overflow-hidden rounded-xl border border-os-line-dark bg-os-ink-950/78 p-2.5 shadow-os-card">
                 <svg
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 -top-2 h-7 w-full text-primary-400/50"
+                  className="pointer-events-none absolute inset-x-0 -top-2 h-7 w-full text-fg-brand/50"
                   viewBox="0 0 188 32"
                   preserveAspectRatio="none"
                 >
@@ -1134,17 +1149,17 @@ export function FileExplorer() {
                     opacity="0.24"
                   />
                 </svg>
-                <div className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent" />
+                <div className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-600/50 to-transparent" />
 
                 <div className="relative pt-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <Icons.Activity className="h-3.5 w-3.5 text-primary-400" />
+                      <Icons.Activity className="h-3.5 w-3.5 text-fg-brand" />
                       <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">System Status</p>
                     </div>
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-35" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-400" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-35" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-400" />
                     </span>
                   </div>
 
@@ -1169,9 +1184,10 @@ export function FileExplorer() {
           </div>
         </div>
 
-        {/* Content area Floating Container */}
+        {/* Content area (+ Projects case-study side panel as a sibling column) */}
+        <div className="flex-1 flex min-h-0">
         <div
-          className="flex-1 overflow-y-auto bg-transparent rounded-xl relative group/content"
+          className="flex-1 min-w-0 overflow-y-auto bg-transparent rounded-xl relative group/content"
           onContextMenu={(e) => handleContextMenu(e)}
           onDragOver={(e) => handleDragOver(e)}
           onDrop={(e) => handleDrop(e)}
@@ -1184,10 +1200,10 @@ export function FileExplorer() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.985 }}
                 transition={{ duration: 0.12 }}
-                className="pointer-events-none absolute inset-3 z-20 rounded-2xl border border-dashed border-primary-400/70 bg-primary-500/10 shadow-[inset_0_0_0_1px_var(--os-line-dark)] flex items-center justify-center"
+                className="pointer-events-none absolute inset-3 z-20 rounded-2xl border border-dashed border-brand-400/70 bg-brand-600/10 shadow-[inset_0_0_0_1px_var(--os-line-dark)] flex items-center justify-center"
               >
                 <div className="rounded-xl border border-os-line-dark bg-background-chrome/95 px-4 py-3 text-center shadow-os-card">
-                  <Icons.UploadCloud className="mx-auto mb-2 h-5 w-5 text-primary-300" />
+                  <Icons.UploadCloud className="mx-auto mb-2 h-5 w-5 text-fg-brand" />
                   <p className="text-sm font-medium text-white/85">
                     Drop into {locationContext === 'visitorGallery' ? 'Visitor Gallery' : pathString || 'this folder'}
                   </p>
@@ -1267,12 +1283,12 @@ export function FileExplorer() {
                     className={cn(
                       'min-w-0',
                       isCut && 'opacity-50',
-                      isDropTarget && 'ring-2 ring-primary-500/60 rounded-2xl',
+                      isDropTarget && 'ring-2 ring-brand-600/60 rounded-2xl',
                     )}
                   >
                     <SplitCard
                       selected={isSelected}
-                      expanded={isSelected}
+                      expanded={isProjectsView ? false : isSelected}
                       onClick={(e) => handleFileClick(file, e)}
                       onDoubleClick={(e) => handleFileDoubleClick(file, e)}
                       onContextMenu={(e) => handleContextMenu(e, file)}
@@ -1406,9 +1422,9 @@ export function FileExplorer() {
                     onDrop={(e) => handleDrop(e, file)}
                     className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 py-2 text-left border-b border-os-line-dark transition-all ${
                       isSelected
-                        ? 'bg-primary-500/25 pl-2 border-l-2 border-l-primary-400 pr-3'
+                        ? 'bg-brand-600/25 pl-2 border-l-2 border-l-brand-400 pr-3'
                         : 'px-3 hover:bg-os-ink-900'
-                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-primary-500 bg-primary-500/30' : ''}`}
+                    } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-brand-600 bg-brand-600/30' : ''}`}
                   >
                     <div className="flex items-center justify-center">
                       {file.type === 'image' && (file.thumbnailUrl || file.previewUrl || file.dataUrl)
@@ -1453,6 +1469,10 @@ export function FileExplorer() {
             </div>
           )}
         </div>
+        {isProjectsView && (
+          <ProjectCaseStudyPanel project={panelProject} isAdmin={isAdmin} />
+        )}
+        </div>
       </div>
 
       {/* Dialogs */}
@@ -1486,7 +1506,7 @@ export function FileExplorer() {
                   />
                 )}
                 <div className="flex gap-3">
-                  <button onClick={() => showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile()} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-all">Create</button>
+                  <button onClick={() => showNewDialog === 'folder' ? handleCreateFolder() : handleCreateFile()} className="flex-1 px-4 py-2 bg-brand-600 hover:bg-brand-800 text-white rounded transition-all">Create</button>
                   <button onClick={() => setShowNewDialog(null)} className="flex-1 px-4 py-2 bg-os-ink-800 hover:bg-os-ink-700 text-white rounded transition-all">Cancel</button>
                 </div>
               </div>

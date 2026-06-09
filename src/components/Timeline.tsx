@@ -106,8 +106,8 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-os-line-dark bg-os-ink-900">
                 {activeSection === 'milestones'
-                  ? <Icons.CalendarDays className="h-4 w-4 text-primary-300" />
-                  : <Icons.BookOpenText className="h-4 w-4 text-primary-300" />}
+                  ? <Icons.CalendarDays className="h-4 w-4 text-fg-brand" />
+                  : <Icons.BookOpenText className="h-4 w-4 text-fg-brand" />}
               </div>
               <div>
                 <h3 className="text-sm font-semibold tracking-normal text-os-text-inverse">
@@ -166,7 +166,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                     className={cn(
                       'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                       selectedYear === year
-                        ? 'border-stroke-brand bg-primary-500/20 text-os-text-inverse shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]'
+                        ? 'border-stroke-brand bg-brand-600/20 text-os-text-inverse shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]'
                         : 'border-os-line-dark bg-os-ink-900 text-os-text-inverse/50 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse/80',
                     )}
                   >
@@ -201,7 +201,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                   data-month={index}
                   className={cn(
                     'flex h-full w-[292px] shrink-0 flex-col overflow-hidden rounded-xl border bg-background-chrome',
-                    isCurrentMonth ? 'border-primary-500/35' : 'border-os-line-dark',
+                    isCurrentMonth ? 'border-brand-600/35' : 'border-os-line-dark',
                   )}
                 >
                   <div className="border-b border-os-line-dark bg-os-ink-900 px-3 py-3">
@@ -215,7 +215,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                       <div className={cn(
                         'flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-semibold',
                         isCurrentMonth
-                          ? 'border-primary-500/40 bg-primary-500/20 text-os-text-inverse'
+                          ? 'border-brand-600/40 bg-brand-600/20 text-os-text-inverse'
                           : 'border-os-line-dark bg-os-ink-950 text-os-text-inverse/55',
                       )}>
                         {milestones.length}
@@ -264,7 +264,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                   <div className="p-3">
                     <div className="mb-2 flex flex-wrap gap-1.5">
                       {read.categories.slice(0, 3).map((category) => (
-                        <span key={category} className="rounded-full border border-os-line-dark bg-os-ink-900 px-2 py-0.5 text-[9px] uppercase tracking-[0.08em] text-primary-300">
+                        <span key={category} className="rounded-full border border-os-line-dark bg-os-ink-900 px-2 py-0.5 text-[9px] uppercase tracking-[0.08em] text-fg-brand">
                           {category}
                         </span>
                       ))}

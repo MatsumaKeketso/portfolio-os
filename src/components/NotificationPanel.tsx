@@ -20,7 +20,7 @@ const TYPE_ICON: Record<Notification['type'], typeof CheckCircle> = {
 const TYPE_COLOR: Record<Notification['type'], string> = {
   success: 'text-fg-success',
   error: 'text-fg-error',
-  info: 'text-primary-400',
+  info: 'text-fg-brand',
   warning: 'text-fg-warning',
 };
 

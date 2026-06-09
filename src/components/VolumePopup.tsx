@@ -56,7 +56,7 @@ export function VolumePopup({ anchor, volume, onChange, onClose }: VolumePopupPr
           max={100}
           value={volume}
           onChange={e => onChange(Number(e.target.value))}
-          className="accent-primary-400 cursor-pointer"
+          className="accent-brand-400 cursor-pointer"
           style={{ transform: 'rotate(-90deg)', width: '96px' }}
         />
       </div>

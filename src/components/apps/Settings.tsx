@@ -343,7 +343,7 @@ export function Settings() {
 
                   <div className={panelClass}>
                     <div className="flex items-start gap-4">
-                      <Icons.Info className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
+                      <Icons.Info className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Profile Information</h4>
                         <p className="text-white/60 text-sm leading-relaxed">
@@ -397,58 +397,85 @@ export function Settings() {
                   Choose a background or upload your own custom image (max 5MB)
                 </p>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-                  {backgrounds.map((bg) => (
-                    <div
-                      key={bg.id}
-                      className={`group relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedBackgroundId === bg.id
-                        ? 'border-primary-400 ring-2 ring-primary-400/50'
-                        : 'border-os-line-dark hover:border-os-line-dark-hover'
-                        }`}
-                      onClick={() => handleBackgroundSelect(bg.id)}
-                    >
+                {(() => {
+                  const isGradUrl = (u?: string) => !!u && /^(linear|radial|conic)-gradient/.test(u);
+                  const categoryOf = (bg: typeof backgrounds[number]): 'Animated' | 'Gradient' | 'Solid' | 'Images' => {
+                    if (bg.type === 'animated-gradient') return 'Animated';
+                    if (bg.type === 'solid') return 'Solid';
+                    if (bg.type === 'gradient' || isGradUrl(bg.url)) return 'Gradient';
+                    return 'Images';
+                  };
+                  const order = ['Animated', 'Gradient', 'Solid', 'Images'] as const;
+                  const groups = order
+                    .map((cat) => [cat, backgrounds.filter((bg) => categoryOf(bg) === cat)] as const)
+                    .filter(([, list]) => list.length > 0);
+
+                  const renderCard = (bg: typeof backgrounds[number]) => {
+                    const isGrad = isGradUrl(bg.url);
+                    const isImg = !!bg.url && !isGrad;
+                    const c = bg.config?.colors ?? [];
+                    return (
                       <div
-                        className="aspect-video flex items-center justify-center"
-                        style={{
-                          background: bg.type === 'gradient' ? bg.url : bg.type === 'image' ? `url(${bg.url}) center/cover` : '#1e293b'
-                        }}
+                        key={bg.id}
+                        className={`group relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedBackgroundId === bg.id
+                          ? 'border-brand-400 ring-2 ring-brand-400/50'
+                          : 'border-os-line-dark hover:border-os-line-dark-hover'
+                          }`}
+                        onClick={() => handleBackgroundSelect(bg.id)}
                       >
-                        {bg.type === 'aurora' && (
-                          <div className="text-white/50 text-xs">Aurora</div>
+                        {bg.type === 'animated-gradient' ? (
+                          // Reuse the live .animated-gradient class so the preview
+                          // matches the desktop (and themes for brand-flow).
+                          <div
+                            className="aspect-video animated-gradient"
+                            style={{ '--ag-base': bg.config?.base, '--ag-c1': c[0], '--ag-c2': c[1] ?? c[0], '--ag-c3': c[2] ?? c[1] } as React.CSSProperties}
+                          />
+                        ) : bg.type === 'solid' ? (
+                          <div className="aspect-video" style={{ background: bg.config?.base }} />
+                        ) : isImg ? (
+                          <img src={bg.url} alt="" loading="lazy" className="aspect-video w-full object-cover" />
+                        ) : isGrad ? (
+                          <div className="aspect-video" style={{ background: bg.url }} />
+                        ) : (
+                          <div className="aspect-video bg-os-ink-800" />
                         )}
-                        {bg.type === 'beams' && (
-                          <div className="text-white/50 text-xs">Beams</div>
-                        )}
-                        {bg.type === 'grid' && (
-                          <div className="text-white/50 text-xs">Grid</div>
-                        )}
-                      </div>
 
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                        {selectedBackgroundId === bg.id && (
-                          <div className="absolute top-2 right-2 bg-primary-500 rounded-full p-1">
-                            <Icons.Check className="w-3 h-3 text-white" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all">
+                          {selectedBackgroundId === bg.id && (
+                            <div className="absolute top-2 right-2 bg-brand-600 rounded-full p-1">
+                              <Icons.Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                          {isAdmin && !bg.id.startsWith('default-') && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRemoveBackground(bg.id); }}
+                              className="opacity-0 group-hover:opacity-100 absolute top-2 left-2 bg-error rounded-full p-1 transition-all"
+                            >
+                              <Icons.Trash2 className="w-3 h-3 text-white" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-2">
+                          <p className="text-white text-xs font-medium truncate">{bg.name}</p>
+                        </div>
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <div className="space-y-5 max-h-[28rem] overflow-y-auto pr-1">
+                      {groups.map(([cat, list]) => (
+                        <div key={cat}>
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 mb-2">{cat}</p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {list.map(renderCard)}
                           </div>
-                        )}
-                        {isAdmin && !bg.id.startsWith('default-') && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveBackground(bg.id);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 absolute top-2 left-2 bg-error hover:bg-error rounded-full p-1 transition-all"
-                          >
-                            <Icons.Trash2 className="w-3 h-3 text-white" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-2">
-                        <p className="text-white text-xs font-medium truncate">{bg.name}</p>
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Theme — single brand color drives the whole UI ramp.
@@ -493,7 +520,7 @@ export function Settings() {
                       type="color"
                       value={theme.colors.primary}
                       onChange={(e) => updateColors({ primary: e.target.value })}
-                      className="w-12 h-12 rounded cursor-pointer border border-os-line-light"
+                      className="w-12 h-12 rounded cursor-pointer border border-os-line-dark-hover"
                     />
                     <div className="flex-1">
                       <p className="text-white font-semibold text-sm">Brand Color</p>
@@ -538,7 +565,7 @@ export function Settings() {
 
               <div className={panelClass}>
                 <div className="flex items-start gap-4">
-                  <Icons.Sparkles className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
+                  <Icons.Sparkles className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">Personalization</h4>
                     <p className="text-white/60 text-sm leading-relaxed">
@@ -623,7 +650,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Maximize2 className="w-4 h-4 text-primary-400" />
+                        <Icons.Maximize2 className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Auto-hide Taskbar</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -645,7 +672,7 @@ export function Settings() {
                           className={cn(
                             'flex-1 flex flex-col items-center gap-2 rounded-lg border px-3 py-3 transition-all',
                             (systemPreferences.startIconVariant ?? 'color') === variant
-                              ? 'border-primary-500 bg-primary-500/10 text-primary-300'
+                              ? 'border-brand-600 bg-brand-600/10 text-fg-brand'
                               : 'border-os-line-dark bg-os-ink-950/60 text-white/40 hover:border-os-line-dark-hover hover:text-white/70'
                           )}
                         >
@@ -720,7 +747,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Grid3x3 className="w-4 h-4 text-tertiary-300" />
+                        <Icons.Grid3x3 className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Snap to Grid</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -755,7 +782,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Icons.Wind className="w-4 h-4 text-primary-400" />
+                        <Icons.Wind className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Window Animations</span>
                       </div>
                       <p className="text-white/40 text-xs mt-1">
@@ -814,14 +841,14 @@ export function Settings() {
                 <div className="space-y-2 opacity-50">
                   <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Icons.Folder className="w-4 h-4 text-primary-400" />
+                      <Icons.Folder className="w-4 h-4 text-fg-brand" />
                       <span className="text-white text-sm">Archive</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Icons.User className="w-4 h-4 text-tertiary-300" />
+                      <Icons.User className="w-4 h-4 text-fg-brand" />
                       <span className="text-white text-sm">About Me</span>
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
@@ -832,14 +859,14 @@ export function Settings() {
 
               <div className={panelClass}>
                 <div className="flex items-start gap-4">
-                  <Icons.Settings className="w-6 h-6 text-primary-400 flex-shrink-0 mt-1" />
+                  <Icons.Settings className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">System Customization Available</h4>
                     <p className="text-white/60 text-sm leading-relaxed mb-2">
-                      <strong className="text-primary-400">Now Active:</strong> Taskbar positioning & size, desktop icon sizing, window animations, and auto-hide taskbar.
+                      <strong className="text-fg-brand">Now Active:</strong> Taskbar positioning & size, desktop icon sizing, window animations, and auto-hide taskbar.
                     </p>
                     <p className="text-white/60 text-sm leading-relaxed">
-                      <strong className="text-secondary-400">Coming Soon:</strong> Icon arrangement modes, visual effects controls, performance mode, and startup applications manager.
+                      <strong className="text-fg-brand">Coming Soon:</strong> Icon arrangement modes, visual effects controls, performance mode, and startup applications manager.
                     </p>
                   </div>
                 </div>
@@ -867,7 +894,7 @@ export function Settings() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Icons.Mail className="w-4 h-4 text-primary-400" />
+                            <Icons.Mail className="w-4 h-4 text-fg-brand" />
                             <span className="text-white font-medium">Show Email Address</span>
                           </div>
                           <p className="text-white/40 text-xs mt-1">

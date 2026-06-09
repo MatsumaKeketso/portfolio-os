@@ -208,12 +208,12 @@ export function ArticleComments({ slug }: ArticleCommentsProps) {
           className={cn(
             'flex items-center gap-1.5 transition-colors',
             hasLiked
-              ? 'text-primary-400 cursor-default'
-              : 'hover:text-primary-400 cursor-pointer'
+              ? 'text-fg-brand cursor-default'
+              : 'hover:text-fg-brand cursor-pointer'
           )}
           title={hasLiked ? 'You liked this' : 'Like this article'}
         >
-          <Icons.Heart className={cn('w-3.5 h-3.5', hasLiked && 'fill-primary-400')} />
+          <Icons.Heart className={cn('w-3.5 h-3.5', hasLiked && 'fill-brand-400')} />
           {formatCount(stats.likes)} {stats.likes === 1 ? 'like' : 'likes'}
         </button>
       </div>
@@ -255,7 +255,7 @@ export function ArticleComments({ slug }: ArticleCommentsProps) {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-1.5 rounded-lg bg-primary-500 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-400 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-50"
               >
                 {submitting ? <Icons.Loader2 className="w-3 h-3 animate-spin" /> : <Icons.Send className="w-3 h-3" />}
                 Post
@@ -319,10 +319,10 @@ export function ArticleComments({ slug }: ArticleCommentsProps) {
                         disabled={liked}
                         className={cn(
                           'flex items-center gap-1 text-[11px] transition-colors',
-                          liked ? 'text-primary-400 cursor-default' : 'text-white/30 hover:text-primary-400 cursor-pointer'
+                          liked ? 'text-fg-brand cursor-default' : 'text-white/30 hover:text-fg-brand cursor-pointer'
                         )}
                       >
-                        <Icons.Heart className={cn('w-3 h-3', liked && 'fill-primary-400')} />
+                        <Icons.Heart className={cn('w-3 h-3', liked && 'fill-brand-400')} />
                         {comment.likes > 0 && comment.likes}
                       </button>
 

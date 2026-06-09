@@ -61,23 +61,23 @@ const buttonVariants = cva(
 
         // Soft Brand Colors
         'soft-brand-primary':
-          'bg-os-ink-950/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-fg-brand border border-stroke-brand/40 hover:border-stroke-brand hover:bg-brand-subtle-hover hover:text-fg-brand-hover hover:translate-y-[-1px] font-bold uppercase overflow-hidden relative',
 
         'soft-brand-secondary':
-          'bg-os-ink-950/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-fg-brand border border-stroke-brand/40 hover:border-stroke-brand hover:bg-brand-subtle-hover hover:text-fg-brand-hover hover:translate-y-[-1px] font-bold uppercase overflow-hidden relative',
 
         'soft-brand-tertiary':
-          'bg-os-ink-950/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-os-ink-950/50 text-fg-brand border border-stroke-brand/40 hover:border-stroke-brand hover:bg-brand-subtle-hover hover:text-fg-brand-hover hover:translate-y-[-1px] font-bold uppercase overflow-hidden relative',
 
         // Soft System Colors (neutral UI)
         'soft-system-primary':
-          'bg-os-ink-800 text-white/75 border border-os-line-dark-hover hover:border-stroke-brand hover:bg-os-ink-700 hover:text-white hover:translate-y-[-1px] font-medium',
+          'bg-os-ink-800 text-os-text-inverse/85 border border-os-line-dark-hover hover:border-stroke-brand hover:bg-os-ink-700 hover:text-os-text-inverse hover:translate-y-[-1px] font-medium',
 
         'soft-system-secondary':
-          'bg-os-ink-900 text-white/65 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-white/85 hover:translate-y-[-1px] font-medium',
+          'bg-os-ink-900 text-os-text-inverse/75 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse hover:translate-y-[-1px] font-medium',
 
         'soft-system-tertiary':
-          'bg-os-ink-950 text-white/55 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-900 hover:text-white/75 hover:translate-y-[-1px] font-medium',
+          'bg-os-ink-950 text-os-text-inverse/65 border border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-900 hover:text-os-text-inverse/85 hover:translate-y-[-1px] font-medium',
 
         // === SOLID PROMINENCE (Timeline active state - solid fill, shadow glow) ===
 
@@ -97,10 +97,10 @@ const buttonVariants = cva(
           'bg-os-ink-800 text-white hover:bg-os-ink-700 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         'solid-system-secondary':
-          'bg-os-ink-900 text-white/80 hover:bg-os-ink-800 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+          'bg-os-ink-900 text-os-text-inverse/88 hover:bg-os-ink-800 hover:text-os-text-inverse hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         'solid-system-tertiary':
-          'bg-os-ink-950 text-white/60 hover:bg-os-ink-900 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
+          'bg-os-ink-950 text-os-text-inverse/70 hover:bg-os-ink-900 hover:text-os-text-inverse/88 hover:translate-y-[-1px] active:translate-y-[0px] font-medium',
 
         // === UTILITY VARIANTS (special purposes) ===
 
@@ -110,15 +110,15 @@ const buttonVariants = cva(
 
         // Ghost Danger - Close buttons (no angled corners)
         'ghost-danger':
-          'bg-transparent border border-transparent text-white/60 hover:bg-red-500/20 hover:text-red-300',
+          'bg-transparent border border-transparent text-os-text-inverse/70 hover:bg-error-subtle hover:text-fg-error',
 
         // Outline - Just borders
         outline:
-          'bg-transparent border border-primary-500/30 text-primary-400/70 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 hover:translate-y-[-1px] font-bold uppercase tracking-wide overflow-hidden relative',
+          'bg-transparent border border-stroke-brand/40 text-fg-brand hover:border-stroke-brand hover:bg-brand-subtle-hover hover:text-fg-brand-hover hover:translate-y-[-1px] font-bold uppercase overflow-hidden relative',
 
         // Taskbar - Special taskbar buttons (no angled corners)
         taskbar:
-          'text-os-text-inverse/50 hover:text-os-text-inverse hover:bg-os-ink-800/70 relative rounded',
+          'text-os-text-inverse/65 hover:text-os-text-inverse hover:bg-os-ink-800/70 relative rounded',
 
         // Menu Item - Context menu items (no angled corners)
         'menu-item':
@@ -144,19 +144,19 @@ const buttonVariants = cva(
 
         // === LEGACY ALIASES (backward compatibility) ===
         // @deprecated Use `soft-brand-primary` (toggle row) or `solid-brand-primary` (CTA) instead.
-        primary: 'bg-os-ink-950/50 text-primary-400/70 border border-primary-500/30 hover:border-primary-500/60 hover:bg-primary-500/10 hover:text-primary-400 data-[active=true]:bg-primary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-primary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        primary: 'bg-os-ink-950/50 text-fg-brand/70 border border-brand-600/30 hover:border-brand-600/60 hover:bg-brand-600/10 hover:text-fg-brand data-[active=true]:bg-brand-600 data-[active=true]:text-fg-on-primary data-[active=true]:shadow-lg data-[active=true]:shadow-glow-primary font-bold uppercase tracking-wide overflow-hidden relative',
         // @deprecated Use `soft-brand-secondary` or `solid-brand-secondary` instead.
-        secondary: 'bg-os-ink-950/50 text-secondary-400/70 border border-secondary-500/30 hover:border-secondary-500/60 hover:bg-secondary-500/10 hover:text-secondary-400 data-[active=true]:bg-secondary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-secondary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        secondary: 'bg-os-ink-950/50 text-fg-brand/70 border border-brand-600/30 hover:border-brand-600/60 hover:bg-brand-600/10 hover:text-fg-brand data-[active=true]:bg-brand-600 data-[active=true]:text-fg-on-primary data-[active=true]:shadow-lg data-[active=true]:shadow-glow-primary font-bold uppercase tracking-wide overflow-hidden relative',
         // @deprecated Use `soft-brand-tertiary` or `solid-brand-tertiary` instead.
-        tertiary: 'bg-os-ink-950/50 text-tertiary-400/70 border border-tertiary-500/30 hover:border-tertiary-500/60 hover:bg-tertiary-500/10 hover:text-tertiary-400 data-[active=true]:bg-tertiary-500 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-tertiary-500/50 font-bold uppercase tracking-wide overflow-hidden relative',
+        tertiary: 'bg-os-ink-950/50 text-fg-brand/70 border border-brand-600/30 hover:border-brand-600/60 hover:bg-brand-600/10 hover:text-fg-brand data-[active=true]:bg-brand-600 data-[active=true]:text-fg-on-primary data-[active=true]:shadow-lg data-[active=true]:shadow-glow-primary font-bold uppercase tracking-wide overflow-hidden relative',
         // @deprecated Use `ghost-danger` for icon-only close actions, or compose a destructive button explicitly.
-        danger: 'bg-os-ink-950/50 text-red-400/70 border border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-400 data-[active=true]:bg-red-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        danger: 'bg-os-ink-950/50 text-fg-error/70 border border-stroke-error/30 hover:border-stroke-error/60 hover:bg-error-subtle hover:text-fg-error data-[active=true]:bg-error data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
         // @deprecated Tie success state to the semantic `fg-success` token explicitly instead.
-        success: 'bg-os-ink-950/50 text-accent-400/70 border border-accent-500/30 hover:border-accent-500/60 hover:bg-accent-500/10 hover:text-accent-400 data-[active=true]:bg-accent-500 data-[active=true]:text-white font-bold uppercase tracking-wide overflow-hidden relative',
+        success: 'bg-os-ink-950/50 text-fg-brand/70 border border-brand-600/30 hover:border-brand-600/60 hover:bg-brand-600/10 hover:text-fg-brand data-[active=true]:bg-brand-600 data-[active=true]:text-fg-on-primary font-bold uppercase tracking-wide overflow-hidden relative',
         // @deprecated Use `menu-item` (kebab-case) instead.
         menuItem: 'w-full justify-start hover:bg-os-ink-800/70 text-os-text-inverse/80 rounded-none',
         // @deprecated Use `ghost-danger` (kebab-case) instead.
-        ghostDanger: 'bg-transparent border border-transparent text-white/60 hover:bg-red-500/20 hover:text-red-300',
+        ghostDanger: 'bg-transparent border border-transparent text-white/60 hover:bg-error-subtle hover:text-fg-error',
       },
 
       size: {

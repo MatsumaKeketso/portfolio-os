@@ -71,7 +71,7 @@ export function About() {
   if (isLoading) {
     return (
       <div className="w-full h-full bg-black/50 flex items-center justify-center">
-        <Icons.Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+        <Icons.Loader2 className="w-8 h-8 text-fg-brand animate-spin" />
         <span className="ml-3 text-white font-medium">Loading profile...</span>
       </div>
     );
@@ -289,7 +289,7 @@ export function About() {
             <div className="space-y-6">
               {/* Profile Header */}
               <div className="text-center">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-500 to-tertiary-600 flex items-center justify-center mx-auto mb-4">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center mx-auto mb-4">
                   {profile.personal.photo ? (
                     <img src={profile.personal.photo} alt="Profile" className="w-full h-full rounded-full object-cover" />
                   ) : (
@@ -297,7 +297,7 @@ export function About() {
                   )}
                 </div>
                 {isEditing && (
-                  <label className="cursor-pointer text-primary-400 hover:text-primary-300 text-sm">
+                  <label className="cursor-pointer text-fg-brand hover:text-fg-brand text-sm">
                     <Icons.Upload className="w-4 h-4 inline mr-1" />
                     Upload Photo
                     <input
@@ -382,7 +382,7 @@ export function About() {
                 ) : (
                   <div className="text-center">
                     <h2 className="text-3xl font-bold text-white mb-2">{profile.personal.name}</h2>
-                    <p className="text-xl text-primary-400 mb-1">{profile.personal.title}</p>
+                    <p className="text-xl text-fg-brand mb-1">{profile.personal.title}</p>
                     <p className="text-white/60">{profile.personal.subtitle}</p>
                   </div>
                 )}
@@ -813,7 +813,7 @@ export function About() {
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <h4 className="text-lg font-semibold text-white">{exp.position}</h4>
-                                <p className="text-primary-400 font-medium">{exp.company}</p>
+                                <p className="text-fg-brand font-medium">{exp.company}</p>
                                 {exp.location && <p className="text-white/40 text-sm">{exp.location}</p>}
                               </div>
                               <span className="text-white/40 text-sm">{exp.startDate} - {exp.endDate}</span>
@@ -828,7 +828,7 @@ export function About() {
                             {exp.technologies.length > 0 && (
                               <div className="flex flex-wrap gap-2">
                                 {exp.technologies.map((tech, i) => (
-                                  <span key={i} className="px-2 py-1 bg-primary-500/20 text-primary-300 rounded text-xs">
+                                  <span key={i} className="px-2 py-1 bg-brand-600/20 text-fg-brand rounded text-xs">
                                     {tech}
                                   </span>
                                 ))}
@@ -1017,7 +1017,7 @@ export function About() {
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <h4 className="text-lg font-semibold text-white">{edu.degree} in {edu.field}</h4>
-                                <p className="text-primary-400 font-medium">{edu.institution}</p>
+                                <p className="text-fg-brand font-medium">{edu.institution}</p>
                               </div>
                               <div className="text-right">
                                 <span className="text-white/40 text-sm">{edu.startDate} - {edu.endDate}</span>
@@ -1160,7 +1160,7 @@ export function About() {
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex-1">
                                 <h4 className="text-lg font-semibold text-white">{cert.name}</h4>
-                                <p className="text-primary-400 font-medium">{cert.issuer}</p>
+                                <p className="text-fg-brand font-medium">{cert.issuer}</p>
                                 {cert.credentialId && (
                                   <p className="text-white/40 text-xs mt-1">Credential ID: {cert.credentialId}</p>
                                 )}
@@ -1173,7 +1173,7 @@ export function About() {
                                       href={cert.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-primary-400 hover:text-primary-300 text-xs flex items-center gap-1 justify-end"
+                                      className="text-fg-brand hover:text-fg-brand text-xs flex items-center gap-1 justify-end"
                                     >
                                       <Icons.ExternalLink className="w-3 h-3" />
                                       Verify
@@ -1381,7 +1381,7 @@ export function About() {
                           {project.technologies.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-3">
                               {project.technologies.map((tech, i) => (
-                                <span key={i} className="px-2 py-1 bg-primary-500/20 text-primary-300 rounded text-xs">
+                                <span key={i} className="px-2 py-1 bg-brand-600/20 text-fg-brand rounded text-xs">
                                   {tech}
                                 </span>
                               ))}
@@ -1390,17 +1390,17 @@ export function About() {
                           {(project.links.live || project.links.github || project.links.demo) && (
                             <div className="flex gap-2">
                               {project.links.live && (
-                                <a href={project.links.live} target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:text-primary-300 text-xs flex items-center gap-1">
+                                <a href={project.links.live} target="_blank" rel="noopener noreferrer" className="text-fg-brand hover:text-fg-brand text-xs flex items-center gap-1">
                                   <Icons.ExternalLink className="w-3 h-3" /> Live
                                 </a>
                               )}
                               {project.links.github && (
-                                <a href={project.links.github} target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:text-primary-300 text-xs flex items-center gap-1">
+                                <a href={project.links.github} target="_blank" rel="noopener noreferrer" className="text-fg-brand hover:text-fg-brand text-xs flex items-center gap-1">
                                   <Icons.Github className="w-3 h-3" /> GitHub
                                 </a>
                               )}
                               {project.links.demo && (
-                                <a href={project.links.demo} target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:text-primary-300 text-xs flex items-center gap-1">
+                                <a href={project.links.demo} target="_blank" rel="noopener noreferrer" className="text-fg-brand hover:text-fg-brand text-xs flex items-center gap-1">
                                   <Icons.Play className="w-3 h-3" /> Demo
                                 </a>
                               )}
@@ -1557,8 +1557,8 @@ export function About() {
                                 </span>
                               )}
                             </div>
-                            <span className={`px-3 py-1 rounded text-sm ${skill.proficiency === 'Expert' ? 'bg-tertiary-500/20 text-tertiary-300' :
-                              skill.proficiency === 'Advanced' ? 'bg-primary-500/20 text-primary-300' :
+                            <span className={`px-3 py-1 rounded text-sm ${skill.proficiency === 'Expert' ? 'bg-brand-600/20 text-fg-brand' :
+                              skill.proficiency === 'Advanced' ? 'bg-brand-600/20 text-fg-brand' :
                                 skill.proficiency === 'Intermediate' ? 'bg-success-subtle text-fg-success' :
                                   'bg-os-ink-800/80 text-white/60'
                               }`}>
@@ -1666,22 +1666,22 @@ export function About() {
                   <div className="space-y-3">
                     {profile.preferences.showEmail && profile.personal.email && (
                       <div className="flex items-center gap-3">
-                        <Icons.Mail className="w-5 h-5 text-primary-400" />
-                        <a href={`mailto:${profile.personal.email}`} className="text-white hover:text-primary-400">
+                        <Icons.Mail className="w-5 h-5 text-fg-brand" />
+                        <a href={`mailto:${profile.personal.email}`} className="text-white hover:text-fg-brand">
                           {profile.personal.email}
                         </a>
                       </div>
                     )}
                     {profile.preferences.showPhone && profile.personal.phone && (
                       <div className="flex items-center gap-3">
-                        <Icons.Phone className="w-5 h-5 text-primary-400" />
-                        <a href={`tel:${profile.personal.phone}`} className="text-white hover:text-primary-400">
+                        <Icons.Phone className="w-5 h-5 text-fg-brand" />
+                        <a href={`tel:${profile.personal.phone}`} className="text-white hover:text-fg-brand">
                           {profile.personal.phone}
                         </a>
                       </div>
                     )}
                     <div className="flex items-center gap-3">
-                      <Icons.MapPin className="w-5 h-5 text-primary-400" />
+                      <Icons.MapPin className="w-5 h-5 text-fg-brand" />
                       <span className="text-white">{profile.personal.location}</span>
                     </div>
                   </div>

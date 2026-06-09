@@ -119,9 +119,12 @@ The older glass contract below may still describe existing code, but it is no lo
 - **Text:** `text-white/80` content · `text-white/50` muted · `text-white/30` hints · `text-white` active/selected
 - **Dividers:** `<AppDivider />` or `h-px bg-white/[0.08]`
 - **Section labels:** `text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30`
-- **Focus ring:** `focus:border-white/[0.20]` on inputs, `focus-visible:ring-2 focus-visible:ring-primary-500` on buttons
+- **Focus ring:** `focus:border-stroke-brand` on inputs, `os-focus-ring` (or `focus-visible:ring-2 focus-visible:ring-brand-600`) on buttons
 - **Radius:** `rounded` (4px) for small controls · `rounded-lg` (8px) for cards/panels · `rounded-xl` for sidebar wrappers · `rounded-2xl` for the taskbar island
-- **No hardcoded hex colors inside app components.** Use Tailwind opacity utilities (`white/[0.08]`, `black/30`) or semantic tokens (`text-primary-400`, `bg-background-chrome`, `bg-background-floating`).
+- **Brand color:** use the ramp — `bg-brand-600` (solid), `text-fg-brand` (brand text/icons, bright on chrome), `border-brand-600`, `text-fg-on-primary` (auto-contrast foreground on a brand fill). Never `primary-*`/`secondary-*`/`tertiary-*`/`accent-*` (legacy; removed from components).
+- **Status colors are semantic, not brand:** `fg-error`/`bg-error-subtle`/`stroke-error`, `fg-warning`, `fg-success`, `fg-info`. These stay fixed-meaning and must NOT retheme with the brand. Never raw `red-*`/`amber-*`/`emerald-*` for status.
+- **No hardcoded hex colors inside app components.** Use Tailwind opacity utilities (`white/[0.08]`, `black/30`) or semantic tokens (`text-fg-brand`, `bg-background-chrome`, `bg-background-floating`).
+- **Guardrail:** run `npm run lint:tokens` (scans `src/components` for raw hex, inline-style hex, and palette-color-for-semantic-intent). It must pass; only `Resume.tsx` (print CV) and `DesktopIcons.tsx` (wallpaper contrast) are allowlisted.
 
 ---
 

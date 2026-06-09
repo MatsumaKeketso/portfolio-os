@@ -279,7 +279,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               className="fixed inset-0 pointer-events-none"
               style={{ zIndex: 65 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/18 via-background-chrome/28 to-secondary-500/18" />
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-600/18 via-background-chrome/28 to-brand-600/18" />
               <div className="absolute inset-0 bg-black/46" />
               <motion.div
                 initial={{ opacity: 0, x: -90 }}
@@ -320,7 +320,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
               >
                 <div className="relative space-y-6 self-center p-2">
                   <motion.div variants={previewItemVariants} className="relative inline-flex h-24 w-24 items-center justify-center">
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500/30 to-secondary-500/20 blur-xl" />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-600/30 to-brand-600/20 blur-xl" />
                     <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl border border-os-line-dark bg-os-ink-900/70">
                       {renderIcon(hoveredApp, "w-12 h-12 text-white drop-shadow-2xl")}
                     </div>
@@ -330,7 +330,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
                     <h1 className="max-w-3xl text-6xl font-bold leading-tight tracking-normal text-white">
                       {hoveredApp.name}
                     </h1>
-                    <p className="text-xl font-medium text-primary-300">
+                    <p className="text-xl font-medium text-fg-brand">
                       {hoveredApp.type === 'component'
                         ? 'Built-in Application'
                         : hoveredApp.type === 'iframe'
@@ -344,7 +344,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
 
                   <motion.div variants={previewItemVariants} className="flex flex-wrap gap-3 pt-1">
                     {hoveredApp.pinnedToTaskbar && (
-                      <span className="flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/15 px-3 py-1.5 text-sm font-medium text-primary-200">
+                      <span className="flex items-center gap-2 rounded-full border border-brand-600/30 bg-brand-600/15 px-3 py-1.5 text-sm font-medium text-fg-brand">
                         <Icons.Pin className="w-4 h-4" />
                         Pinned to Taskbar
                       </span>
@@ -365,7 +365,7 @@ export function DesktopIcons({ iconSize = 'medium', sortBy = 'name' }: DesktopIc
 
                   {hoveredApp.url && (
                     <motion.div variants={previewItemVariants} className="flex max-w-xl items-center gap-2 text-sm text-white/42">
-                      <Icons.Link className="w-4 h-4 shrink-0 text-primary-300" />
+                      <Icons.Link className="w-4 h-4 shrink-0 text-fg-brand" />
                       <span className="truncate">{hoveredApp.url}</span>
                     </motion.div>
                   )}

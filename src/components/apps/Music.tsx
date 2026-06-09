@@ -40,7 +40,7 @@ function ProgressBar({ current, duration }: { current: number; duration: number 
         if (duration > 0) audioEngine.seek(((e.clientX - rect.left) / rect.width) * duration);
       }}
     >
-      <div className="h-full bg-primary-500 rounded-full" style={{ width: `${pct}%` }} />
+      <div className="h-full bg-brand-600 rounded-full" style={{ width: `${pct}%` }} />
       <div
         className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ left: `calc(${pct}% - 6px)` }}
@@ -81,7 +81,7 @@ export function Music({ file }: MusicProps) {
             <p className="text-sm text-white/30">No track loaded</p>
           )}
           {hasTrack && !hasUrl && (
-            <p className="text-xs text-amber-400/70 mt-1">No audio source — re-upload as audio file</p>
+            <p className="text-xs text-fg-warning/70 mt-1">No audio source — re-upload as audio file</p>
           )}
         </div>
 
@@ -156,7 +156,7 @@ export function Music({ file }: MusicProps) {
             type="range" min={0} max={1} step={0.01}
             value={isMuted ? 0 : volume}
             onChange={e => audioEngine.setVolume(Number(e.target.value))}
-            className="flex-1 h-1 accent-primary-500 cursor-pointer"
+            className="flex-1 h-1 accent-brand-600 cursor-pointer"
           />
           <span className="text-[11px] text-white/30 tabular-nums w-7 text-right">
             {Math.round((isMuted ? 0 : volume) * 100)}

@@ -77,6 +77,26 @@ export interface FileItem {
   // restored to where it came from.
   previousParentId?: string | null;
   deletedAt?: number;
+  // Case study — owner-authored portfolio detail for project folders inside
+  // the Projects location. Markdown body + uploaded image URLs (Storage, not
+  // base64). Rendered in the Projects side panel. See ProjectCaseStudyPanel.
+  caseStudy?: ProjectCaseStudy;
+}
+
+export interface ProjectCaseStudy {
+  /** Rich HTML body (authored in the Tiptap editor; sanitized on render). */
+  html?: string;
+  /** Legacy/plain markdown body — fallback render when `html` is absent. */
+  markdown?: string;
+  /** Optional one-line summary shown under the project title. */
+  summary?: string;
+  /** Optional cover image URL (Firebase Storage). */
+  cover?: string;
+  /** Uploaded gallery image URLs (Firebase Storage), referenced from markdown. */
+  media?: string[];
+  /** Optional external links (live site, repo, etc.). */
+  links?: { label: string; url: string }[];
+  updatedAt?: number;
 }
 
 export const VISITOR_GALLERY_ID = 'folder-visitor-gallery';

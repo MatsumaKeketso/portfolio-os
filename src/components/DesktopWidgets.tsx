@@ -116,7 +116,7 @@ function WidgetShell({
       <div className="pointer-events-none absolute inset-0 bg-os-ink-950" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,rgba(var(--color-primary),0.12),transparent_38%),radial-gradient(circle_at_92%_0%,rgba(var(--color-primary),0.22),transparent_34%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-os-ink-950 to-os-ink-950/20" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-400/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/50 to-transparent" />
       <button
         type="button"
         onClick={(event) => {
@@ -138,7 +138,7 @@ function WidgetHeader({ label, title, icon: Icon }: { label: string; title: stri
   return (
     <div className="mb-4 flex items-start justify-between gap-4 pr-8">
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-300">{label}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-brand">{label}</p>
         <h2 className="mt-1 text-xl font-semibold leading-tight text-white">{title}</h2>
       </div>
       <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-os-line-dark bg-os-ink-900">
@@ -323,7 +323,7 @@ export function DesktopWidgets() {
                     onClick={() => openWindow(app)}
                     className="group flex w-full items-center gap-3 rounded-xl border border-os-line-dark bg-os-ink-900 px-3 py-2 text-left transition-colors hover:border-stroke-brand hover:bg-os-ink-800"
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-os-ink-950 text-primary-300">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-os-ink-950 text-fg-brand">
                       <Icons.Box className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
@@ -368,7 +368,7 @@ export function DesktopWidgets() {
             <div className="relative p-3">
               <div className="mb-3 flex items-center justify-between pr-8">
                 <div className="flex items-center gap-2">
-                  <Icons.PlaySquare className="h-4 w-4 text-primary-300" />
+                  <Icons.PlaySquare className="h-4 w-4 text-fg-brand" />
                   <p className="text-xs font-semibold text-white/72">Project media</p>
                 </div>
                 <span className="text-[10px] text-white/42">{featuredMedia.length} items</span>
@@ -414,7 +414,7 @@ export function DesktopWidgets() {
           <WidgetShell id={id} title="Calculator" position={positions[id]} onDismiss={dismissWidget} onPositionChange={handlePositionChange} className="w-[260px]">
             <div className="relative p-3">
               <div className="mb-3 flex items-center gap-2 pr-8">
-                <Icons.Calculator className="h-4 w-4 text-primary-300" />
+                <Icons.Calculator className="h-4 w-4 text-fg-brand" />
                 <p className="text-xs font-semibold text-white/72">Quick calc</p>
               </div>
               <div className="mb-2 rounded-xl border border-os-line-dark bg-os-ink-950 px-3 py-2 text-right text-lg font-semibold text-white/78">{calcValue}</div>
@@ -447,7 +447,7 @@ export function DesktopWidgets() {
           onClick={() => setPickerOpen((open) => !open)}
           className="flex items-center gap-2 rounded-full border border-os-line-dark bg-background-chrome/82 px-3 py-2 text-xs font-semibold text-white/58 shadow-os-card transition-colors hover:border-stroke-brand hover:text-white"
         >
-          <Icons.LayoutDashboard className="h-3.5 w-3.5 text-primary-300" />
+          <Icons.LayoutDashboard className="h-3.5 w-3.5 text-fg-brand" />
           Widgets
           <span className="rounded-full bg-os-ink-900 px-1.5 py-0.5 text-[10px] text-white/34">{visibleWidgetIds.length}</span>
         </button>
@@ -468,14 +468,14 @@ export function DesktopWidgets() {
                   onClick={() => toggleWidget(widget.id)}
                   className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-os-ink-800"
                 >
-                  <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg border border-os-line-dark', hidden ? 'bg-os-ink-950 text-white/20' : 'bg-os-ink-900 text-primary-300')}>
+                  <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg border border-os-line-dark', hidden ? 'bg-os-ink-950 text-white/20' : 'bg-os-ink-900 text-fg-brand')}>
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold text-white/70">{widget.name}</span>
                     <span className="block truncate text-[10px] text-white/30">{widget.description}</span>
                   </span>
-                  {hidden ? <Icons.EyeOff className="h-3.5 w-3.5 text-white/28" /> : <Icons.Eye className="h-3.5 w-3.5 text-primary-300" />}
+                  {hidden ? <Icons.EyeOff className="h-3.5 w-3.5 text-white/28" /> : <Icons.Eye className="h-3.5 w-3.5 text-fg-brand" />}
                 </button>
               );
             })}

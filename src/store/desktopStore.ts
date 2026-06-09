@@ -8,8 +8,12 @@ interface DesktopBackground {
   name: string;
   url: string;
   thumbnail?: string;
-  type?: 'gradient' | 'image' | 'aurora' | 'beams' | 'grid';
-  config?: Record<string, any>;
+  // 'solid' = single colour from config.base. 'animated-gradient' renders a
+  // drifting multi-blob gradient from config.colors (CSS-only, GPU-cheap).
+  // 'aurora'/'beams'/'grid' are legacy labels kept for backward compat with
+  // stored selections (no preset uses them anymore).
+  type?: 'gradient' | 'image' | 'solid' | 'animated-gradient' | 'aurora' | 'beams' | 'grid';
+  config?: { colors?: string[]; base?: string; [key: string]: any };
 }
 
 interface SystemPreferences {
@@ -492,25 +496,63 @@ const defaultBackgrounds: DesktopBackground[] = [
     type: 'gradient',
   },
   {
+    id: 'default-brand-flow',
+    name: 'Brand Flow',
+    url: '',
+    type: 'animated-gradient',
+    // Theme-bound: references the brand ramp, so this animated background
+    // re-tints automatically when the brand color changes.
+    config: { base: '#08080c', colors: ['rgb(var(--brand-400))', 'rgb(var(--brand-600))', 'rgb(var(--brand-800))'] },
+  },
+  // Brand-themed static options (re-tint with the brand color).
+  {
+    id: 'default-brand-gradient',
+    name: 'Brand Gradient',
+    url: 'linear-gradient(135deg, rgb(var(--brand-1300)) 0%, #0b0b10 72%)',
+    type: 'gradient',
+  },
+  {
+    id: 'default-brand-solid',
+    name: 'Brand Tint',
+    url: '',
+    type: 'solid',
+    config: { base: 'rgb(var(--brand-1700))' },
+  },
+  // Neutral solids — calm, minimal surfaces.
+  {
+    id: 'default-ink',
+    name: 'Ink',
+    url: '',
+    type: 'solid',
+    config: { base: '#0a0a0c' },
+  },
+  {
+    id: 'default-graphite',
+    name: 'Graphite',
+    url: '',
+    type: 'solid',
+    config: { base: '#16181d' },
+  },
+  {
     id: 'default-aurora',
     name: 'Aurora Dreams',
     url: '',
-    type: 'aurora',
-    config: { colors: ['#667eea', '#764ba2', '#f093fb'] },
+    type: 'animated-gradient',
+    config: { base: '#0a0816', colors: ['#7c5cff', '#a855f7', '#ec4899'] },
   },
   {
     id: 'default-beams',
-    name: 'Energy Beams',
+    name: 'Ember Flow',
     url: '',
-    type: 'beams',
-    config: { color: '#667eea', opacity: 0.3 },
+    type: 'animated-gradient',
+    config: { base: '#120a0a', colors: ['#f97316', '#ef4444', '#a855f7'] },
   },
   {
     id: 'default-grid',
-    name: 'Cyber Grid',
+    name: 'Cyan Flow',
     url: '',
-    type: 'grid',
-    config: { dotColor: '#667eea', spacing: 30 },
+    type: 'animated-gradient',
+    config: { base: '#05080f', colors: ['#06b6d4', '#3b82f6', '#22d3ee'] },
   },
   // Star Citizen Themed Backgrounds
   {
@@ -547,22 +589,22 @@ const defaultBackgrounds: DesktopBackground[] = [
     id: 'default-starcitizen-aurora',
     name: 'Star Citizen Aurora',
     url: '',
-    type: 'aurora',
-    config: { colors: ['#00d9ff', '#0066ff', '#00e5cc'] },
+    type: 'animated-gradient',
+    config: { base: '#04121a', colors: ['#00d9ff', '#0066ff', '#00e5cc'] },
   },
   {
     id: 'default-starcitizen-beams',
     name: 'Quantum Beams',
     url: '',
-    type: 'beams',
-    config: { color: '#00d9ff', opacity: 0.4 },
+    type: 'animated-gradient',
+    config: { base: '#04101a', colors: ['#22d3ee', '#3b82f6', '#00d9ff'] },
   },
   {
     id: 'default-hud-grid',
-    name: 'HUD Grid',
+    name: 'HUD Glow',
     url: '',
-    type: 'grid',
-    config: { dotColor: '#00d9ff', spacing: 40 },
+    type: 'animated-gradient',
+    config: { base: '#05080f', colors: ['#00e5cc', '#0066ff', '#00d9ff'] },
   },
 ];
 

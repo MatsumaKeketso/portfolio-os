@@ -85,10 +85,10 @@ export function Notepad({ window }: NotepadProps = {}) {
     html = html.replace(/\*(.*?)\*/gim, '<em class="italic text-white/60">$1</em>');
 
     // Code inline
-    html = html.replace(/`(.*?)`/gim, '<code class="bg-os-ink-800 text-primary-400 px-1 rounded font-mono text-sm">$1</code>');
+    html = html.replace(/`(.*?)`/gim, '<code class="bg-os-ink-800 text-fg-brand px-1 rounded font-mono text-sm">$1</code>');
 
     // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-primary-400 hover:text-primary-300 underline" target="_blank">$1</a>');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-fg-brand hover:text-fg-brand underline" target="_blank">$1</a>');
 
     // Line breaks
     html = html.replace(/\n/gim, '<br />');
@@ -215,7 +215,7 @@ export function Notepad({ window }: NotepadProps = {}) {
             <textarea
               value={text}
               onChange={(e) => handleTextChange(e.target.value)}
-              className="w-full h-full p-4 resize-none focus:outline-none font-mono text-sm bg-transparent text-white placeholder-gray-500"
+              className="w-full h-full p-4 resize-none focus:outline-none font-mono text-sm bg-transparent text-white placeholder-white/30"
               spellCheck={false}
               placeholder="Start typing your notes here... Try markdown formatting!"
             />

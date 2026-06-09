@@ -28,7 +28,13 @@
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|esbuild|vite' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize)",
       "Bash(npm list *)",
       "Bash(tsc --noEmit -p tsconfig.app.json)",
-      "Bash(echo \"build exit code: $?\")"
+      "Bash(echo \"build exit code: $?\")",
+      "Bash(grep -v ':0$')",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(echo \"build exit: $?\")",
+      "Bash(cd .. 2>/dev/null; npm run typecheck 2>&1 | tail -6; echo \"---BUILD---\"; npm run build > /dev/null 2>&1; echo \"build exit: $?\"; echo \"=== remaining legacy tokens by file ===\"; grep -rcE '\\\\b\\(primary|secondary|tertiary|accent\\)-\\(50|100|200|300|400|500|600|700|800|900|950\\)\\\\b' src/components --include=*.tsx | grep -v ':0$' | sort -t: -k2 -rn)",
+      "Read(//c/Users/keket/Documents/GitHub/**)",
+      "Bash(npm run *)"
     ]
   }
 }

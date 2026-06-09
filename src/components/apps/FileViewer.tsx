@@ -60,7 +60,7 @@ function PdfViewer({ url, fileName }: { url: string; fileName: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full gap-3">
-        <Icons.Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+        <Icons.Loader2 className="w-6 h-6 animate-spin text-fg-brand" />
         <span className="text-sm text-white/40">Loading PDF…</span>
       </div>
     );
@@ -77,7 +77,7 @@ function PdfViewer({ url, fileName }: { url: string; fileName: string }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-600 transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
         >
           <Icons.ExternalLink className="w-4 h-4" /> Open PDF
         </a>
@@ -133,7 +133,7 @@ export function FileViewer({ file }: FileViewerProps) {
       return (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <Icons.Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+            <Icons.Loader2 className="w-8 h-8 animate-spin text-fg-brand mx-auto mb-2" />
             <p className="text-white/40">Loading file…</p>
           </div>
         </div>
@@ -148,7 +148,7 @@ export function FileViewer({ file }: FileViewerProps) {
             <p className="text-fg-error mb-2">{error}</p>
             <button
               onClick={loadFileContent}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors"
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-800 text-white rounded transition-colors"
             >
               Retry
             </button>
@@ -218,7 +218,7 @@ export function FileViewer({ file }: FileViewerProps) {
             </div>
           ) : category === 'audio' ? (
             <div className="flex flex-col items-center justify-center h-full p-8 bg-os-ink-950">
-              <Icons.Music className="w-24 h-24 text-primary-500 mb-8" />
+              <Icons.Music className="w-24 h-24 text-fg-brand mb-8" />
               <h3 className="text-xl font-semibold text-white mb-2">{file.name}</h3>
               <audio src={url} controls className="w-full max-w-md mt-4">
                 Your browser does not support the audio tag.

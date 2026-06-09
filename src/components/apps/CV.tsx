@@ -25,7 +25,7 @@ const proficiencyWidth: Record<string, string> = {
 const statusColor: Record<string, string> = {
   'In Progress': 'bg-os-ink-800 text-fg-info border border-stroke-info/40',
   Completed: 'bg-success-subtle text-fg-success border border-stroke-success/40',
-  Archived: 'bg-os-ink-800 text-os-text-inverse/40 border border-os-line-dark-hover',
+  Archived: 'bg-os-ink-800 text-os-text-inverse/60 border border-os-line-dark-hover',
 };
 
 export function CV() {
@@ -57,7 +57,7 @@ export function CV() {
       <div className="shrink-0 border-b border-os-line-dark px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="os-type-title-4 text-os-text-inverse/90">{personal.name || 'Your Name'}</h1>
-          <p className="os-type-caption text-os-text-inverse/40">{personal.title || 'Title'} · {personal.location || 'Location'}</p>
+          <p className="os-type-caption text-os-text-inverse/60">{personal.title || 'Title'} · {personal.location || 'Location'}</p>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (
@@ -67,7 +67,7 @@ export function CV() {
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium',
                 needsSeed
-                  ? 'os-interactive os-focus-ring rounded-md border border-stroke-brand/40 bg-primary-500/10 text-primary-300 hover:bg-primary-500/15'
+                  ? 'os-interactive os-focus-ring rounded-md border border-stroke-brand/40 bg-brand-600/10 text-fg-brand hover:bg-brand-600/15'
                   : cn(appSoftButtonClass, 'rounded-md'),
                 isSeeding && 'opacity-50 pointer-events-none'
               )}
@@ -109,7 +109,7 @@ export function CV() {
                 'os-interactive flex items-center gap-1.5 px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2',
                 activeTab === id
                   ? 'border-stroke-brand text-os-text-inverse/90'
-                  : 'border-transparent text-os-text-inverse/40 hover:text-os-text-inverse/70'
+                  : 'border-transparent text-os-text-inverse/60 hover:text-os-text-inverse/70'
               )}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -142,9 +142,9 @@ function ProfileTab({ personal, summary }: { personal: any; summary: string }) {
         />
         <div className="pb-6">
           <h2 className="text-2xl font-bold text-white/90">{personal.name}</h2>
-          <p className="text-base text-white/55 mt-0.5">{personal.title}</p>
-          {personal.subtitle && <p className="text-sm text-white/35 mt-0.5">{personal.subtitle}</p>}
-          <div className="flex items-center gap-1.5 mt-3 text-sm text-white/40">
+          <p className="text-base text-white/85 mt-0.5">{personal.title}</p>
+          {personal.subtitle && <p className="text-sm text-white/50 mt-0.5">{personal.subtitle}</p>}
+          <div className="flex items-center gap-1.5 mt-3 text-sm text-white/72">
             <Icons.MapPin className="w-3.5 h-3.5" />
             {personal.location}
           </div>
@@ -153,14 +153,14 @@ function ProfileTab({ personal, summary }: { personal: any; summary: string }) {
 
       {summary && (
         <Section title="Summary">
-          <p className="text-sm text-white/60 leading-relaxed">{summary}</p>
+          <p className="text-sm text-white/88 leading-relaxed">{summary}</p>
         </Section>
       )}
 
       {personal.bio?.length > 0 && (
         <Section title="About">
           {personal.bio.map((paragraph: string, i: number) => (
-            <p key={i} className="text-sm text-white/60 leading-relaxed mb-2 last:mb-0">{paragraph}</p>
+            <p key={i} className="text-sm text-white/88 leading-relaxed mb-2 last:mb-0">{paragraph}</p>
           ))}
         </Section>
       )}
@@ -179,14 +179,14 @@ function ExperienceTab({ resume }: { resume: any }) {
                 <div className="flex items-start justify-between mb-1">
                   <div>
                     <p className="text-sm font-semibold text-white/80">{exp.position}</p>
-                    <p className="text-xs text-white/50">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                    <p className="text-xs text-white/80">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
                   </div>
-                  <span className="text-xs text-white/30 whitespace-nowrap ml-4">{exp.startDate} – {exp.endDate}</span>
+                  <span className="text-xs text-white/45 whitespace-nowrap ml-4">{exp.startDate} – {exp.endDate}</span>
                 </div>
                 {exp.description?.length > 0 && (
                   <ul className="mt-2 space-y-1">
                     {exp.description.map((line: string, i: number) => (
-                      <li key={i} className="text-xs text-white/50 flex items-start gap-2">
+                      <li key={i} className="text-xs text-white/80 flex items-start gap-2">
                         <span className="mt-1.5 w-1 h-1 rounded-full bg-white/20 flex-shrink-0" />
                         {line}
                       </li>
@@ -196,7 +196,7 @@ function ExperienceTab({ resume }: { resume: any }) {
                 {exp.technologies?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
                     {exp.technologies.map((tech: string) => (
-                      <span key={tech} className="px-2 py-0.5 bg-os-ink-800/60 border border-os-line-dark rounded text-[10px] text-white/50">{tech}</span>
+                      <span key={tech} className="px-2 py-0.5 bg-os-ink-800/60 border border-os-line-dark rounded text-[10px] text-white/80">{tech}</span>
                     ))}
                   </div>
                 )}
@@ -214,11 +214,11 @@ function ExperienceTab({ resume }: { resume: any }) {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-semibold text-white/80">{edu.degree} in {edu.field}</p>
-                    <p className="text-xs text-white/50">{edu.institution}</p>
+                    <p className="text-xs text-white/80">{edu.institution}</p>
                   </div>
-                  <span className="text-xs text-white/30 whitespace-nowrap ml-4">{edu.startDate} – {edu.endDate}</span>
+                  <span className="text-xs text-white/45 whitespace-nowrap ml-4">{edu.startDate} – {edu.endDate}</span>
                 </div>
-                {edu.gpa && <p className="text-xs text-white/40 mt-1">GPA: {edu.gpa}</p>}
+                {edu.gpa && <p className="text-xs text-white/72 mt-1">GPA: {edu.gpa}</p>}
               </AppCard>
             ))}
           </div>
@@ -232,10 +232,10 @@ function ExperienceTab({ resume }: { resume: any }) {
               <AppCard key={cert.id} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-white/80">{cert.name}</p>
-                  <p className="text-xs text-white/50">{cert.issuer}</p>
+                  <p className="text-xs text-white/80">{cert.issuer}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-white/30">{cert.date}</p>
+                  <p className="text-xs text-white/45">{cert.date}</p>
                   {cert.url && (
                     <a href={cert.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-fg-success hover:underline">View</a>
                   )}
@@ -263,11 +263,11 @@ function SkillsTab({ categories }: { categories: any[] }) {
           <div className="space-y-2">
             {cat.skills.map((skill: any) => (
               <div key={skill.name} className="flex items-center gap-3">
-                <span className="text-xs text-white/70 w-36 truncate flex-shrink-0">{skill.name}</span>
+                <span className="text-xs text-white/85 w-36 truncate flex-shrink-0">{skill.name}</span>
                 <div className="flex-1 h-1.5 bg-os-line-dark-hover rounded-full overflow-hidden">
                   <div className={`h-full bg-white/40 rounded-full ${proficiencyWidth[skill.proficiency]}`} />
                 </div>
-                <span className="text-[10px] text-white/30 w-20 text-right">{skill.proficiency}</span>
+                <span className="text-[10px] text-white/45 w-20 text-right">{skill.proficiency}</span>
                 {skill.yearsOfExperience && (
                   <span className="text-[10px] text-white/20 w-12 text-right">{skill.yearsOfExperience}yr</span>
                 )}
@@ -285,26 +285,26 @@ export function ProjectsTab({ projects }: { projects: any[] }) {
 
   return (
     <div className="p-6 max-w-2xl space-y-3">
-      <p className="text-xs text-white/30 mb-4">Selected work. Launch individual project apps from the desktop or Start Menu for the full view.</p>
+      <p className="text-xs text-white/45 mb-4">Selected work. Launch individual project apps from the desktop or Start Menu for the full view.</p>
       {projects.map((project: any) => (
         <AppCard key={project.id} className="p-4">
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
-              {project.featured && <Icons.Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
+              {project.featured && <Icons.Star className="w-3 h-3 text-fg-warning fill-fg-warning" />}
               <p className="text-sm font-semibold text-white/80">{project.name}</p>
             </div>
             <span className={cn(
               'text-[10px] px-2 py-0.5 rounded-full font-medium',
-              statusColor[project.status] || 'bg-os-ink-800/60 text-white/40 border border-os-line-dark'
+              statusColor[project.status] || 'bg-os-ink-800/60 text-white/72 border border-os-line-dark'
             )}>
               {project.status}
             </span>
           </div>
-          <p className="text-xs text-white/50 mb-2">{project.description}</p>
+          <p className="text-xs text-white/80 mb-2">{project.description}</p>
           {project.technologies?.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
               {project.technologies.map((tech: string) => (
-                <span key={tech} className="px-2 py-0.5 bg-os-ink-800/60 border border-os-line-dark rounded text-[10px] text-white/50">{tech}</span>
+                <span key={tech} className="px-2 py-0.5 bg-os-ink-800/60 border border-os-line-dark rounded text-[10px] text-white/80">{tech}</span>
               ))}
             </div>
           )}
@@ -315,7 +315,7 @@ export function ProjectsTab({ projects }: { projects: any[] }) {
               </a>
             )}
             {project.links?.github && (
-              <a href={project.links.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-white/40 hover:underline">
+              <a href={project.links.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] text-white/72 hover:underline">
                 <Icons.Github className="w-3 h-3" /> GitHub
               </a>
             )}
@@ -373,17 +373,17 @@ function FilesTab({ name }: { name: string }) {
         <div className="space-y-2">
           <AppCard className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
-              <Icons.FileText className="w-4 h-4 text-white/40" />
+              <Icons.FileText className="w-4 h-4 text-white/72" />
               <div>
-                <p className="text-sm font-medium text-white/70">{name || 'Resume'} — CV</p>
-                <p className="text-xs text-white/30">Print or export from the Profile tab</p>
+                <p className="text-sm font-medium text-white/85">{name || 'Resume'} — CV</p>
+                <p className="text-xs text-white/45">Print or export from the Profile tab</p>
               </div>
             </div>
             <Icons.Download className="w-4 h-4 text-white/20" />
           </AppCard>
         </div>
       </Section>
-      <p className="text-xs text-white/30 mt-4">Open Archive to browse portfolio assets and project files.</p>
+      <p className="text-xs text-white/45 mt-4">Open Archive to browse portfolio assets and project files.</p>
     </div>
   );
 }
@@ -391,7 +391,7 @@ function FilesTab({ name }: { name: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="os-type-label text-white/30 mb-3">{title}</h3>
+      <h3 className="os-type-label text-white/45 mb-3">{title}</h3>
       {children}
     </div>
   );
@@ -400,9 +400,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string; href?: string }) {
   const content = (
     <AppCard className="flex items-center gap-3 px-4 py-2.5">
-      <span className="text-white/40">{icon}</span>
-      <span className="text-xs text-white/30 w-16 flex-shrink-0">{label}</span>
-      <span className="text-xs text-white/70 truncate">{value}</span>
+      <span className="text-white/72">{icon}</span>
+      <span className="text-xs text-white/45 w-16 flex-shrink-0">{label}</span>
+      <span className="text-xs text-white/85 truncate">{value}</span>
     </AppCard>
   );
 
@@ -414,7 +414,7 @@ function Empty({ message }: { message: string }) {
   return (
     <div className="text-center py-12">
       <Icons.Inbox className="w-8 h-8 text-white/10 mx-auto mb-3" />
-      <p className="text-sm text-white/30">{message}</p>
+      <p className="text-sm text-white/45">{message}</p>
     </div>
   );
 }

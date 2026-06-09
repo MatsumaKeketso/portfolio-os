@@ -101,16 +101,40 @@ function DesktopBackground({
   url,
   thumbnail,
   isGradient,
+  type,
+  config,
 }: {
   url?: string;
   thumbnail?: string;
   isGradient: boolean;
+  type?: string;
+  config?: { colors?: string[]; base?: string };
 }) {
   const [isLoaded, setIsLoaded] = useState(isGradient || !url);
 
   useEffect(() => {
     setIsLoaded(isGradient || !url);
   }, [isGradient, url]);
+
+  if (type === 'animated-gradient') {
+    const colors = config?.colors ?? [];
+    return (
+      <div
+        className="animated-gradient"
+        style={{
+          // Missing values fall back via the CSS var defaults in .animated-gradient.
+          '--ag-base': config?.base,
+          '--ag-c1': colors[0],
+          '--ag-c2': colors[1] ?? colors[0],
+          '--ag-c3': colors[2] ?? colors[1] ?? colors[0],
+        } as React.CSSProperties}
+      />
+    );
+  }
+
+  if (type === 'solid') {
+    return <div className="absolute inset-0" style={{ background: config?.base }} />;
+  }
 
   if (!url) {
     return <div className="absolute inset-0 bg-os-ink-950" />;
@@ -132,7 +156,7 @@ function DesktopBackground({
       )}
       {!isLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950">
-          <div className="h-8 w-8 rounded-full border border-white/10 border-t-primary-400/80 animate-spin" />
+          <div className="h-8 w-8 rounded-full border border-white/10 border-t-brand-400/80 animate-spin" />
         </div>
       )}
       <motion.img
@@ -197,7 +221,7 @@ function BootScreen({
 
             <div className="mb-4 overflow-hidden rounded-full border border-os-line-dark bg-os-ink-900">
               <motion.div
-                className="h-1.5 rounded-full bg-gradient-to-r from-primary-500 via-white to-tertiary-500 shadow-[0_0_18px_rgba(var(--color-primary),0.45)]"
+                className="h-1.5 rounded-full bg-gradient-to-r from-brand-600 via-white to-brand-400 shadow-[0_0_18px_rgb(var(--brand)/0.45)]"
                 initial={{ width: '4%' }}
                 animate={{ width: `${Math.max(progress, 8)}%` }}
                 transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
@@ -218,9 +242,9 @@ function BootScreen({
                     <div
                       className={[
                         'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border',
-                        isDone ? 'border-primary-500/40 bg-primary-500/12 text-primary-300' : '',
+                        isDone ? 'border-brand-600/40 bg-brand-600/12 text-fg-brand' : '',
                         isLoading ? 'border-os-line-dark-hover bg-os-ink-800/40 text-os-text-inverse/70' : '',
-                        isError ? 'border-tertiary-500/35 bg-tertiary-500/10 text-tertiary-300' : '',
+                        isError ? 'border-brand-600/35 bg-brand-600/10 text-fg-brand' : '',
                         task.status === 'pending' ? 'border-os-line-dark bg-os-ink-950 text-white/20' : '',
                       ].join(' ')}
                     >
@@ -255,7 +279,7 @@ function MobileAboutSurface() {
       <div className="relative flex min-h-11 shrink-0 items-center justify-between overflow-hidden border-b border-os-line-dark bg-background-chrome px-3">
         <WindowHeaderStrip active />
         <div className="relative z-10 flex min-w-0 items-center gap-2">
-          <Icons.Monitor className="h-4 w-4 shrink-0 text-primary-400" />
+          <Icons.Monitor className="h-4 w-4 shrink-0 text-fg-brand" />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-medium leading-none text-white/85">About This OS</p>
             <p className="mt-1 truncate text-[10px] leading-none text-white/35">A quieter door into the system</p>
@@ -268,12 +292,12 @@ function MobileAboutSurface() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(20px+env(safe-area-inset-bottom))] pt-4">
         <section className="relative overflow-hidden rounded-xl border border-os-line-dark bg-os-ink-950/72 p-4">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full border border-primary-500/20" />
-          <div className="pointer-events-none absolute -right-8 -top-12 h-28 w-28 rounded-full border border-tertiary-500/20" />
+          <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full border border-brand-600/20" />
+          <div className="pointer-events-none absolute -right-8 -top-12 h-28 w-28 rounded-full border border-brand-600/20" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_10%,rgba(var(--color-primary),0.18),transparent_34%),radial-gradient(circle_at_12%_88%,rgba(var(--color-tertiary),0.12),transparent_34%)]" />
 
           <div className="relative">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-400">GenOS</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-brand">GenOS</p>
             <h1 className="mt-2 text-2xl font-semibold leading-[1.05] text-white">
               A small window into a larger machine.
             </h1>
@@ -294,7 +318,7 @@ function MobileAboutSurface() {
 
         <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
           <div className="flex items-center gap-2">
-            <Icons.Lightbulb className="h-4 w-4 text-primary-400" />
+            <Icons.Lightbulb className="h-4 w-4 text-fg-brand" />
             <h2 className="text-sm font-semibold text-white/85">Concept</h2>
           </div>
           <p className="text-sm leading-6 text-white/55">
@@ -310,7 +334,7 @@ function MobileAboutSurface() {
 
         <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
           <div className="flex items-center gap-2">
-            <Icons.User className="h-4 w-4 text-primary-400" />
+            <Icons.User className="h-4 w-4 text-fg-brand" />
             <h2 className="text-sm font-semibold text-white/85">Keketso</h2>
           </div>
           <p className="text-sm leading-6 text-white/55">
@@ -320,7 +344,7 @@ function MobileAboutSurface() {
 
         <section className="mt-3 space-y-2 rounded-xl border border-os-line-dark bg-os-ink-950/62 p-4">
           <div className="flex items-center gap-2">
-            <Icons.Sparkles className="h-4 w-4 text-primary-400" />
+            <Icons.Sparkles className="h-4 w-4 text-fg-brand" />
             <h2 className="text-sm font-semibold text-white/85">Generative Studio</h2>
           </div>
           <p className="text-sm leading-6 text-white/55">
@@ -779,6 +803,8 @@ export function Desktop() {
             url={selectedBackground?.url}
             thumbnail={selectedBackground?.thumbnail}
             isGradient={isGradient}
+            type={selectedBackground?.type}
+            config={selectedBackground?.config}
           />
           <div className="absolute inset-0 bg-os-ink-950/78" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(var(--color-primary),0.24),transparent_34%),radial-gradient(circle_at_82%_88%,rgba(var(--color-tertiary),0.18),transparent_38%)]" />
@@ -803,23 +829,26 @@ export function Desktop() {
           url={selectedBackground?.url}
           thumbnail={selectedBackground?.thumbnail}
           isGradient={isGradient}
+          type={selectedBackground?.type}
+          config={selectedBackground?.config}
         />
       </div>
 
       {isDraggingOver && (
-        <div className="absolute inset-0 bg-primary-500/20 border-1 border-primary-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
+        <div className="absolute inset-0 bg-brand-600/20 border-1 border-brand-400 border-dashed flex items-center justify-center z-[9997] pointer-events-none">
           <div className="text-white text-2xl font-bold drop-shadow-lg">Drop files to upload</div>
         </div>
       )}
 
       <div className="relative h-full flex flex-col overflow-hidden" onContextMenu={handleDesktopContextMenu}>
         <div className="flex-1 relative desktop-area flex gap-4 overflow-hidden">
-          {/* Left side: Desktop Icons and Windows */}
-          {/* overflow-hidden here clips any window whose absolute position
-              extends beyond the container. Without it, un-maximizing while
-              the Timeline re-appears would let off-screen windows push the
-              desktop layout sideways. */}
-          <div className="flex-1 relative min-w-0 overflow-hidden">
+          {/* Left side: Desktop Icons and Windows.
+              No overflow-hidden here: windows are absolutely positioned and must
+              float *over* the Timeline/milestones panel (which sits at z-index 1),
+              not be clipped at this column's edge. The desktop-area parent keeps
+              overflow-hidden, so windows are still bounded by the screen and never
+              push the layout sideways (absolute children don't affect flex sizing). */}
+          <div className="flex-1 relative min-w-0">
             <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
             <WindowManager />
           </div>

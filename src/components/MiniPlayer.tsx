@@ -111,7 +111,7 @@ export function MiniPlayer() {
                 onClick={() => useMediaStore.getState().toggleShuffle()}
                 className={cn(
                   'p-1 rounded-lg transition-colors hover:bg-os-ink-800/60',
-                  shuffle ? 'text-primary-400' : 'text-white/25 hover:text-white/60'
+                  shuffle ? 'text-fg-brand' : 'text-white/25 hover:text-white/60'
                 )}
                 title={shuffle ? 'Shuffle on' : 'Shuffle off'}
               >
@@ -158,7 +158,7 @@ export function MiniPlayer() {
                 onClick={() => useMediaStore.getState().cycleRepeat()}
                 className={cn(
                   'p-1 rounded-lg transition-colors hover:bg-os-ink-800/60',
-                  repeatMode !== 'off' ? 'text-primary-400' : 'text-white/25 hover:text-white/60'
+                  repeatMode !== 'off' ? 'text-fg-brand' : 'text-white/25 hover:text-white/60'
                 )}
                 title={repeatMode === 'off' ? 'Repeat off' : repeatMode === 'all' ? 'Repeat all' : 'Repeat one'}
               >

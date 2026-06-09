@@ -142,21 +142,21 @@ export function TaskManager() {
         <div className="flex items-center gap-1 bg-os-ink-950/60 rounded p-1 border border-os-line-dark">
           <button
             onClick={() => setActiveTab('processes')}
-            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'processes' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'processes' ? 'bg-brand-600 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.List className="w-3.5 h-3.5" />
             Processes
           </button>
           <button
             onClick={() => setActiveTab('performance')}
-            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'performance' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'performance' ? 'bg-brand-600 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.Activity className="w-3.5 h-3.5" />
             Performance
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'details' ? 'bg-primary-500 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
+            className={cn('os-interactive os-focus-ring px-3 py-1.5 text-xs rounded flex items-center gap-2', activeTab === 'details' ? 'bg-brand-600 text-white' : 'text-white/45 hover:bg-os-ink-800 hover:text-white')}
           >
             <Icons.Info className="w-3.5 h-3.5" />
             Details
@@ -196,7 +196,7 @@ export function TaskManager() {
                 </div>
                 <div className="text-2xl font-bold text-white">{totalCpu}%</div>
                 <div className="w-full bg-os-ink-700/60 rounded-full h-1.5 mt-2">
-                  <div className="bg-primary-500 rounded-full h-1.5 transition-all" style={{ width: `${totalCpu}%` }} />
+                  <div className="bg-brand-600 rounded-full h-1.5 transition-all" style={{ width: `${totalCpu}%` }} />
                 </div>
               </div>
 
@@ -268,7 +268,7 @@ export function TaskManager() {
                     className={cn(appTableRowClass, 'grid-cols-12')}
                   >
                       <div className="col-span-4 flex items-center gap-3">
-                        <Icon className="w-5 h-5 text-primary-400 shrink-0" />
+                        <Icon className="w-5 h-5 text-fg-brand shrink-0" />
                         <span className="text-sm font-medium text-white truncate">{process.name}</span>
                       </div>
                       <div className="col-span-2">
@@ -285,7 +285,7 @@ export function TaskManager() {
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-os-ink-700/60 rounded-full h-1.5">
                             <div
-                              className="bg-primary-500 rounded-full h-1.5 transition-all"
+                              className="bg-brand-600 rounded-full h-1.5 transition-all"
                               style={{ width: `${Math.min(process.cpu * 5, 100)}%` }}
                             />
                           </div>
@@ -320,7 +320,7 @@ export function TaskManager() {
             <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Icons.Cpu className="w-5 h-5 text-primary-400" />
+                  <Icons.Cpu className="w-5 h-5 text-fg-brand" />
                   CPU
                 </h3>
                 <span className="text-3xl font-bold text-white">{totalCpu}%</span>
@@ -329,7 +329,7 @@ export function TaskManager() {
                 {cpuHistory.map((value, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-primary-500 rounded-t transition-all"
+                    className="flex-1 bg-brand-600 rounded-t transition-all"
                     style={{ height: `${value}%` }}
                   />
                 ))}
@@ -383,7 +383,7 @@ export function TaskManager() {
         <div className="flex-1 p-6 overflow-auto">
           <div className="bg-os-ink-900 rounded-lg p-6 border border-os-line-dark">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Icons.Info className="w-5 h-5 text-primary-400" />
+              <Icons.Info className="w-5 h-5 text-fg-brand" />
               System Information
             </h3>
             <div className="space-y-3 text-sm">

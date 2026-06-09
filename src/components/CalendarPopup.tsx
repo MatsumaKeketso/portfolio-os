@@ -96,7 +96,7 @@ export function CalendarPopup({ anchor, onClose }: CalendarPopupProps) {
               day === null
                 ? ''
                 : isToday(day)
-                ? 'bg-primary-500 text-white font-semibold'
+                ? 'bg-brand-600 text-fg-on-primary font-semibold'
                 : 'text-white/50 hover:bg-os-ink-800 hover:text-white cursor-pointer transition-colors',
             ].join(' ')}
           >

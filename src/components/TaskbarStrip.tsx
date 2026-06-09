@@ -202,7 +202,7 @@ export function BootHeaderStrip() {
   }, [rawBright, rawPhase, rawX, shouldReduceMotion]);
 
   if (shouldReduceMotion) {
-    return <div aria-hidden className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-primary-500/45" />;
+    return <div aria-hidden className="pointer-events-none absolute left-0 right-0 top-0 h-[2px] bg-brand-600/45" />;
   }
 
   return (
@@ -253,7 +253,7 @@ export function WindowHeaderStrip({ active }: { active: boolean }) {
   }, [rawPhase, rawX, shouldReduceMotion]);
 
   if (shouldReduceMotion) {
-    return <div aria-hidden className="pointer-events-none absolute left-4 right-4 top-0 h-px bg-primary-500/10" />;
+    return <div aria-hidden className="pointer-events-none absolute left-4 right-4 top-0 h-px bg-brand-600/10" />;
   }
 
   return (
@@ -441,7 +441,7 @@ export function TaskbarStrip() {
       className="absolute top-0 h-0 pointer-events-none overflow-visible"
       style={{ left: TASKBAR_STRIP_INSET, right: TASKBAR_STRIP_INSET, zIndex: 1 }}
     >
-      {shouldReduceMotion ? <div className="h-[2px] bg-primary-500/35" /> : <LuminousStripSvg x={x} bright={bright} phase={phase} />}
+      {shouldReduceMotion ? <div className="h-[2px] bg-brand-600/35" /> : <LuminousStripSvg x={x} bright={bright} phase={phase} />}
     </div>
   );
 }

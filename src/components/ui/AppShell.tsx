@@ -37,7 +37,7 @@ import { Typography } from './Typography'
 
 export const AppShell = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col h-full w-full overflow-hidden', className)} {...props} />
+    <div ref={ref} className={cn('flex flex-col h-full w-full overflow-hidden text-os-text-inverse', className)} {...props} />
   )
 )
 AppShell.displayName = 'AppShell'
@@ -152,7 +152,7 @@ AppCard.displayName = 'AppCard'
 // ---------------------------------------------------------------------------
 
 export const appInputClass =
-  'bg-os-ink-800 border border-os-line-dark text-os-text-inverse placeholder:text-os-text-inverse/25 rounded focus:outline-none focus:border-stroke-brand transition-colors'
+  'bg-os-ink-800 border border-os-line-dark text-os-text-inverse placeholder:text-os-text-inverse/50 rounded os-focus-ring focus:outline-none focus:border-stroke-brand transition-colors'
 
 export const appSelectClass =
   'os-select os-focus-ring bg-os-ink-800 border border-os-line-dark text-os-text-inverse rounded focus:outline-none focus:border-stroke-brand transition-colors'
@@ -161,16 +161,16 @@ export const appInteractiveClass =
   'os-interactive os-focus-ring'
 
 export const appIconButtonClass =
-  'os-interactive os-focus-ring rounded-md text-os-text-inverse/55 hover:bg-os-ink-800/70 hover:text-os-text-inverse'
+  'os-interactive os-focus-ring rounded-md text-os-text-inverse/70 hover:bg-os-ink-800/70 hover:text-os-text-inverse'
 
 export const appSoftButtonClass =
-  'os-interactive os-focus-ring rounded-md border border-os-line-dark bg-os-ink-900 text-os-text-inverse/65 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse'
+  'os-interactive os-focus-ring rounded-md border border-os-line-dark bg-os-ink-900 text-os-text-inverse/75 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse'
 
 export const appTableClass =
   'overflow-hidden rounded-lg border border-os-line-dark bg-os-ink-900'
 
 export const appTableHeaderClass =
-  'grid gap-4 border-b border-os-line-dark bg-os-ink-950/70 px-4 py-2.5 os-type-label text-os-text-inverse/40'
+  'grid gap-4 border-b border-os-line-dark bg-os-ink-950/70 px-4 py-2.5 os-type-label text-os-text-inverse/55'
 
 export const appTableBodyClass =
   'divide-y divide-os-line-dark'
@@ -181,12 +181,12 @@ export const appTableRowClass =
 // Settings/admin-style outer panel — same surface tone as <AppCard> but without
 // forced padding. Compose with `cn(appPanelClass, 'p-6')` at the call site.
 export const appPanelClass =
-  'bg-os-ink-900 border border-os-line-dark rounded-lg'
+  'bg-os-ink-900 border border-os-line-dark rounded-lg text-os-text-inverse'
 
 // Settings/admin-style interior row — slightly darker tone, indicates a single
 // settings line. Compose with `cn(appRowClass, 'p-4')` at the call site.
 export const appRowClass =
-  'flex items-center gap-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg transition-colors'
+  'flex items-center gap-3 bg-os-ink-950/70 border border-os-line-dark rounded-lg text-os-text-inverse transition-colors'
 
 // ---------------------------------------------------------------------------
 // AppDivider — thin 1px separator between sections

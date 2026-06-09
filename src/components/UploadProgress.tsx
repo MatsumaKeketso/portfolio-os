@@ -23,7 +23,7 @@ export const UploadProgress: React.FC<UploadProgressProps> = ({
     <div className={`bg-os-ink-950 rounded-lg shadow-os-floating border border-os-line-dark p-4 min-w-[320px] max-w-md ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Upload className="w-5 h-5 text-primary-400" />
+          <Upload className="w-5 h-5 text-fg-brand" />
           <h3 className="font-semibold text-white">
             {allCompleted ? 'Upload Complete' : 'Uploading Files'}
           </h3>

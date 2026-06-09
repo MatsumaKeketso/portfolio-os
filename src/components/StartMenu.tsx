@@ -313,17 +313,17 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                 <div className="flex items-center gap-2">
                   <div className={`relative w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border transition-colors ${
                     isAdmin
-                      ? 'bg-primary-500/15 border-primary-500/35'
+                      ? 'bg-brand-600/15 border-brand-600/35'
                       : isAuthenticated
                         ? 'bg-success-subtle border-stroke-success/40'
                         : 'bg-os-ink-800 border-transparent'
                   }`}>
                     <Icons.User className={`w-3 h-3 ${
-                      isAdmin ? 'text-primary-300' : isAuthenticated ? 'text-fg-success' : 'text-white/50'
+                      isAdmin ? 'text-fg-brand' : isAuthenticated ? 'text-fg-success' : 'text-white/50'
                     }`} />
                     {isAuthenticated && (
                       <span className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-background-chrome ${
-                        isAdmin ? 'bg-primary-400' : 'bg-fg-success'
+                        isAdmin ? 'bg-brand-400' : 'bg-fg-success'
                       }`} />
                     )}
                   </div>
@@ -385,8 +385,8 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                         className="absolute right-2 bottom-11 z-[10001] w-64 rounded-lg border border-os-line-dark bg-background-chrome shadow-os-window p-3"
                       >
                         <div className="flex gap-3">
-                          <div className="mt-0.5 w-6 h-6 rounded-full bg-primary-500/15 border border-primary-500/25 flex items-center justify-center shrink-0">
-                            <Icons.HelpCircle className="w-3.5 h-3.5 text-primary-300" />
+                          <div className="mt-0.5 w-6 h-6 rounded-full bg-brand-600/15 border border-brand-600/25 flex items-center justify-center shrink-0">
+                            <Icons.HelpCircle className="w-3.5 h-3.5 text-fg-brand" />
                           </div>
                           <div className="min-w-0">
                             <div className="text-xs font-semibold text-white/85">Sign out?</div>
@@ -404,7 +404,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                           </button>
                           <button
                             onClick={confirmLogout}
-                            className="rounded bg-primary-500 px-2.5 py-1.5 text-xs font-semibold text-os-ink-950 hover:bg-primary-400 transition-colors"
+                            className="rounded bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-fg-on-primary hover:bg-brand-400 transition-colors"
                           >
                             Sign out
                           </button>

@@ -75,7 +75,7 @@ export function Contact() {
                   />
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-600 to-tertiary-600 flex items-center justify-center flex-shrink-0 border-4 border-os-line-dark-hover">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center flex-shrink-0 border-4 border-os-line-dark-hover">
                   <Icons.User className="w-12 h-12 text-white" />
                 </div>
               )}
@@ -83,7 +83,7 @@ export function Contact() {
               {/* Info */}
               <div className="flex-1">
                 <h2 className="text-3xl font-bold text-white mb-1">{profile.personal.name}</h2>
-                <p className="text-xl text-primary-300 mb-3">{profile.personal.title}</p>
+                <p className="text-xl text-fg-brand mb-3">{profile.personal.title}</p>
                 {profile.personal.location && (
                   <div className="flex items-center gap-2 text-white/60">
                     <Icons.MapPin className="w-4 h-4" />
@@ -106,16 +106,16 @@ export function Contact() {
               {profile.preferences.showEmail && profile.personal.email ? (
                 <a
                   href={`mailto:${profile.personal.email}`}
-                  className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-primary-500/50 group"
+                  className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-brand-600/50 group"
                 >
-                  <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center group-hover:bg-primary-500/30 transition-all">
-                    <Icons.Mail className="w-6 h-6 text-primary-400" />
+                  <div className="w-12 h-12 bg-brand-600/20 rounded-lg flex items-center justify-center group-hover:bg-brand-600/30 transition-all">
+                    <Icons.Mail className="w-6 h-6 text-fg-brand" />
                   </div>
                   <div className="flex-1">
                     <div className="text-white/40 text-sm">Email</div>
                     <div className="text-white font-medium">{profile.personal.email}</div>
                   </div>
-                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-primary-400 transition-colors" />
+                  <Icons.ExternalLink className="w-5 h-5 text-white/40 group-hover:text-fg-brand transition-colors" />
                 </a>
               ) : (
                 <div className="flex items-center gap-4 p-4 bg-os-ink-800/40 rounded-lg border border-os-line-dark opacity-50">
@@ -186,16 +186,16 @@ export function Contact() {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-tertiary-500/50 group"
+                      className="flex items-center gap-3 p-4 bg-os-ink-800/40 rounded-lg hover:bg-os-ink-800/80 transition-all border border-os-line-dark hover:border-brand-600/50 group"
                     >
-                      <div className="w-10 h-10 bg-tertiary-500/20 rounded-lg flex items-center justify-center group-hover:bg-tertiary-500/30 transition-all">
-                        <IconComponent className="w-5 h-5 text-tertiary-400" />
+                      <div className="w-10 h-10 bg-brand-600/20 rounded-lg flex items-center justify-center group-hover:bg-brand-600/30 transition-all">
+                        <IconComponent className="w-5 h-5 text-fg-brand" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-white font-medium truncate">{link.platform}</div>
                         <div className="text-white/40 text-xs truncate">{link.url}</div>
                       </div>
-                      <Icons.ExternalLink className="w-4 h-4 text-white/40 group-hover:text-tertiary-400 transition-colors flex-shrink-0" />
+                      <Icons.ExternalLink className="w-4 h-4 text-white/40 group-hover:text-fg-brand transition-colors flex-shrink-0" />
                     </a>
                   );
                 })}
@@ -223,7 +223,7 @@ export function Contact() {
           {/* Call to Action */}
           <div className="bg-black/30 rounded p-6 border border-os-line-dark">
             <div className="flex items-start gap-4">
-              <Icons.MessageCircle className="w-6 h-6 text-tertiary-400 flex-shrink-0 mt-1" />
+              <Icons.MessageCircle className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
               <div>
                 <h4 className="text-white font-semibold mb-2">Let's Connect!</h4>
                 <p className="text-white/60 text-sm leading-relaxed mb-4">

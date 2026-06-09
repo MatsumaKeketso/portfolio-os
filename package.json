@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "lint:tokens": "node scripts/check-design-tokens.mjs",
     "reads:import": "node scripts/importReadsFromCsv.mjs"
   },
   "dependencies": {
@@ -16,6 +17,12 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
+    "@tiptap/extension-image": "^2.27.2",
+    "@tiptap/extension-link": "^2.27.2",
+    "@tiptap/extension-placeholder": "^2.27.2",
+    "@tiptap/pm": "^2.27.2",
+    "@tiptap/react": "^2.27.2",
+    "@tiptap/starter-kit": "^2.27.2",
     "@types/three": "^0.166.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

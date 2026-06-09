@@ -48,9 +48,9 @@ export function Skills() {
       case 'Intermediate':
         return 'bg-fg-success';
       case 'Advanced':
-        return 'bg-primary-500';
+        return 'bg-brand-600';
       case 'Expert':
-        return 'bg-tertiary-500';
+        return 'bg-brand-400';
       default:
         return 'bg-white/40';
     }
@@ -99,7 +99,7 @@ export function Skills() {
               <Icons.Zap className="w-6 h-6" />
               Skills & Technologies
             </h1>
-            <p className="text-white/40 text-sm mt-1">
+            <p className="text-white/62 text-sm mt-1">
               {filteredSkillsCount} skill{filteredSkillsCount !== 1 ? 's' : ''} across {filteredCategories.length} categor{filteredCategories.length !== 1 ? 'ies' : 'y'}
             </p>
           </div>
@@ -119,7 +119,7 @@ export function Skills() {
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
-              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/62" />
               <input
                 type="text"
                 placeholder="Search skills..."
@@ -151,7 +151,7 @@ export function Skills() {
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Icons.Layers className="w-16 h-16 text-white/20 mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">No skills found</h3>
-            <p className="text-white/40 mb-4">
+            <p className="text-white/62 mb-4">
               {searchQuery || filterProficiency !== 'all'
                 ? 'Try adjusting your filters'
                 : 'Start by adding your skills'}
@@ -171,7 +171,7 @@ export function Skills() {
                 {/* Category Header */}
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-white">{category.name}</h2>
-                  <span className="text-white/40 text-sm">
+                  <span className="text-white/62 text-sm">
                     {category.skills.length} skill{category.skills.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export function Skills() {
                           {skill.proficiency}
                         </span>
                         {skill.yearsOfExperience && (
-                          <span className="text-white/40">
+                          <span className="text-white/62">
                             {skill.yearsOfExperience} year{skill.yearsOfExperience !== 1 ? 's' : ''}
                           </span>
                         )}
@@ -236,19 +236,19 @@ export function Skills() {
           <div className="flex justify-center gap-8 text-sm">
             <div className="text-center">
               <div className="text-2xl font-bold text-white">{totalSkills}</div>
-              <div className="text-white/40">Total Skills</div>
+              <div className="text-white/62">Total Skills</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-white">{profile.skills.categories.length}</div>
-              <div className="text-white/40">Categories</div>
+              <div className="text-white/62">Categories</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-tertiary-400">
+              <div className="text-2xl font-bold text-fg-brand">
                 {profile.skills.categories.reduce((sum, cat) =>
                   sum + cat.skills.filter(s => s.proficiency === 'Expert').length, 0
                 )}
               </div>
-              <div className="text-white/40">Expert Level</div>
+              <div className="text-white/62">Expert Level</div>
             </div>
           </div>
         </div>

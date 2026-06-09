@@ -156,7 +156,7 @@ export function Finance() {
       <div className="flex shrink-0 flex-col gap-3 border-b border-os-line-dark bg-os-ink-900 p-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-os-line-dark bg-os-ink-950">
-            <Icons.WalletCards className="h-5 w-5 text-primary-300" />
+            <Icons.WalletCards className="h-5 w-5 text-fg-brand" />
           </div>
           <div>
             <h1 className="os-type-title-4 text-white">Finance</h1>
@@ -177,7 +177,7 @@ export function Finance() {
               className={cn(
                 'os-focus-ring flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-colors',
                 view === item.value
-                  ? 'bg-primary-500 text-white'
+                  ? 'bg-brand-600 text-white'
                   : 'text-white/45 hover:bg-os-ink-800 hover:text-white'
               )}
             >
@@ -231,7 +231,7 @@ export function Finance() {
                   ))}
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 bg-os-ink-950/60 px-4 py-4">
                     <span className="os-type-title-4 text-white">Total</span>
-                    <span className="os-type-title-4 text-primary-200">{currency.format(quote.total)}</span>
+                    <span className="os-type-title-4 text-fg-brand">{currency.format(quote.total)}</span>
                   </div>
                 </div>
               </div>
@@ -263,7 +263,7 @@ export function Finance() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="os-type-label text-white/35">Remaining after plan</p>
-                    <p className={cn('os-type-title-1 mt-1', budget.available >= 0 ? 'text-primary-200' : 'text-fg-error')}>
+                    <p className={cn('os-type-title-1 mt-1', budget.available >= 0 ? 'text-fg-brand' : 'text-fg-error')}>
                       {currency.format(budget.available)}
                     </p>
                   </div>
@@ -271,7 +271,7 @@ export function Finance() {
                 </div>
                 <div className="mt-5 h-2 overflow-hidden rounded-full bg-os-ink-700">
                   <div
-                    className={cn('h-full rounded-full', budget.available >= 0 ? 'bg-primary-500' : 'bg-fg-error')}
+                    className={cn('h-full rounded-full', budget.available >= 0 ? 'bg-brand-600' : 'bg-fg-error')}
                     style={{ width: `${Math.min(100, Math.max(4, Math.abs(budget.margin) * 100))}%` }}
                   />
                 </div>
@@ -313,7 +313,7 @@ export function Finance() {
                         <span className="os-type-caption text-white/35">Month {index + 1}</span>
                         <div className="h-2 overflow-hidden rounded-full bg-os-ink-700">
                           <div
-                            className={cn('h-full rounded-full', active || partial ? 'bg-primary-500' : 'bg-white/10')}
+                            className={cn('h-full rounded-full', active || partial ? 'bg-brand-600' : 'bg-white/10')}
                             style={{ width: active ? '100%' : partial ? `${(runway.months % 1) * 100}%` : '100%' }}
                           />
                         </div>

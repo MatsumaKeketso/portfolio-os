@@ -198,7 +198,7 @@ function AddShortcutForm({ onAdd, onCancel }: { onAdd: (s: Omit<BrowserShortcut,
           <p className="os-type-label text-white/35">New resource</p>
           <p className="os-type-secondary mt-1 text-white/65">Save a useful page into the Browser shelf.</p>
         </div>
-        <Icons.BookmarkPlus className="h-5 w-5 shrink-0 text-primary-400" />
+        <Icons.BookmarkPlus className="h-5 w-5 shrink-0 text-fg-brand" />
       </div>
       <ControlInput icon={Icons.Link} value={url} onChange={(e) => handleUrlChange(e.target.value)} placeholder="Paste a URL" />
       <div className="grid gap-2 sm:grid-cols-2">
@@ -224,7 +224,7 @@ function AddShortcutForm({ onAdd, onCancel }: { onAdd: (s: Omit<BrowserShortcut,
         />
       </label>
       <div className="flex gap-2 pt-1">
-        <button type="submit" className="flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-600">
+        <button type="submit" className="flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-800">
           <Icons.Plus className="h-3.5 w-3.5" />
           Save
         </button>
@@ -357,11 +357,14 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
   const [customShortcuts, setCustomShortcuts] = useState<BrowserShortcut[]>([]);
   const [showAddShortcut, setShowAddShortcut] = useState(false);
   const { isAdmin } = useAuthStore();
+  // Normalize the entry URL: a missing/empty/newtab url opens the Browser home,
+  // not an unmatched route (which previously fell through to renderExternal).
+  const startUrl = !initialUrl || initialUrl === 'browser://newtab' ? HOME_URL : initialUrl;
   const [tabs, setTabs] = useState<Tab[]>([
     {
       id: 'tab-1',
-      title: getTitleFromUrl(initialUrl === 'browser://newtab' ? HOME_URL : initialUrl, []),
-      url: initialUrl === 'browser://newtab' ? HOME_URL : initialUrl,
+      title: getTitleFromUrl(startUrl, []),
+      url: startUrl,
     },
   ]);
   const [activeTabId, setActiveTabId] = useState('tab-1');
@@ -781,7 +784,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
             loading="lazy"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-950 via-os-ink-900 to-os-ink-950" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-2100 via-os-ink-900 to-os-ink-950" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/10" />
         <div className="relative z-10 flex h-full flex-col justify-end p-5">
@@ -947,7 +950,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
                         <button
                           onClick={() => setShowAddShortcut((value) => !value)}
                           aria-expanded={showAddShortcut}
-                          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-stroke-brand bg-primary-500 px-4 text-xs font-semibold text-white shadow-os-card transition hover:bg-primary-600"
+                          className="flex h-10 items-center justify-center gap-2 rounded-xl border border-stroke-brand bg-brand-600 px-4 text-xs font-semibold text-white shadow-os-card transition hover:bg-brand-800"
                         >
                           <Icons.BookmarkPlus className="h-3.5 w-3.5" />
                           Add resource
@@ -1272,7 +1275,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
             </p>
             <button
               onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-600"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800"
             >
               Open {hostname} <Icons.ArrowUpRight className="h-4 w-4" />
             </button>
@@ -1301,7 +1304,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
               }`}
             >
               {tab.url.startsWith('http') ? (
-                <Icons.Globe className="h-3.5 w-3.5 shrink-0 text-primary-400" />
+                <Icons.Globe className="h-3.5 w-3.5 shrink-0 text-fg-brand" />
               ) : tab.url === HOME_URL || tab.url === 'browser://newtab' ? (
                 <Icons.Home className="h-3.5 w-3.5 shrink-0" />
               ) : (
@@ -1352,7 +1355,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
             className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/30"
             placeholder="Search reads or enter an internal URL"
           />
-          {(isLoading || isFetchingReads) && <Icons.Loader2 className="h-3.5 w-3.5 animate-spin text-primary-400" />}
+          {(isLoading || isFetchingReads) && <Icons.Loader2 className="h-3.5 w-3.5 animate-spin text-fg-brand" />}
         </form>
 
         <button onClick={() => setShowBookmarks((value) => !value)} className="rounded-lg p-1.5 text-white/65 transition hover:bg-os-ink-700/60 hover:text-white">

@@ -137,7 +137,7 @@ export function SplitCard({
           'bg-os-ink-900 border transition-colors duration-200',
           'cursor-pointer select-none',
           selected
-            ? 'border-stroke-brand ring-2 ring-primary-500/30'
+            ? 'border-stroke-brand ring-2 ring-brand-600/30'
             : 'border-os-line-dark hover:border-os-line-dark-hover',
         )}
         style={{ boxShadow: selected ? PANEL_SHADOW_RAISED : PANEL_SHADOW }}

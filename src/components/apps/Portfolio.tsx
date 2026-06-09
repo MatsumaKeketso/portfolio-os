@@ -93,14 +93,14 @@ export function Portfolio() {
       case 'Archived':
         return 'bg-os-ink-800/80 text-white/40 border-os-line-dark-hover';
       default:
-        return 'bg-primary-500/20 text-primary-400 border-primary-500/30';
+        return 'bg-brand-600/20 text-fg-brand border-brand-600/30';
     }
   };
 
   const ProjectCard = ({ project }: { project: Project }) => (
     <div
       onClick={() => handleProjectClick(project)}
-      className="bg-black/30 rounded p-5 border border-os-line-dark hover:border-primary-500/50 transition-all cursor-pointer group"
+      className="bg-black/30 rounded p-5 border border-os-line-dark hover:border-brand-600/50 transition-all cursor-pointer group"
     >
       {/* Project Image */}
       {project.images.length > 0 && (
@@ -132,7 +132,7 @@ export function Portfolio() {
           {project.technologies.slice(0, 3).map((tech: string, index: number) => (
             <span
               key={index}
-              className="bg-primary-500/20 text-primary-300 text-xs px-2 py-0.5 rounded"
+              className="bg-brand-600/20 text-fg-brand text-xs px-2 py-0.5 rounded"
             >
               {tech}
             </span>
@@ -163,7 +163,7 @@ export function Portfolio() {
   const ProjectListItem = ({ project }: { project: Project }) => (
     <div
       onClick={() => handleProjectClick(project)}
-      className="bg-black/30 rounded p-4 border border-os-line-dark hover:border-primary-500/50 transition-all cursor-pointer group flex gap-4"
+      className="bg-black/30 rounded p-4 border border-os-line-dark hover:border-brand-600/50 transition-all cursor-pointer group flex gap-4"
     >
       {/* Thumbnail */}
       {project.images.length > 0 && (
@@ -196,7 +196,7 @@ export function Portfolio() {
             {project.technologies.map((tech: string, index: number) => (
               <span
                 key={index}
-                className="bg-primary-500/20 text-primary-300 text-xs px-2 py-0.5 rounded"
+                className="bg-brand-600/20 text-fg-brand text-xs px-2 py-0.5 rounded"
               >
                 {tech}
               </span>
@@ -304,13 +304,13 @@ export function Portfolio() {
           <div className="flex gap-1 bg-os-ink-800/60 rounded p-1">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
+              className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-white/40 hover:text-white'}`}
             >
               <Icons.Grid3x3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-white/40 hover:text-white'}`}
+              className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-white/40 hover:text-white'}`}
             >
               <Icons.List className="w-4 h-4" />
             </button>
@@ -442,7 +442,7 @@ export function Portfolio() {
                     {selectedProject.technologies.map((tech: string, index: number) => (
                       <span
                         key={index}
-                        className="bg-primary-500/20 text-primary-300 px-3 py-1.5 rounded-lg border border-stroke-brand/40"
+                        className="bg-brand-600/20 text-fg-brand px-3 py-1.5 rounded-lg border border-stroke-brand/40"
                       >
                         {tech}
                       </span>

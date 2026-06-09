@@ -91,7 +91,7 @@ function CvTaskbarPreview({
               >
                 {!imageLoaded && (
                   <div className="absolute bottom-0 left-0 flex h-full w-full items-center justify-center">
-                    <div className="h-7 w-7 rounded-full border border-primary-300/25 border-t-primary-300/80 animate-spin" />
+                    <div className="h-7 w-7 rounded-full border border-brand-300/25 border-t-brand-300/80 animate-spin" />
                   </div>
                 )}
                 <img
@@ -343,7 +343,7 @@ export function Taskbar() {
               {isAuthenticated && (
                 <span className={cn(
                   "absolute right-1.5 bottom-1.5 w-2 h-2 rounded-full border border-os-canvas",
-                  isAdmin ? "bg-primary-500" : "bg-fg-success"
+                  isAdmin ? "bg-brand-600" : "bg-fg-success"
                 )} />
               )}
             </div>
@@ -397,7 +397,7 @@ export function Taskbar() {
               {isFocused && (
                 <motion.div
                   layoutId="taskbar-focus-indicator"
-                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-primary-400"
+                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-brand-400"
                   transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.5 }}
                 />
               )}
@@ -437,7 +437,7 @@ export function Taskbar() {
               {isFocused ? (
                 <motion.div
                   layoutId="taskbar-focus-indicator"
-                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-primary-400"
+                  className="absolute bottom-1 inset-x-0 mx-auto h-[2px] w-5 rounded-full bg-brand-400"
                   transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.5 }}
                 />
               ) : win.isMinimized ? (
@@ -473,7 +473,7 @@ export function Taskbar() {
             showNotifications ? 'text-white/70' : 'text-white/40 group-hover:text-white/70'
           )} />
           {notificationCount > 0 && (
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-400" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-400" />
           )}
         </button>
         {/* Volume */}
@@ -637,8 +637,8 @@ export function Taskbar() {
               }}
               className="mt-2 w-full rounded-xl border border-os-line-dark bg-os-ink-900/55 px-3 py-3 text-left transition-all hover:bg-os-ink-800 hover:border-os-line-dark-hover flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-lg bg-primary-500/15 border border-primary-500/25 flex items-center justify-center">
-                <Icons.Keyboard className="w-4 h-4 text-primary-300" />
+              <div className="w-8 h-8 rounded-lg bg-brand-600/15 border border-brand-600/25 flex items-center justify-center">
+                <Icons.Keyboard className="w-4 h-4 text-fg-brand" />
               </div>
               <div>
                 <div className="text-xs font-medium text-white/85">Keyboard shortcuts</div>

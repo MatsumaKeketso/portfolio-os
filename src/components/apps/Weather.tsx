@@ -122,15 +122,15 @@ export function Weather() {
     const iconClass = cn('transition-transform duration-300 group-hover:scale-110', className);
     switch (icon) {
       case 'sun':
-        return <Icons.Sun className={cn(iconClass, 'text-primary-300')} />;
+        return <Icons.Sun className={cn(iconClass, 'text-fg-brand')} />;
       case 'cloud':
         return <Icons.Cloud className={cn(iconClass, 'text-white/55')} />;
       case 'cloud-rain':
-        return <Icons.CloudRain className={cn(iconClass, 'text-primary-300')} />;
+        return <Icons.CloudRain className={cn(iconClass, 'text-fg-brand')} />;
       case 'moon':
         return <Icons.Moon className={cn(iconClass, 'text-white/50')} />;
       default:
-        return <Icons.CloudSun className={cn(iconClass, 'text-primary-300')} />;
+        return <Icons.CloudSun className={cn(iconClass, 'text-fg-brand')} />;
     }
   };
 
@@ -151,7 +151,7 @@ export function Weather() {
           <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-white/45 text-xs uppercase tracking-[0.14em] font-semibold">
-                <Icons.CloudSun className="w-4 h-4 text-primary-300" />
+                <Icons.CloudSun className="w-4 h-4 text-fg-brand" />
                 Weather
               </div>
               <h1 className="mt-1 text-xl font-semibold text-white">Local atmosphere</h1>
@@ -165,7 +165,7 @@ export function Weather() {
                     className={cn(
                       'os-interactive os-focus-ring px-3 py-1.5 rounded-lg text-xs font-medium',
                       selectedCityId === city.id
-                        ? 'bg-primary-500 text-white shadow-glow-primary'
+                        ? 'bg-brand-600 text-white shadow-glow-primary'
                         : 'text-white/55 hover:bg-os-ink-800 hover:text-white'
                     )}
                   >
@@ -188,7 +188,7 @@ export function Weather() {
                 <div className="absolute inset-0 pointer-events-none opacity-70 bg-[linear-gradient(120deg,rgba(255,255,255,0.08),transparent_38%),radial-gradient(circle_at_70%_45%,rgba(239,68,68,0.22),transparent_34%)]" />
                 <div className="relative flex items-start justify-between gap-6">
                   <div>
-                    <div className="flex items-center gap-2 text-primary-200 text-xs font-semibold uppercase tracking-[0.12em]">
+                    <div className="flex items-center gap-2 text-fg-brand text-xs font-semibold uppercase tracking-[0.12em]">
                       <Icons.MapPin className="w-4 h-4" />
                       {currentWeather.location}
                     </div>
@@ -216,7 +216,7 @@ export function Weather() {
                     const Icon = item.icon;
                     return (
                       <div key={item.label} className="os-interactive rounded-2xl border border-os-line-dark bg-os-ink-950/40 p-4 hover:border-os-line-dark-hover hover:bg-os-ink-800/60">
-                        <Icon className="w-4 h-4 text-primary-300 mb-3" />
+                        <Icon className="w-4 h-4 text-fg-brand mb-3" />
                         <p className="text-[10px] uppercase tracking-[0.12em] text-white/35 font-semibold">{item.label}</p>
                         <p className="text-sm font-semibold text-white/85 mt-1">{item.value}</p>
                       </div>

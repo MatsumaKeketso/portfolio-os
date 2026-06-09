@@ -11,7 +11,7 @@ interface MilestoneCardProps {
 
 const categoryConfig = {
   achievement: { icon: Icons.Trophy, label: 'Achievement', className: 'text-fg-warning bg-warning-subtle border-stroke-warning/40' },
-  project: { icon: Icons.Rocket, label: 'Project', className: 'text-primary-200 bg-primary-500/10 border-primary-500/20' },
+  project: { icon: Icons.Rocket, label: 'Project', className: 'text-fg-brand bg-brand-600/10 border-brand-600/20' },
   education: { icon: Icons.GraduationCap, label: 'Education', className: 'text-fg-info bg-info-subtle border-stroke-info/40' },
   career: { icon: Icons.Briefcase, label: 'Career', className: 'text-fg-success bg-success-subtle border-stroke-success/40' },
   personal: { icon: Icons.Heart, label: 'Personal', className: 'text-fg-error bg-error-subtle border-stroke-error/40' },
@@ -122,7 +122,7 @@ export function MilestoneCard({ milestone }: MilestoneCardProps) {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 rounded-md border border-os-line-dark bg-os-ink-950 px-2.5 py-2 text-xs text-os-text-inverse/55 transition hover:text-os-text-inverse"
                       >
-                        <Icons.ExternalLink className="h-3.5 w-3.5 text-primary-300" />
+                        <Icons.ExternalLink className="h-3.5 w-3.5 text-fg-brand" />
                         <span className="truncate">{link.label}</span>
                       </a>
                     ))}

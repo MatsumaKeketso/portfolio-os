@@ -425,7 +425,7 @@ Section labels use `os-type-label text-white/30` on chrome or `os-type-label tex
 
 ## What Apps Use Today (Audit, 2026-05-30 — post full sweep; Timeline added 2026-06-06)
 
-All 22 apps now use AppShell and source color from semantic tokens. Total raw-color debt across `src/components/`: **8 intentional brand/print exceptions**, down from 261 pre-sweep (97% reduction). (The 2026-05-30 sweep covered 21 apps; Timeline shipped after, already token-clean and built on `<Badge>`.)
+All 22 apps now use AppShell and source color from semantic tokens. After the 2026-06-07 brand sweep + semantic stabilization, raw-color debt across `src/components/` is **0 raw hex, 0 inline-style hex, and 0 palette colors** except the two intentional non-themeable contexts below (Resume print CV, DesktopIcons wallpaper contrast). Down from 261 pre-sweep. (The 2026-05-30 sweep covered 21 apps; Timeline shipped after, already token-clean and built on `<Badge>`.)
 
 | App | Uses AppShell | Notes |
 |---|---|---|
@@ -439,12 +439,12 @@ All 22 apps now use AppShell and source color from semantic tokens. Total raw-co
 | FileExplorer (Archive) | ✅ | AppShell wrap + MediaSurface; layout intentionally local |
 | FileViewer | ✅ | AppShell + appSoftButtonClass |
 | Finance | ✅ | AppShell + ControlInput |
-| ImageViewer | ✅ | AppShell + AppToolbar + appSoftButtonClass; brand-active fit chip intentional |
-| Music | ✅ | AppShell + AppContent + appIconButtonClass; brand play button intentional |
+| ImageViewer | ✅ | AppShell + AppToolbar + appSoftButtonClass; brand fit chip via tokens; error icon → `fg-error` |
+| Music | ✅ | AppShell + AppContent + appIconButtonClass; brand play button + `accent-brand-600` slider; warning → `fg-warning` |
 | Notepad | ✅ | AppShell + AppToolbar + AppContent |
 | PDFReader | ✅ | AppShell + AppToolbar + appSoftButtonClass |
 | Portfolio | ✅ | AppShell wrap — token sweep complete |
-| Resume | ✅ | AppShell wrap — print-mode `bg-blue-100` pills intentional for paper output |
+| Resume | ✅ | AppShell wrap — printable white-paper CV; grays + blue pills intentional (see "Intentional palette exceptions") |
 | Settings | ✅ | AppShell + appPanelClass + appRowClass + appSelectClass |
 | Skills | ✅ | AppShell wrap — token sweep complete |
 | TaskManager | ✅ | AppShell |
@@ -452,17 +452,18 @@ All 22 apps now use AppShell and source color from semantic tokens. Total raw-co
 | VideoPlayer | ✅ | AppShell + AppToolbar + appSoftButtonClass |
 | Weather | ✅ | AppShell wrap — was already token-clean |
 
-### Intentional brand/print exceptions (8 remaining)
+### Intentional palette exceptions (2026-06-07 — post brand sweep + semantic stabilization)
 
-These are **not** violations to fix. They're documented brand-accent usage on dark chrome (per "Accent use" rules above) or paper-output styling:
+As of 2026-06-07 the full component tree uses **only** semantic/brand/feedback tokens. The legacy `primary-*`/`secondary-*`/`tertiary-*`/`accent-*` utilities were migrated to `brand-*` / `fg-brand` / `fg-on-primary`, and red/amber palette colors used for status were migrated to feedback tokens (`fg-error`, `bg-error-subtle`, `border-stroke-error`, `fg-warning`, `fill-fg-warning`).
+
+The **only** remaining raw Tailwind palette colors are in two files, both intentional and **not** violations — they are deliberately *outside* the themeable surface system:
 
 | Location | Pattern | Reason |
 |---|---|---|
-| `Music.tsx` play button | `bg-primary-500` | Critical brand CTA |
-| `CV.tsx` Populate button | `bg-primary-500/10 text-primary-300` | Brand admin action |
-| `ImageViewer.tsx` active fit chip | `bg-primary-500/20 text-primary-300` | Brand active-state indicator |
-| `Resume.tsx` tech pills (×2) | `bg-blue-100 text-blue-800` | Designed for printed paper output (`@media print` fallback) |
-| `ui/button.tsx` legacy aliases (×3) | `bg-os-ink-950/50 text-{primary,secondary,tertiary,red,accent}-*` | `@deprecated` — backward-compatibility aliases; migration paths documented in JSDoc |
+| `Resume.tsx` (whole component) | `bg-white text-gray-900`, `text-gray-600/700/500`, `bg-blue-100 text-blue-800` (+ `print:` overrides) | The Resume is a **printable white-paper CV**, not a themeable OS surface. Brand/chrome tokens are tuned for dark chrome (`#111`) and would be illegible on white paper. Grays are paper body text; blue pills + `print:bg-gray-200` are paper styling. It intentionally does not participate in theming. |
+| `DesktopIcons.tsx` icon labels | `contrastMode === 'light' ? 'text-gray-950 …' : 'text-white …'` | Dynamic **contrast against the user's wallpaper** (dark text on light wallpapers, white on dark), computed in `useDesktopContrast`. This contrasts with an arbitrary background image, not a theme surface, so a fixed near-black/white pair is correct. |
+
+Everything else — every brand CTA (Music play, CV Populate, ImageViewer fit chip), every status indicator, every shell/app/admin surface — now resolves through tokens, so a brand or token change cascades everywhere.
 
 ### Shell components
 

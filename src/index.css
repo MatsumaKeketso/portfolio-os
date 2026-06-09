@@ -114,8 +114,8 @@
     /* Foreground / text (on dark chrome) — muted steps brightened vs the old
        dark palette for stronger legibility against #111. */
     --color-fg-primary:   #fafafa;  /* primitive.gray.50  — primary text */
-    --color-fg-secondary: #c4c4c4;  /* brighter than gray.400 — secondary */
-    --color-fg-tertiary:  #8a8a8a;  /* brighter than gray.600 — muted     */
+    --color-fg-secondary: #d0d0d0;  /* secondary text (nudged brighter for dark UI) */
+    --color-fg-tertiary:  #9c9c9c;  /* muted text (nudged brighter for dark UI)     */
     --color-fg-disabled:  #565656;  /* dim but discernible — disabled      */
 
     /* "On" foreground — for text placed on solid colored surfaces */
@@ -229,9 +229,28 @@
     @apply bg-gray-950 text-white antialiased;
     font-family: var(--os-font-family);
     font-size: var(--os-type-size-body);
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "tnum" 0;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
     letter-spacing: 0;
     line-height: 1.5715;
     overflow: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
   }
 
   button,
@@ -566,6 +585,96 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Animated gradient background — aurora-like drifting light curtains.
+     GPU-cheap: only `transform` + `opacity` are animated (compositor-friendly,
+     no blur / filter / background-position → no per-frame paint). The two
+     layers run DIFFERENT organic paths on DESYNCED, coprime-ish durations
+     (23s / 37s) so the combined motion only realigns every ~14 min — it reads
+     as non-repeating rather than a predictable loop. Blobs are tall ellipses
+     (vertical "curtains") and breathe via opacity for an aurora/god-ray feel.
+     Colours come from --ag-c1/2/3 + --ag-base (may reference the brand ramp). */
+  .animated-gradient {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--ag-base, #0a0a12);
+  }
+  .animated-gradient::before,
+  .animated-gradient::after {
+    content: '';
+    position: absolute;
+    inset: -55%;
+    will-change: transform, opacity;
+  }
+  /* Broad aurora curtains — tall soft columns drifting + breathing */
+  .animated-gradient::before {
+    background:
+      radial-gradient(26% 56% at 30% 34%, var(--ag-c1, #7c5cff) 0%, transparent 60%),
+      radial-gradient(32% 62% at 68% 56%, var(--ag-c2, #a855f7) 0%, transparent 62%),
+      radial-gradient(28% 66% at 50% 80%, var(--ag-c3, #ec4899) 0%, transparent 60%);
+    animation: ag-aurora-a 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  }
+  /* Counter-drifting flare layer — brighter, screen-blended, different cycle */
+  .animated-gradient::after {
+    background:
+      radial-gradient(24% 46% at 62% 28%, var(--ag-c2, #a855f7) 0%, transparent 58%),
+      radial-gradient(20% 40% at 36% 64%, var(--ag-c1, #7c5cff) 0%, transparent 58%),
+      radial-gradient(22% 34% at 55% 48%, var(--ag-c3, #ec4899) 0%, transparent 56%);
+    mix-blend-mode: screen;
+    animation: ag-aurora-b 37s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  }
+  @keyframes ag-aurora-a {
+    0%   { transform: translate3d(-6%, -4%, 0) rotate(-8deg) scale(1.30); opacity: 0.85; }
+    28%  { transform: translate3d(5%, 3%, 0)   rotate(5deg)  scale(1.55); opacity: 1; }
+    55%  { transform: translate3d(-2%, 7%, 0)  rotate(-3deg) scale(1.42); opacity: 0.7; }
+    80%  { transform: translate3d(4%, -3%, 0)  rotate(7deg)  scale(1.6);  opacity: 0.95; }
+    100% { transform: translate3d(-6%, -4%, 0) rotate(-8deg) scale(1.30); opacity: 0.85; }
+  }
+  @keyframes ag-aurora-b {
+    0%   { transform: translate3d(6%, 5%, 0)   rotate(10deg) scale(1.6);  opacity: 0.5; }
+    35%  { transform: translate3d(-5%, -2%, 0) rotate(-6deg) scale(1.32); opacity: 0.9; }
+    62%  { transform: translate3d(3%, -6%, 0)  rotate(8deg)  scale(1.7);  opacity: 0.45; }
+    85%  { transform: translate3d(-4%, 4%, 0)  rotate(-4deg) scale(1.45); opacity: 0.8; }
+    100% { transform: translate3d(6%, 5%, 0)   rotate(10deg) scale(1.6);  opacity: 0.5; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animated-gradient::before,
+    .animated-gradient::after { animation: none; }
+  }
+
+  /* Rendered markdown for project case studies (see lib/markdown.ts).
+     Scoped, token-based prose styling for the Projects side panel. */
+  .case-study-prose { line-height: 1.6; }
+  .case-study-prose > :first-child { margin-top: 0; }
+  .case-study-prose h1 { font-size: 1.2rem; font-weight: 600; color: #fff; margin: 1.1em 0 0.5em; }
+  .case-study-prose h2 { font-size: 1.02rem; font-weight: 600; color: #fff; margin: 1em 0 0.45em; }
+  .case-study-prose h3,
+  .case-study-prose h4 { font-size: 0.92rem; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin: 0.9em 0 0.4em; }
+  .case-study-prose p { margin: 0.55em 0; }
+  .case-study-prose a { color: rgb(var(--brand-300)); text-decoration: underline; text-underline-offset: 2px; }
+  .case-study-prose strong { color: #fff; font-weight: 600; }
+  .case-study-prose img { display: block; width: 100%; border-radius: 0.5rem; margin: 0.75em 0; border: 1px solid var(--os-line-dark); }
+  .case-study-prose ul, .case-study-prose ol { margin: 0.5em 0; padding-left: 1.25em; }
+  .case-study-prose ul { list-style: disc; }
+  .case-study-prose ol { list-style: decimal; }
+  .case-study-prose li { margin: 0.25em 0; }
+  .case-study-prose code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; background: rgb(var(--os-ink-800)); padding: 0.1em 0.35em; border-radius: 0.25rem; }
+  .case-study-prose pre { background: rgb(var(--os-ink-800)); border: 1px solid var(--os-line-dark); border-radius: 0.5rem; padding: 0.75em; overflow-x: auto; margin: 0.75em 0; }
+  .case-study-prose pre code { background: none; padding: 0; }
+  .case-study-prose blockquote { border-left: 2px solid rgb(var(--brand-600)); padding-left: 0.8em; margin: 0.75em 0; color: rgba(255, 255, 255, 0.55); }
+  .case-study-prose hr { border: 0; border-top: 1px solid var(--os-line-dark); margin: 1.1em 0; }
+
+  /* Tiptap (ProseMirror) editor surface — reuses .case-study-prose for WYSIWYG. */
+  .ProseMirror { outline: none; }
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.25);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  .ProseMirror img.ProseMirror-selectednode { outline: 2px solid rgb(var(--brand-600)); outline-offset: 2px; }
 
   /* Halftone dot hover effect — use on project/preview imagery */
   .halftone-hover {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { FileItem, FileSystemState, VISITOR_GALLERY_ID, TRASH_FOLDER_ID } from '../types';
+import { FileItem, FileSystemState, ProjectCaseStudy, VISITOR_GALLERY_ID, TRASH_FOLDER_ID } from '../types';
 import { auth, db, storage } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
@@ -119,6 +119,7 @@ interface FileStoreState extends FileSystemState {
   moveFiles: (fileIds: string[], newParentId: string | null) => void;
   copyFilesTo: (fileIds: string[], newParentId: string | null) => void;
   renameFile: (fileId: string, newName: string) => void;
+  setCaseStudy: (fileId: string, caseStudy: ProjectCaseStudy) => void;
   duplicateFiles: (fileIds: string[]) => void;
 
   // Trash operations
@@ -588,6 +589,21 @@ export const useFileStore = create<FileStoreState>((set, get) => {
         updateDescendantPaths(fileId);
       }
 
+      saveToFirestore(updatedFiles);
+      return { files: updatedFiles };
+    }),
+
+    // Attach/update a project folder's case study (markdown + media URLs).
+    // Only meaningful for folders inside the Projects location; persisted with
+    // the rest of the filesystem so it survives refresh and is public-readable.
+    setCaseStudy: (fileId, caseStudy) => set((state) => {
+      const file = state.files.find((f) => f.id === fileId);
+      if (!file) return state;
+      const updatedFiles = state.files.map((f) =>
+        f.id === fileId
+          ? { ...f, caseStudy: { ...caseStudy, updatedAt: Date.now() }, modifiedAt: Date.now() }
+          : f,
+      );
       saveToFirestore(updatedFiles);
       return { files: updatedFiles };
     }),

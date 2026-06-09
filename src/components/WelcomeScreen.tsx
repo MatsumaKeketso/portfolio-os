@@ -199,7 +199,7 @@ export function WelcomeScreen() {
               {[0, 1, 2].map((step) => (
                 <div
                   key={step}
-                  className={`h-1.5 rounded-full transition-all ${step === currentStep ? 'w-6 bg-primary-400' : 'w-1.5 bg-os-line-dark-hover'}`}
+                  className={`h-1.5 rounded-full transition-all ${step === currentStep ? 'w-6 bg-brand-400' : 'w-1.5 bg-os-line-dark-hover'}`}
                 />
               ))}
             </div>

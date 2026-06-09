@@ -72,7 +72,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950 z-10">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+            <Loader2 className="w-8 h-8 animate-spin text-fg-brand mx-auto mb-2" />
             <p className="text-sm text-white/50">Loading {title}...</p>
           </div>
         </div>
@@ -87,7 +87,7 @@ function IFrameContent({ url, title }: { url: string; title: string }) {
                 setHasError(false);
                 setIsLoading(true);
               }}
-              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm"
+              className="mt-4 px-4 py-2 bg-brand-600 text-fg-on-primary rounded hover:bg-brand-800 text-sm"
             >
               Retry
             </button>
@@ -135,7 +135,7 @@ export function WindowManager() {
               </div>
             );
           case 'Browser':
-            return <Browser initialUrl={window.url ?? ''} />;
+            return <Browser initialUrl={window.url || 'browser://home'} />;
           case 'Finance':
             return <Finance />;
           case 'Weather':
@@ -190,7 +190,7 @@ export function WindowManager() {
             fallback={
               <div className="w-full h-full flex items-center justify-center bg-os-ink-950">
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+                  <Loader2 className="w-8 h-8 animate-spin text-fg-brand mx-auto mb-2" />
                   <p className="text-sm text-white">Loading {window.title}...</p>
                 </div>
               </div>

@@ -27,7 +27,7 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
   return (
     <AppShell>
       <AppToolbar>
-        <Icons.PlayCircle className="w-4 h-4 text-primary-400 shrink-0" />
+        <Icons.PlayCircle className="w-4 h-4 text-fg-brand shrink-0" />
         <span className="text-sm text-white/80 truncate flex-1">{file.name}</span>
         {file.size && (
           <span className="text-xs text-white/30 shrink-0">{formatFileSize(file.size)}</span>
