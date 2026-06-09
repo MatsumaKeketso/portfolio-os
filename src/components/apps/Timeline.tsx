@@ -348,7 +348,7 @@ function HeroPanel({
       </div>
 
       {/* Media / icon column */}
-      <div className="relative rounded-2xl border border-os-line-dark bg-os-ink-950/60 overflow-hidden min-h-[180px] flex items-center justify-center">
+      <div className="relative rounded-2xl border border-white/[0.08] bg-black/40 overflow-hidden min-h-[180px] flex items-center justify-center">
         {firstMedia ? (
           firstMedia.type === 'image' ? (
             <img
@@ -582,10 +582,10 @@ function CaptionCard({
       transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       className={cn(
         'group/cap text-left w-full px-3 py-2',
-        'border bg-os-ink-900/80',
+        'border bg-white/[0.06]',
         isSelected
           ? 'border-stroke-brand shadow-[0_10px_28px_-12px_rgba(var(--color-primary),_0.4),_0_8px_22px_-12px_rgba(0,0,0,0.5)]'
-          : 'border-os-line-dark hover:border-os-line-dark-hover hover:bg-os-ink-800/80',
+          : 'border-white/[0.08] hover:border-white/[0.14] hover:bg-white/[0.08]',
         isFeatured && 'min-h-[88px]',
       )}
     >

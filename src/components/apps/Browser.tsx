@@ -1,4 +1,4 @@
-import { ComponentType, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ComponentType, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -374,6 +374,7 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
   const [savedPageCategory, setSavedPageCategory] = useState('All');
   const [savedPageSort, setSavedPageSort] = useState<'recent' | 'name' | 'category'>('recent');
   const [resourceSettings, setResourceSettings] = useState<BrowserResourceSettings>(DEFAULT_RESOURCE_SETTINGS);
+  const pendingNavUrl = useRef<string | null>(null);
 
   const bookmarks: Bookmark[] = [
     { name: 'Reads', url: 'browser://reads', icon: Icons.BookOpen },
@@ -534,6 +535,22 @@ export function Browser({ initialUrl = HOME_URL }: BrowserProps) {
   const navigateActiveTab = (url: string) => {
     if (activeTab) updateTabUrl(activeTab.id, url);
   };
+
+  // Navigate when the parent passes a new initialUrl (e.g. opening a read from Timeline)
+  useEffect(() => {
+    if (initialUrl && initialUrl !== HOME_URL && initialUrl !== 'browser://newtab') {
+      pendingNavUrl.current = initialUrl;
+    }
+  }, [initialUrl]);
+
+  // Process pending navigation after activeTab is available
+  useEffect(() => {
+    if (pendingNavUrl.current && activeTab) {
+      const url = pendingNavUrl.current;
+      pendingNavUrl.current = null;
+      updateTabUrl(activeTab.id, url);
+    }
+  }, [activeTab, initialUrl]);
 
   const handleAddressSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useUserStore } from '../store/userStore';
+import { useDesktopStore } from '../store/desktopStore';
 import { MilestoneCard } from './MilestoneCard';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
@@ -24,6 +25,29 @@ const fullMonthNames = [
 ];
 
 const PLATFORM_START_YEAR = 2026;
+
+function openReadInBrowser(read: ReadArticle) {
+  const store = useDesktopStore.getState();
+  const browserApp = store.apps.find(a => a.component === 'Browser');
+  if (!browserApp) return;
+
+  const readUrl = `browser://reads/${read.slug}`;
+
+  // Check if a Browser window already exists
+  const existingWindow = store.windows.find(w => w.appId === browserApp.id);
+  if (existingWindow) {
+    // Update existing window's URL and bring to front
+    store.updateWindow(existingWindow.id, {
+      url: readUrl,
+      title: read.title,
+      isMinimized: false,
+    });
+    store.bringToFront(existingWindow.id);
+  } else {
+    // Open a new Browser window with the read URL
+    store.openWindow({ ...browserApp, url: readUrl });
+  }
+}
 
 export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) {
   const { profile } = useUserStore();
@@ -58,14 +82,22 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
     [profile.milestones, selectedYear],
   );
 
-  const monthlyMilestones = useMemo(() => {
-    return monthNames.map((_, monthIndex) =>
-      yearMilestones.filter((milestone) => new Date(milestone.date).getMonth() === monthIndex),
-    );
+  // Only include months that have milestones
+  const activeMonths = useMemo(() => {
+    return monthNames
+      .map((name, index) => ({
+        name,
+        fullName: fullMonthNames[index],
+        index,
+        milestones: yearMilestones.filter(
+          (milestone) => new Date(milestone.date).getMonth() === index,
+        ),
+      }))
+      .filter((m) => m.milestones.length > 0);
   }, [yearMilestones]);
 
   const featuredCount = yearMilestones.filter((milestone) => milestone.featured).length;
-  const visibleReads = reads.slice(0, 8);
+  const visibleReads = isExpanded ? reads : reads.slice(0, 8);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,12 +131,12 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
   }, []);
 
   return (
-    <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-os-line-dark bg-background-chrome text-os-text-inverse shadow-os-window">
-      <header className="shrink-0 border-b border-os-line-dark bg-os-ink-950">
+    <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-background-chrome text-os-text-inverse shadow-os-window">
+      <header className="shrink-0 border-b border-white/[0.08] bg-black/40">
         <div className="flex items-center justify-between gap-4 px-4 py-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-os-line-dark bg-os-ink-900">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04]">
                 {activeSection === 'milestones'
                   ? <Icons.CalendarDays className="h-4 w-4 text-primary-300" />
                   : <Icons.BookOpenText className="h-4 w-4 text-primary-300" />}
@@ -124,7 +156,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                     <>
                       <span>{reads.length} articles</span>
                       <span className="h-1 w-1 rounded-full bg-os-text-inverse/20" />
-                      <span>{visibleReads.length} visible</span>
+                      <span>{isExpanded ? 'All' : `${visibleReads.length} visible`}</span>
                     </>
                   )}
                 </div>
@@ -133,7 +165,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
           </div>
 
           <div className="flex min-w-0 shrink-0 items-center gap-2">
-            <div className="flex rounded-xl border border-os-line-dark bg-os-ink-900 p-1">
+            <div className="flex rounded-xl border border-white/[0.08] bg-white/[0.04] p-1">
               {[
                 { id: 'milestones', label: 'Milestones', icon: Icons.CalendarDays },
                 { id: 'reads', label: 'Reads', icon: Icons.BookOpenText },
@@ -147,7 +179,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                     onClick={() => setActiveSection(item.id as 'milestones' | 'reads')}
                     className={cn(
                       'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors',
-                      active ? 'bg-os-ink-800 text-os-text-inverse' : 'text-os-text-inverse/42 hover:text-os-text-inverse/75',
+                      active ? 'bg-white/[0.08] text-os-text-inverse' : 'text-os-text-inverse/42 hover:text-os-text-inverse/75',
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -167,7 +199,7 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                       'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                       selectedYear === year
                         ? 'border-stroke-brand bg-primary-500/20 text-os-text-inverse shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]'
-                        : 'border-os-line-dark bg-os-ink-900 text-os-text-inverse/50 hover:border-os-line-dark-hover hover:bg-os-ink-800 hover:text-os-text-inverse/80',
+                        : 'border-white/[0.08] bg-white/[0.04] text-os-text-inverse/50 hover:border-white/[0.14] hover:bg-white/[0.08] hover:text-os-text-inverse/80',
                     )}
                   >
                     {year}
@@ -191,32 +223,32 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
       </header>
 
       {activeSection === 'milestones' ? (
-        <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden bg-os-ink-950/80">
+        <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden bg-black/30">
           <div className="flex h-full min-w-max gap-4 p-4">
-            {monthlyMilestones.map((milestones, index) => {
+            {activeMonths.map(({ name, fullName, index, milestones }) => {
               const isCurrentMonth = selectedYear === currentYear && index === currentMonth;
               return (
                 <article
-                  key={monthNames[index]}
+                  key={name}
                   data-month={index}
                   className={cn(
                     'flex h-full w-[292px] shrink-0 flex-col overflow-hidden rounded-xl border bg-background-chrome',
-                    isCurrentMonth ? 'border-primary-500/35' : 'border-os-line-dark',
+                    isCurrentMonth ? 'border-primary-500/35' : 'border-white/[0.08]',
                   )}
                 >
-                  <div className="border-b border-os-line-dark bg-os-ink-900 px-3 py-3">
+                  <div className="border-b border-white/[0.08] bg-white/[0.04] px-3 py-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-os-text-inverse/30">
-                          {fullMonthNames[index]}
+                          {fullName}
                         </p>
-                        <h4 className="mt-1 text-lg font-semibold text-os-text-inverse">{monthNames[index]}</h4>
+                        <h4 className="mt-1 text-lg font-semibold text-os-text-inverse">{name}</h4>
                       </div>
                       <div className={cn(
                         'flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-semibold',
                         isCurrentMonth
                           ? 'border-primary-500/40 bg-primary-500/20 text-os-text-inverse'
-                          : 'border-os-line-dark bg-os-ink-950 text-os-text-inverse/55',
+                          : 'border-white/[0.08] bg-black/30 text-os-text-inverse/55',
                       )}>
                         {milestones.length}
                       </div>
@@ -237,50 +269,102 @@ export function Timeline({ isExpanded = false, onToggleExpand }: TimelineProps) 
                         </motion.div>
                       ))}
                     </AnimatePresence>
-
-                    {milestones.length === 0 && (
-                      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-os-line-dark bg-os-ink-950/55 text-center">
-                        <div>
-                          <Icons.CircleDashed className="mx-auto mb-2 h-5 w-5 text-os-text-inverse/20" />
-                          <p className="text-xs text-os-text-inverse/30">No entries</p>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </article>
               );
             })}
+
+            {activeMonths.length === 0 && (
+              <div className="flex h-full w-full items-center justify-center">
+                <div className="text-center">
+                  <Icons.CalendarDays className="mx-auto mb-3 h-8 w-8 text-os-text-inverse/20" />
+                  <p className="text-sm font-medium text-os-text-inverse/60">No milestones this year</p>
+                  <p className="mt-1 text-xs text-os-text-inverse/30">Select a different year or add entries from the Admin Panel.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto bg-os-ink-950/80 p-4">
+        <div className="flex-1 overflow-y-auto bg-black/30 p-4">
           {visibleReads.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-              {visibleReads.map((read) => (
-                <article key={read.slug} className="group overflow-hidden rounded-xl border border-os-line-dark bg-background-chrome transition-colors hover:border-stroke-brand">
-                  {read.imageUrl && (
-                    <img src={read.imageUrl} alt={read.imageAlt || read.title} loading="lazy" decoding="async" className="h-28 w-full object-cover opacity-80 transition-opacity group-hover:opacity-95" />
-                  )}
-                  <div className="p-3">
-                    <div className="mb-2 flex flex-wrap gap-1.5">
-                      {read.categories.slice(0, 3).map((category) => (
-                        <span key={category} className="rounded-full border border-os-line-dark bg-os-ink-900 px-2 py-0.5 text-[9px] uppercase tracking-[0.08em] text-primary-300">
-                          {category}
-                        </span>
-                      ))}
+            isExpanded ? (
+              /* Bento grid: varied card sizes for visual interest */
+              <div className="grid auto-rows-[minmax(180px,auto)] gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {visibleReads.map((read, index) => {
+                  const isLarge = index === 0 || (index % 5 === 0 && read.imageUrl);
+                  return (
+                    <article
+                      key={read.slug}
+                      onClick={() => openReadInBrowser(read)}
+                      className={cn(
+                        'group cursor-pointer overflow-hidden rounded-xl border bg-background-chrome transition-all hover:border-stroke-brand hover:shadow-lg hover:shadow-primary-500/5',
+                        isLarge ? 'border-white/[0.10] col-span-1 row-span-2' : 'border-white/[0.08]',
+                      )}
+                    >
+                      {read.imageUrl && (
+                        <img
+                          src={read.imageUrl}
+                          alt={read.imageAlt || read.title}
+                          loading="lazy"
+                          decoding="async"
+                          className={cn(
+                            'w-full object-cover opacity-80 transition-opacity group-hover:opacity-95',
+                            isLarge ? 'h-48' : 'h-28',
+                          )}
+                        />
+                      )}
+                      <div className="p-3">
+                        <div className="mb-2 flex flex-wrap gap-1.5">
+                          {read.categories.slice(0, 3).map((category) => (
+                            <span key={category} className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[9px] uppercase tracking-[0.08em] text-primary-300">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                        <h4 className={cn('font-semibold leading-5 text-os-text-inverse', isLarge ? 'text-base line-clamp-3' : 'text-sm line-clamp-2')}>{read.title}</h4>
+                        <p className={cn('mt-2 text-xs leading-5 text-os-text-inverse/42', isLarge ? 'line-clamp-4' : 'line-clamp-3')}>{read.description}</p>
+                        <div className="mt-3 flex items-center justify-between text-[10px] text-os-text-inverse/28">
+                          <span>{read.readingTimeMinutes} min read</span>
+                          <span>{read.date || 'Undated'}</span>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Compact flex grid: uniform small cards */
+              <div className="flex flex-wrap gap-3">
+                {visibleReads.map((read) => (
+                  <article
+                    key={read.slug}
+                    onClick={() => openReadInBrowser(read)}
+                    className="group w-[240px] cursor-pointer overflow-hidden rounded-xl border border-white/[0.08] bg-background-chrome transition-all hover:border-stroke-brand hover:shadow-lg hover:shadow-primary-500/5"
+                  >
+                    {read.imageUrl && (
+                      <img
+                        src={read.imageUrl}
+                        alt={read.imageAlt || read.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-24 w-full object-cover opacity-80 transition-opacity group-hover:opacity-95"
+                      />
+                    )}
+                    <div className="p-3">
+                      <h4 className="line-clamp-2 text-xs font-semibold leading-4 text-os-text-inverse">{read.title}</h4>
+                      <div className="mt-2 flex items-center gap-2 text-[10px] text-os-text-inverse/28">
+                        <span>{read.readingTimeMinutes} min</span>
+                        <span className="h-1 w-1 rounded-full bg-os-text-inverse/15" />
+                        <span>{read.date || 'Undated'}</span>
+                      </div>
                     </div>
-                    <h4 className="line-clamp-2 text-sm font-semibold leading-5 text-os-text-inverse">{read.title}</h4>
-                    <p className="mt-2 line-clamp-3 text-xs leading-5 text-os-text-inverse/42">{read.description}</p>
-                    <div className="mt-3 flex items-center justify-between text-[10px] text-os-text-inverse/28">
-                      <span>{read.readingTimeMinutes} min read</span>
-                      <span>{read.date || 'Undated'}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-os-line-dark bg-os-ink-950/55 text-center">
+            <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-black/30 text-center">
               <div>
                 <Icons.BookOpenText className="mx-auto mb-3 h-8 w-8 text-os-text-inverse/20" />
                 <p className="text-sm font-medium text-os-text-inverse/60">No reads yet</p>
