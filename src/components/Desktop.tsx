@@ -266,7 +266,7 @@ export function Desktop() {
         </div>
       )}
 
-      <div className="relative h-full flex flex-col" onContextMenu={handleDesktopContextMenu}>
+      <div className="relative h-full flex flex-col p-[max(10px,env(safe-area-inset-top))_10px_max(10px,env(safe-area-inset-bottom))]" onContextMenu={handleDesktopContextMenu}>
         <div className="flex-1 relative desktop-area flex gap-4 pr-4">
           {/* Left side: Desktop Icons and Windows */}
           <div className="flex-1 relative">
