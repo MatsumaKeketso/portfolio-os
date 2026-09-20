@@ -119,9 +119,9 @@ function BoxEdgeGlow({ active, rounded }: { active: boolean; rounded: boolean })
   const sharedGradient =
     'radial-gradient(circle 360px at var(--mx, 50%) var(--my, 50%),' +
     ' rgba(255,255,255,0.95) 0%,' +
-    ' rgba(239,68,68,0.78) 26%,' +
-    ' rgba(129,140,248,0.45) 56%,' +
-    ' rgba(239,68,68,0) 82%)';
+    ' rgb(var(--brand-600) / 0.78) 26%,' +
+    ' rgb(var(--brand-400) / 0.45) 56%,' +
+    ' rgb(var(--brand-600) / 0) 82%)';
 
   return (
     <div
@@ -240,9 +240,9 @@ function CutoutEdgeGlow({
           r="360"
         >
           <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
-          <stop offset="26%" stopColor="rgba(239,68,68,0.78)" />
-          <stop offset="56%" stopColor="rgba(129,140,248,0.45)" />
-          <stop offset="82%" stopColor="rgba(239,68,68,0)" />
+          <stop offset="26%" stopColor="rgb(var(--brand-600) / 0.78)" />
+          <stop offset="56%" stopColor="rgb(var(--brand-400) / 0.45)" />
+          <stop offset="82%" stopColor="rgb(var(--brand-600) / 0)" />
         </radialGradient>
         <filter
           id={`${id}-bloom`}
@@ -611,15 +611,15 @@ function NotchParticles({
             sub-pixel-thin even on high-DPR, so it reads as crisp. */}
         <radialGradient id={`${id}-pwarm`}>
           <stop offset="0%" stopColor="rgba(255,255,255,1)" />
-          <stop offset="14%" stopColor="rgba(255,215,180,0.85)" />
-          <stop offset="44%" stopColor="rgba(239,68,68,0.5)" />
-          <stop offset="100%" stopColor="rgba(239,68,68,0)" />
+          <stop offset="14%" stopColor="rgb(var(--brand-200) / 0.85)" />
+          <stop offset="44%" stopColor="rgb(var(--brand-600) / 0.5)" />
+          <stop offset="100%" stopColor="rgb(var(--brand-600) / 0)" />
         </radialGradient>
         <radialGradient id={`${id}-pcool`}>
           <stop offset="0%" stopColor="rgba(255,255,255,1)" />
-          <stop offset="14%" stopColor="rgba(200,210,255,0.85)" />
-          <stop offset="44%" stopColor="rgba(129,140,248,0.5)" />
-          <stop offset="100%" stopColor="rgba(129,140,248,0)" />
+          <stop offset="14%" stopColor="rgb(var(--brand-100) / 0.85)" />
+          <stop offset="44%" stopColor="rgb(var(--brand-400) / 0.5)" />
+          <stop offset="100%" stopColor="rgb(var(--brand-400) / 0)" />
         </radialGradient>
         <radialGradient id={`${id}-pwhite`}>
           <stop offset="0%" stopColor="rgba(255,255,255,1)" />
@@ -638,7 +638,7 @@ function NotchParticles({
           y1={notchTop}
           x2={p.baseX}
           y2={notchTop}
-          stroke={p.tint === 'cool' ? 'rgba(129,140,248,0.30)' : p.tint === 'white' ? 'rgba(255,255,255,0.28)' : 'rgba(239,68,68,0.34)'}
+          stroke={p.tint === 'cool' ? 'rgb(var(--brand-400) / 0.30)' : p.tint === 'white' ? 'rgba(255,255,255,0.28)' : 'rgb(var(--brand-600) / 0.34)'}
           strokeWidth="0.7"
           strokeLinecap="round"
           opacity="0"
@@ -667,7 +667,7 @@ function NotchParticles({
           y1={notchTop}
           x2={p.baseX}
           y2={notchTop}
-          stroke={p.tint === 'cool' ? 'rgba(129,140,248,0.48)' : p.tint === 'white' ? 'rgba(255,255,255,0.42)' : 'rgba(239,68,68,0.52)'}
+          stroke={p.tint === 'cool' ? 'rgb(var(--brand-400) / 0.48)' : p.tint === 'white' ? 'rgba(255,255,255,0.42)' : 'rgb(var(--brand-600) / 0.52)'}
           strokeWidth="0.85"
           strokeLinecap="round"
           opacity="0"

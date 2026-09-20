@@ -112,18 +112,18 @@ function LuminousStripSvg({
         <filter id={`${id}-flare-glow`} x="-14%" y="-260%" width="128%" height="640%">
           <feGaussianBlur stdDeviation={isBoot ? '1.05' : isHeader ? '0.42' : '1.15'} />
         </filter>
-        <linearGradient id={`${id}-base-red`} x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id={`${id}-base-warm`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={isInactiveHeader ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.055)'} />
-          <stop offset="12%" stopColor={isInactiveHeader ? 'rgba(148,148,148,0.22)' : 'rgba(248,113,113,0.72)'} />
-          <stop offset="50%" stopColor={isInactiveHeader ? 'rgba(178,178,178,0.32)' : 'rgba(255,125,125,1)'} />
-          <stop offset="88%" stopColor={isInactiveHeader ? 'rgba(148,148,148,0.22)' : 'rgba(248,113,113,0.72)'} />
+          <stop offset="12%" stopColor={isInactiveHeader ? 'rgba(148,148,148,0.22)' : 'rgb(var(--brand-400) / 0.72)'} />
+          <stop offset="50%" stopColor={isInactiveHeader ? 'rgba(178,178,178,0.32)' : 'rgb(var(--brand-300))'} />
+          <stop offset="88%" stopColor={isInactiveHeader ? 'rgba(148,148,148,0.22)' : 'rgb(var(--brand-400) / 0.72)'} />
           <stop offset="100%" stopColor={isInactiveHeader ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.055)'} />
         </linearGradient>
-        <linearGradient id={`${id}-base-blue`} x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id={`${id}-base-deep`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={isInactiveHeader ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.05)'} />
-          <stop offset="12%" stopColor={isInactiveHeader ? 'rgba(130,130,130,0.2)' : 'rgba(129,140,248,0.72)'} />
-          <stop offset="50%" stopColor={isInactiveHeader ? 'rgba(160,160,160,0.3)' : 'rgba(165,180,252,1)'} />
-          <stop offset="88%" stopColor={isInactiveHeader ? 'rgba(130,130,130,0.2)' : 'rgba(129,140,248,0.72)'} />
+          <stop offset="12%" stopColor={isInactiveHeader ? 'rgba(130,130,130,0.2)' : 'rgb(var(--brand-600) / 0.72)'} />
+          <stop offset="50%" stopColor={isInactiveHeader ? 'rgba(160,160,160,0.3)' : 'rgb(var(--brand-400))'} />
+          <stop offset="88%" stopColor={isInactiveHeader ? 'rgba(130,130,130,0.2)' : 'rgb(var(--brand-600) / 0.72)'} />
           <stop offset="100%" stopColor={isInactiveHeader ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.05)'} />
         </linearGradient>
         <linearGradient id={`${id}-base-white`} x1="0" y1="0" x2="1" y2="0">
@@ -133,19 +133,19 @@ function LuminousStripSvg({
           <stop offset="88%" stopColor="rgba(255,255,255,0.38)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0.04)" />
         </linearGradient>
-        <linearGradient id={`${id}-glow-red`} x1="0" y1="0" x2="1" y2="0">
-          <motion.stop offset={glowStart} stopColor="rgba(239,68,68,0)" />
-          <motion.stop offset={glowRampIn} stopColor="rgba(239,68,68,0.46)" />
+        <linearGradient id={`${id}-glow-warm`} x1="0" y1="0" x2="1" y2="0">
+          <motion.stop offset={glowStart} stopColor="rgb(var(--brand-600) / 0)" />
+          <motion.stop offset={glowRampIn} stopColor="rgb(var(--brand-600) / 0.46)" />
           <motion.stop offset={glowCenter} stopColor="rgba(255,255,255,0.78)" />
-          <motion.stop offset={glowRampOut} stopColor="rgba(239,68,68,0.46)" />
-          <motion.stop offset={glowEnd} stopColor="rgba(239,68,68,0)" />
+          <motion.stop offset={glowRampOut} stopColor="rgb(var(--brand-600) / 0.46)" />
+          <motion.stop offset={glowEnd} stopColor="rgb(var(--brand-600) / 0)" />
         </linearGradient>
-        <linearGradient id={`${id}-glow-blue`} x1="0" y1="0" x2="1" y2="0">
-          <motion.stop offset={glowStart} stopColor="rgba(99,102,241,0)" />
-          <motion.stop offset={glowRampIn} stopColor="rgba(99,102,241,0.52)" />
+        <linearGradient id={`${id}-glow-deep`} x1="0" y1="0" x2="1" y2="0">
+          <motion.stop offset={glowStart} stopColor="rgb(var(--brand-400) / 0)" />
+          <motion.stop offset={glowRampIn} stopColor="rgb(var(--brand-400) / 0.52)" />
           <motion.stop offset={glowCenter} stopColor="rgba(255,255,255,0.88)" />
-          <motion.stop offset={glowRampOut} stopColor="rgba(99,102,241,0.52)" />
-          <motion.stop offset={glowEnd} stopColor="rgba(99,102,241,0)" />
+          <motion.stop offset={glowRampOut} stopColor="rgb(var(--brand-400) / 0.52)" />
+          <motion.stop offset={glowEnd} stopColor="rgb(var(--brand-400) / 0)" />
         </linearGradient>
         <linearGradient id={`${id}-glow-white`} x1="0" y1="0" x2="1" y2="0">
           <motion.stop offset={glowStart} stopColor="rgba(255,255,255,0)" />
@@ -157,17 +157,17 @@ function LuminousStripSvg({
         <radialGradient id={`${id}-soft-flare`} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
           <stop offset="30%" stopColor="rgba(255,255,255,0.7)" />
-          <stop offset="58%" stopColor="rgba(99,102,241,0.32)" />
-          <stop offset="82%" stopColor="rgba(239,68,68,0.18)" />
-          <stop offset="100%" stopColor="rgba(239,68,68,0)" />
+          <stop offset="58%" stopColor="rgb(var(--brand-400) / 0.32)" />
+          <stop offset="82%" stopColor="rgb(var(--brand-600) / 0.18)" />
+          <stop offset="100%" stopColor="rgb(var(--brand-600) / 0)" />
         </radialGradient>
       </defs>
-      <motion.path d={waveA} fill="none" stroke={`url(#${id}-glow-red)`} strokeWidth={isBoot ? '7.4' : isHeader ? '2.4' : '4'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter={`url(#${id}-wide-glow)`} style={{ opacity: wideGlowOpacity }} />
-      <motion.path d={waveB} fill="none" stroke={`url(#${id}-glow-blue)`} strokeWidth={isBoot ? '6.4' : isHeader ? '2' : '3.6'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter={`url(#${id}-mid-glow)`} style={{ opacity: midGlowOpacity }} />
+      <motion.path d={waveA} fill="none" stroke={`url(#${id}-glow-warm)`} strokeWidth={isBoot ? '7.4' : isHeader ? '2.4' : '4'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter={`url(#${id}-wide-glow)`} style={{ opacity: wideGlowOpacity }} />
+      <motion.path d={waveB} fill="none" stroke={`url(#${id}-glow-deep)`} strokeWidth={isBoot ? '6.4' : isHeader ? '2' : '3.6'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter={`url(#${id}-mid-glow)`} style={{ opacity: midGlowOpacity }} />
       <motion.path d={waveC} fill="none" stroke={`url(#${id}-glow-white)`} strokeWidth={isBoot ? '4.8' : isHeader ? '1.45' : '2.3'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter={`url(#${id}-mid-glow)`} style={{ opacity: hotLineOpacity }} />
       <motion.ellipse cx={x} cy="12" rx={isBoot ? '14' : isHeader ? '7.5' : '6.5'} ry={isBoot ? '3.1' : isHeader ? '1.8' : '1.45'} fill={`url(#${id}-soft-flare)`} filter={`url(#${id}-flare-glow)`} style={{ opacity: flareOpacity }} />
-      <motion.path d={waveA} fill="none" stroke={`url(#${id}-base-red)`} strokeWidth={isBoot ? '1.9' : isHeader ? '0.72' : '0.92'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ opacity: haloOpacity }} />
-      <motion.path d={waveB} fill="none" stroke={`url(#${id}-base-blue)`} strokeWidth={isBoot ? '1.55' : isHeader ? '0.66' : '0.82'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ opacity: haloOpacity }} />
+      <motion.path d={waveA} fill="none" stroke={`url(#${id}-base-warm)`} strokeWidth={isBoot ? '1.9' : isHeader ? '0.72' : '0.92'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ opacity: haloOpacity }} />
+      <motion.path d={waveB} fill="none" stroke={`url(#${id}-base-deep)`} strokeWidth={isBoot ? '1.55' : isHeader ? '0.66' : '0.82'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ opacity: haloOpacity }} />
       <motion.path d={waveC} fill="none" stroke={`url(#${id}-base-white)`} strokeWidth={isBoot ? '1.08' : isHeader ? '0.5' : '0.54'} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity={isBoot ? 0.86 : isActiveHeader ? 0.72 : 0.2} />
     </motion.svg>
   );
