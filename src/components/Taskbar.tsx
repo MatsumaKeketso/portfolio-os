@@ -386,7 +386,7 @@ export function Taskbar() {
           return (
             <div
               key={app.id}
-              className="relative overflow-visible"
+              className="relative overflow-visible h-10"
               onMouseEnter={() => setHoveredTaskbarAppId(app.id)}
               onMouseLeave={() => setHoveredTaskbarAppId((current) => current === app.id ? null : current)}
             >
