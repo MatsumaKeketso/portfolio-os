@@ -164,6 +164,76 @@ const presets = [
       iconStyle: 'rounded' as const,      // Softer, futuristic icons
     },
   },
+  {
+    name: 'Minimal Dark',
+    theme: {
+      colors: {
+        primary: '#3b82f6',      // blue-500 - clean, professional
+        secondary: '#64748b',    // slate-500 - subtle gray-blue
+        tertiary: '#06b6d4',     // cyan-500 - accent pop
+        accent: '#0ea5e9',       // sky-500 - bright highlight
+      },
+      borderRadius: 'md' as const,
+      spacing: 'normal' as const,
+      iconStyle: 'default' as const,
+    },
+  },
+  {
+    name: 'Nordic',
+    theme: {
+      colors: {
+        primary: '#60a5fa',      // blue-400 - soft, inviting blue
+        secondary: '#94a3b8',    // slate-400 - cool gray
+        tertiary: '#38bdf8',     // sky-400 - fresh accent
+        accent: '#818cf8',       // indigo-400 - subtle contrast
+      },
+      borderRadius: 'lg' as const,
+      spacing: 'comfortable' as const,
+      iconStyle: 'rounded' as const,
+    },
+  },
+  {
+    name: 'Professional',
+    theme: {
+      colors: {
+        primary: '#475569',      // slate-600 - corporate blue-gray
+        secondary: '#1e40af',    // blue-800 - deep, trustworthy blue
+        tertiary: '#0284c7',     // sky-600 - professional cyan
+        accent: '#0891b2',       // cyan-600 - subtle highlight
+      },
+      borderRadius: 'sm' as const,
+      spacing: 'normal' as const,
+      iconStyle: 'default' as const,
+    },
+  },
+  {
+    name: 'Midnight',
+    theme: {
+      colors: {
+        primary: '#6366f1',      // indigo-500 - sophisticated purple-blue
+        secondary: '#4f46e5',    // indigo-600 - deep indigo
+        tertiary: '#7c3aed',     // violet-600 - rich purple
+        accent: '#a78bfa',       // violet-400 - soft accent
+      },
+      borderRadius: 'lg' as const,
+      spacing: 'normal' as const,
+      iconStyle: 'rounded' as const,
+    },
+  },
+  {
+    name: 'Slate',
+    theme: {
+      colors: {
+        primary: '#334155',      // slate-700 - modern dark gray
+        secondary: '#475569',    // slate-600 - lighter slate
+        tertiary: '#64748b',     // slate-500 - medium slate
+        accent: '#3b82f6',       // blue-500 - pop of color
+      },
+      borderRadius: 'md' as const,
+      spacing: 'compact' as const,
+      iconStyle: 'sharp' as const,
+    },
+  },
 ];
 
 // Storage key

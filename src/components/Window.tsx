@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
@@ -10,7 +10,7 @@ interface WindowProps {
   children?: React.ReactNode;
 }
 
-export function Window({ window, children }: WindowProps) {
+export const Window = memo(function Window({ window, children }: WindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -167,10 +167,10 @@ export function Window({ window, children }: WindowProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: 20 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
       className="absolute flex flex-col"
       style={{
         ...windowStyle,
@@ -178,12 +178,12 @@ export function Window({ window, children }: WindowProps) {
       }}
       onMouseDown={() => bringToFront(window.id)}
     >
-      {/* Top gradient accent line - Netflix style */}
-      <div className="w-full h-1 bg-gradient-to-r from-primary-500 via-tertiary-500 to-primary-500 rounded-t shrink-0" />
+      {/* Top gradient accent line */}
+      <div className="w-full h-1 bg-gradient-to-r from-primary-500 to-tertiary-500 rounded-t shrink-0" />
 
       <div
         ref={windowRef}
-        className="flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl"
+        className="flex-1 bg-gray-900 rounded-b border border-gray-700/50 border-t-0 shadow-2xl overflow-hidden flex flex-col"
       >
         {/* Window Header/Chrome */}
         <div
@@ -254,16 +254,16 @@ export function Window({ window, children }: WindowProps) {
       {isDragging && snapZone && (
         <div className="fixed inset-0 pointer-events-none z-[9996]">
           {snapZone === 'left' && (
-            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute left-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-2 border-primary-400/60 border-dashed" />
           )}
           {snapZone === 'right' && (
-            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute right-0 top-0 bottom-12 w-1/2 bg-primary-500/20 border-2 border-primary-400/60 border-dashed" />
           )}
           {snapZone === 'top' && (
-            <div className="absolute left-0 right-0 top-0 bottom-12 bg-primary-500/20 border-4 border-primary-400 border-dashed animate-pulse" />
+            <div className="absolute left-0 right-0 top-0 bottom-12 bg-primary-500/20 border-2 border-primary-400/60 border-dashed" />
           )}
         </div>
       )}
     </motion.div>
   );
-}
+});
