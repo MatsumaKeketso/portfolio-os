@@ -477,13 +477,13 @@ export function AdminPanel() {
                   )}
                   <SystemRow
                     label={TAB_LABELS[tab]}
-                    icon={<IconComp className={cn('w-4 h-4 transition-colors', isActive ? 'text-fg-brand' : 'text-white/40')} />}
+                    icon={<IconComp className={cn('w-4 h-4 transition-colors', isActive ? 'text-fg-brand' : 'text-fg-tertiary')} />}
                     context="chrome"
                     selected={isActive}
                     accentRail={false}
                     className={cn(
                       'transition-all duration-200',
-                      isActive ? 'bg-os-ink-800 text-white' : 'text-white/60 hover:bg-os-ink-800/60',
+                      isActive ? 'bg-os-ink-800 text-white' : 'text-fg-secondary hover:bg-os-ink-800/60',
                     )}
                     onClick={() => setActiveTab(tab)}
                     badge={
@@ -500,10 +500,10 @@ export function AdminPanel() {
 
             {/* Config actions */}
             <div className="px-3 py-2 space-y-1">
-              <button onClick={handleExport} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-white/50 hover:text-white/85 hover:bg-os-ink-900 rounded transition-colors">
+              <button onClick={handleExport} className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-fg-secondary hover:text-fg-primary hover:bg-os-ink-900 rounded transition-colors">
                 <Icons.Download className="w-3.5 h-3.5" /> Export Config
               </button>
-              <label className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-white/50 hover:text-white/85 hover:bg-os-ink-900 rounded transition-colors cursor-pointer">
+              <label className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-fg-secondary hover:text-fg-primary hover:bg-os-ink-900 rounded transition-colors cursor-pointer">
                 <Icons.Upload className="w-3.5 h-3.5" /> Import Config
                 <input type="file" accept=".json" onChange={handleImport} className="hidden" />
               </label>
@@ -524,7 +524,7 @@ export function AdminPanel() {
               <div className="p-6 space-y-6">
                 <div>
                   <h2 className="text-sm font-semibold text-os-text-inverse mb-1">Dashboard</h2>
-                  <p className="text-xs text-os-text-inverse/35">GenOS admin console — manage apps, content, and moderation.</p>
+                  <p className="text-xs text-fg-tertiary">GenOS admin console — manage apps, content, and moderation.</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -533,11 +533,11 @@ export function AdminPanel() {
                     return (
                       <AppCard key={label} className="p-4 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-os-ink-900 border border-os-line-dark flex items-center justify-center flex-shrink-0">
-                          <IconComp className="w-4 h-4 text-os-text-inverse/60" />
+                          <IconComp className="w-4 h-4 text-fg-secondary" />
                         </div>
                         <div>
                           <p className="text-xl font-semibold text-os-text-inverse">{value}</p>
-                          <p className="text-xs text-os-text-inverse/35">{label}</p>
+                          <p className="text-xs text-fg-tertiary">{label}</p>
                         </div>
                       </AppCard>
                     );
@@ -545,7 +545,7 @@ export function AdminPanel() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-3">Quick Actions</p>
+                  <p className="os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-3">Quick Actions</p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { label: 'Manage Apps', tab: 'apps' as AdminTab, icon: 'Grid3x3' as keyof typeof Icons },
@@ -561,9 +561,9 @@ export function AdminPanel() {
                           onClick={() => setActiveTab(tab)}
                           className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark hover:border-os-line-dark transition-all text-left"
                         >
-                          <IconComp className="w-3.5 h-3.5 text-os-text-inverse/60 shrink-0" />
+                          <IconComp className="w-3.5 h-3.5 text-fg-secondary shrink-0" />
                           <span className="text-xs text-os-text-inverse flex-1">{label}</span>
-                          {badge ? <span className="text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{badge}</span> : null}
+                          {badge ? <span className="os-type-caption bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{badge}</span> : null}
                         </button>
                       );
                     })}
@@ -577,14 +577,14 @@ export function AdminPanel() {
               <div className="flex flex-col h-full">
                 {/* Header bar */}
                 <div className="flex items-center gap-2 px-5 py-3 shrink-0 border-b border-os-line-dark">
-                  <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Apps <span className="text-os-text-inverse/35 font-normal">({apps.length})</span></h2>
-                  <button onClick={() => { setShowQuickAdd(!showQuickAdd); setShowAddForm(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showQuickAdd ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Apps <span className="text-fg-tertiary font-normal">({apps.length})</span></h2>
+                  <button onClick={() => { setShowQuickAdd(!showQuickAdd); setShowAddForm(false); setShowBulkImport(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showQuickAdd ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-fg-secondary hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Zap className="w-3.5 h-3.5" /> Quick Add
                   </button>
-                  <button onClick={() => { setShowBulkImport(!showBulkImport); setShowAddForm(false); setShowQuickAdd(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showBulkImport ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <button onClick={() => { setShowBulkImport(!showBulkImport); setShowAddForm(false); setShowQuickAdd(false); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showBulkImport ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-fg-secondary hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Package className="w-3.5 h-3.5" /> Bulk
                   </button>
-                  <button onClick={() => { if (showAddForm) { resetForm(); } else { setShowAddForm(true); setShowQuickAdd(false); setShowBulkImport(false); } }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <button onClick={() => { if (showAddForm) { resetForm(); } else { setShowAddForm(true); setShowQuickAdd(false); setShowBulkImport(false); } }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showAddForm ? 'bg-os-ink-800 border-brand-600/40 text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-fg-secondary hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Plus className="w-3.5 h-3.5" /> {editingApp ? 'Editing' : 'Add App'}
                   </button>
                 </div>
@@ -597,7 +597,7 @@ export function AdminPanel() {
                       ? 'bg-success-subtle text-fg-success'
                       : appPublishStatus.state === 'error'
                         ? 'bg-error-subtle text-fg-error'
-                        : 'bg-os-ink-900 text-os-text-inverse/50'
+                        : 'bg-os-ink-900 text-fg-secondary'
                   )}>
                     {appPublishStatus.message}
                   </div>
@@ -612,11 +612,11 @@ export function AdminPanel() {
                         <motion.div key="quick-add" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="p-4 pb-0">
                             <AppCard className="p-4 space-y-3">
-                              <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Zap className="w-3.5 h-3.5" /> Quick Add from URL</h3>
+                              <h3 className="text-xs font-semibold text-fg-secondary flex items-center gap-2"><Icons.Zap className="w-3.5 h-3.5" /> Quick Add from URL</h3>
                               <input type="text" value={quickURL} onChange={(e) => setQuickURL(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()} placeholder="https://example.com" autoFocus className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               <div className="flex gap-2">
                                 <button onClick={handleQuickAdd} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Plus className="w-3.5 h-3.5" /> Add App</button>
-                                {quickURL && <button onClick={() => handleURLPreview(quickURL)} className="px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse/60 transition-colors"><Icons.Eye className="w-3.5 h-3.5" /></button>}
+                                {quickURL && <button onClick={() => handleURLPreview(quickURL)} className="px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-fg-secondary transition-colors"><Icons.Eye className="w-3.5 h-3.5" /></button>}
                               </div>
                             </AppCard>
                           </div>
@@ -627,8 +627,8 @@ export function AdminPanel() {
                         <motion.div key="bulk-import" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="p-4 pb-0">
                             <AppCard className="p-4 space-y-3">
-                              <h3 className="text-xs font-semibold text-os-text-inverse/60 flex items-center gap-2"><Icons.Package className="w-3.5 h-3.5" /> Bulk Import</h3>
-                              <p className="text-xs text-os-text-inverse/35">One URL per line. Format: <code className="bg-os-ink-800 px-1 rounded">URL | Name | Icon</code></p>
+                              <h3 className="text-xs font-semibold text-fg-secondary flex items-center gap-2"><Icons.Package className="w-3.5 h-3.5" /> Bulk Import</h3>
+                              <p className="text-xs text-fg-tertiary">One URL per line. Format: <code className="bg-os-ink-800 px-1 rounded">URL | Name | Icon</code></p>
                               <textarea value={bulkURLs} onChange={(e) => setBulkURLs(e.target.value)} rows={5} placeholder={"https://example.com\nhttps://site.com | My App | globe"} className={cn(appInputClass, 'px-3 py-2 text-xs w-full resize-none font-mono')} />
                               <button onClick={handleBulkImport} className="flex items-center gap-2 px-3 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-xs text-os-text-inverse transition-colors"><Icons.Package className="w-3.5 h-3.5" /> Import All</button>
                             </AppCard>
@@ -651,27 +651,27 @@ export function AdminPanel() {
                           {apps.map((app) => (
                             <div key={app.id} className={cn(appTableRowClass, 'grid-cols-12 group', highlightedAppId === app.id && 'bg-brand-600/15 ring-1 ring-inset ring-brand-600/30')} onContextMenu={(e) => { e.preventDefault(); setAppContextMenu({ x: e.clientX, y: e.clientY, app }); }}>
                               <div className="col-span-4 flex items-center gap-2 min-w-0">
-                                <AppIcon icon={app.icon} customIcon={app.customIcon} className="w-4 h-4 text-os-text-inverse/35 flex-shrink-0" />
+                                <AppIcon icon={app.icon} customIcon={app.customIcon} className="w-4 h-4 text-fg-tertiary flex-shrink-0" />
                                 <span className="text-sm text-os-text-inverse truncate">{app.name}</span>
                               </div>
                               <div className="col-span-2">
-                                <span className="text-[10px] px-1.5 py-0.5 bg-os-ink-900 text-os-text-inverse/60 rounded">{app.type}</span>
+                                <span className="os-type-caption px-1.5 py-0.5 bg-os-ink-900 text-fg-secondary rounded">{app.type}</span>
                               </div>
                               <div className="col-span-2">
-                                {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                                {app.pinnedToTaskbar ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-fg-tertiary" />}
                               </div>
                               <div className="col-span-2">
-                                {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-os-text-inverse/25" />}
+                                {app.pinnedToDesktop ? <Icons.Check className="w-3.5 h-3.5 text-fg-success" /> : <Icons.Minus className="w-3.5 h-3.5 text-fg-tertiary" />}
                               </div>
                               <div className="col-span-2 flex gap-1">
-                                <button onClick={() => handleEdit(app)} className="p-1.5 rounded hover:bg-os-ink-900 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors" title="Edit"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleEdit(app)} className="p-1.5 rounded hover:bg-os-ink-900 text-fg-tertiary hover:text-os-text-inverse transition-colors" title="Edit"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
                                 <button onClick={async () => {
                                   setAppPublishStatus({ state: 'publishing', message: `Removing ${app.name} globally...` });
                                   const result = await removeApp(app.id);
                                   setAppPublishStatus(result.success
                                     ? { state: 'success', message: `${app.name} removed globally.` }
                                     : { state: 'error', message: result.error || 'Remove failed.' });
-                                }} className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                                }} className="p-1.5 rounded hover:bg-error-subtle text-fg-tertiary hover:text-fg-error transition-colors" title="Delete"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             </div>
                           ))}
@@ -692,29 +692,29 @@ export function AdminPanel() {
                         className="shrink-0 overflow-hidden border-l border-os-line-dark"
                       >
                         <div className="w-[380px] h-full overflow-y-auto p-5">
-                          <h3 className="text-xs font-semibold text-os-text-inverse/60 mb-4">{editingApp ? 'Edit App' : 'New App'}</h3>
+                          <h3 className="text-xs font-semibold text-fg-secondary mb-4">{editingApp ? 'Edit App' : 'New App'}</h3>
                           <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Name */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Name *</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Name *</label>
                               <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="My App" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                             </div>
 
                             {/* Icon */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-2">Icon</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-2">Icon</label>
 
                               {/* Preview + mode tabs */}
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="w-9 h-9 rounded-lg bg-os-ink-900 border border-os-line-dark flex items-center justify-center flex-shrink-0">
-                                  <AppIcon icon={formData.icon || 'square'} customIcon={formData.customIcon} className="w-5 h-5 text-white/70" />
+                                  <AppIcon icon={formData.icon || 'square'} customIcon={formData.customIcon} className="w-5 h-5 text-fg-secondary" />
                                 </div>
                                 <div className="flex gap-1 rounded bg-os-ink-900 border border-os-line-dark p-0.5">
-                                  <button type="button" onClick={() => setIconTab('browse')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'browse' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Browse</button>
-                                  <button type="button" onClick={() => setIconTab('upload')} className={cn('px-2.5 py-1 text-[11px] rounded transition-colors', iconTab === 'upload' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-os-text-inverse/40 hover:text-os-text-inverse/70')}>Upload Image</button>
+                                  <button type="button" onClick={() => setIconTab('browse')} className={cn('px-2.5 py-1 os-type-caption rounded transition-colors', iconTab === 'browse' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-fg-tertiary hover:text-fg-secondary')}>Browse</button>
+                                  <button type="button" onClick={() => setIconTab('upload')} className={cn('px-2.5 py-1 os-type-caption rounded transition-colors', iconTab === 'upload' ? 'bg-os-ink-700 text-os-text-inverse' : 'text-fg-tertiary hover:text-fg-secondary')}>Upload Image</button>
                                 </div>
                                 {(formData.customIcon || (formData.icon || '').startsWith('ph:') || (formData.icon || '').startsWith('mui:')) && (
-                                  <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto text-[11px] text-fg-error/60 hover:text-fg-error transition-colors">Clear</button>
+                                  <button type="button" onClick={() => setFormData({ ...formData, icon: 'square', customIcon: undefined })} className="ml-auto os-type-caption text-fg-error/60 hover:text-fg-error transition-colors">Clear</button>
                                 )}
                               </div>
 
@@ -729,7 +729,7 @@ export function AdminPanel() {
                                   </div>
                                   <div className="grid grid-cols-8 gap-0.5 max-h-44 overflow-y-auto rounded border border-os-line-dark bg-os-ink-900 p-1.5">
                                     {filteredIcons.length === 0 && (
-                                      <div className="col-span-8 py-4 text-center text-[11px] text-os-text-inverse/30">No icons match</div>
+                                      <div className="col-span-8 py-4 text-center os-type-caption text-fg-tertiary">No icons match</div>
                                     )}
                                     {filteredIcons.map(name => {
                                       const selected = formData.icon === `ph:${name}`;
@@ -737,7 +737,7 @@ export function AdminPanel() {
                                         <button key={name} type="button" title={name}
                                           onClick={() => setFormData({ ...formData, icon: `ph:${name}`, customIcon: undefined })}
                                           className={cn('p-1.5 rounded flex items-center justify-center transition-colors',
-                                            selected ? 'bg-brand-subtle text-fg-brand' : 'text-os-text-inverse/50 hover:bg-os-ink-800 hover:text-os-text-inverse/80'
+                                            selected ? 'bg-brand-subtle text-fg-brand' : 'text-fg-secondary hover:bg-os-ink-800 hover:text-fg-primary'
                                           )}>
                                           <AppIcon icon={`ph:${name}`} className="h-4 w-4" />
                                         </button>
@@ -745,16 +745,16 @@ export function AdminPanel() {
                                     })}
                                   </div>
                                   {(formData.icon?.startsWith('ph:') || formData.icon?.startsWith('mui:')) && (
-                                    <p className="text-[10px] text-os-text-inverse/30">Selected: {formData.icon.slice(formData.icon.indexOf(':') + 1)}</p>
+                                    <p className="os-type-caption text-fg-tertiary">Selected: {formData.icon.slice(formData.icon.indexOf(':') + 1)}</p>
                                   )}
                                 </div>
                               )}
 
                               {iconTab === 'upload' && (
                                 <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploadingIcon ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-brand-600/40 hover:bg-os-ink-900/60')}>
-                                  {isUploadingIcon ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
-                                  <span className="text-xs text-os-text-inverse/40">{formData.customIcon ? 'Replace icon image' : 'Upload icon image'}</span>
-                                  <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, SVG · max 2 MB</span>
+                                  {isUploadingIcon ? <Icons.Loader2 className="w-5 h-5 text-fg-tertiary animate-spin" /> : <Icons.Upload className="w-5 h-5 text-fg-tertiary" />}
+                                  <span className="text-xs text-fg-tertiary">{formData.customIcon ? 'Replace icon image' : 'Upload icon image'}</span>
+                                  <span className="os-type-caption text-fg-tertiary">PNG, JPG, WebP, SVG · max 2 MB</span>
                                   <input type="file" accept="image/*" onChange={handleIconImageUpload} className="hidden" disabled={isUploadingIcon} />
                                 </label>
                               )}
@@ -762,7 +762,7 @@ export function AdminPanel() {
 
                             {/* Type */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Type</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Type</label>
                               <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} className={cn(appSelectClass, 'px-3 py-2 text-sm w-full')}>
                                 <option value="component">React Component</option>
                                 <option value="iframe">Embedded Site (iframe)</option>
@@ -770,37 +770,37 @@ export function AdminPanel() {
                                 <option value="static">Static Content</option>
                               </select>
                               {formData.type === 'link' && (
-                                <p className="mt-1 text-[10px] text-os-text-inverse/30">Opens the URL in a new browser tab — no window is created.</p>
+                                <p className="mt-1 os-type-caption text-fg-tertiary">Opens the URL in a new browser tab — no window is created.</p>
                               )}
                             </div>
 
                             {formData.type === 'component' && (
                               <div>
-                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Component Name</label>
+                                <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Component Name</label>
                                 <input type="text" value={formData.component} onChange={(e) => setFormData({ ...formData, component: e.target.value })} placeholder="MyComponent" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
                             )}
 
                             {(formData.type === 'iframe' || formData.type === 'link') && (
                               <div>
-                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">URL *</label>
+                                <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">URL *</label>
                                 <input type="url" value={formData.url} onChange={(e) => setFormData({ ...formData, url: e.target.value })} placeholder="https://example.com" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
                             )}
 
                             {/* Description */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Description</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Description</label>
                               <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Brief description" className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                             </div>
 
                             {/* Pin toggles */}
                             <div className="flex gap-5">
-                              <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
+                              <label className="flex items-center gap-2 text-xs text-fg-secondary cursor-pointer select-none">
                                 <input type="checkbox" checked={formData.pinnedToTaskbar} onChange={(e) => setFormData({ ...formData, pinnedToTaskbar: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
                                 Pin to Taskbar
                               </label>
-                              <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
+                              <label className="flex items-center gap-2 text-xs text-fg-secondary cursor-pointer select-none">
                                 <input type="checkbox" checked={formData.pinnedToDesktop} onChange={(e) => setFormData({ ...formData, pinnedToDesktop: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
                                 Pin to Desktop
                               </label>
@@ -809,23 +809,23 @@ export function AdminPanel() {
                             {/* Window size */}
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Width (px)</label>
+                                <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Width (px)</label>
                                 <input type="number" value={formData.defaultSize?.width} onChange={(e) => setFormData({ ...formData, defaultSize: { width: parseInt(e.target.value) || 800, height: formData.defaultSize?.height ?? 600 } })} min={300} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
                               <div>
-                                <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Height (px)</label>
+                                <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Height (px)</label>
                                 <input type="number" value={formData.defaultSize?.height} onChange={(e) => setFormData({ ...formData, defaultSize: { width: formData.defaultSize?.width ?? 800, height: parseInt(e.target.value) || 600 } })} min={200} className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                               </div>
                             </div>
 
                             {/* Preview Media */}
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1">Preview Media</label>
-                              <p className="text-[11px] text-os-text-inverse/30 mb-2">Screenshots and videos shown on desktop hover.</p>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1">Preview Media</label>
+                              <p className="os-type-caption text-fg-tertiary mb-2">Screenshots and videos shown on desktop hover.</p>
                               <label className={cn('flex flex-col items-center justify-center gap-1.5 py-5 rounded-lg border border-dashed transition-all', isUploading ? 'opacity-50 cursor-not-allowed border-os-line-dark' : 'cursor-pointer border-os-line-dark hover:border-brand-600/40 hover:bg-os-ink-900/60')}>
-                                {isUploading ? <Icons.Loader2 className="w-5 h-5 text-os-text-inverse/40 animate-spin" /> : <Icons.Upload className="w-5 h-5 text-os-text-inverse/30" />}
-                                <span className="text-xs text-os-text-inverse/40">Click to upload screenshots or video</span>
-                                <span className="text-[10px] text-os-text-inverse/25">PNG, JPG, WebP, MP4 · max 25 MB each</span>
+                                {isUploading ? <Icons.Loader2 className="w-5 h-5 text-fg-tertiary animate-spin" /> : <Icons.Upload className="w-5 h-5 text-fg-tertiary" />}
+                                <span className="text-xs text-fg-tertiary">Click to upload screenshots or video</span>
+                                <span className="os-type-caption text-fg-tertiary">PNG, JPG, WebP, MP4 · max 25 MB each</span>
                                 <input type="file" accept="image/*,video/*" multiple onChange={handleAppMediaUpload} className="hidden" disabled={isUploading} />
                               </label>
                               {(formData.media?.length || 0) > 0 && (
@@ -837,7 +837,7 @@ export function AdminPanel() {
                                       ) : (
                                         <img src={item.url} alt={item.name || ''} className="aspect-video w-full object-cover" />
                                       )}
-                                      <button type="button" onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((m) => m.id !== item.id) }))} className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white/60 opacity-0 transition-opacity hover:text-fg-error group-hover:opacity-100">
+                                      <button type="button" onClick={() => setFormData((prev) => ({ ...prev, media: (prev.media || []).filter((m) => m.id !== item.id) }))} className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-fg-secondary opacity-0 transition-opacity hover:text-fg-error group-hover:opacity-100">
                                         <Icons.X className="w-3 h-3" />
                                       </button>
                                     </div>
@@ -851,7 +851,7 @@ export function AdminPanel() {
                               <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded bg-os-ink-800 hover:bg-os-ink-700 border border-os-line-dark text-sm font-medium text-os-text-inverse transition-colors">
                                 {editingApp ? <><Icons.Save className="w-3.5 h-3.5" /> Update</> : <><Icons.Plus className="w-3.5 h-3.5" /> Create</>}
                               </button>
-                              <button type="button" onClick={resetForm} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-os-text-inverse/60 transition-colors">Cancel</button>
+                              <button type="button" onClick={resetForm} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-fg-secondary transition-colors">Cancel</button>
                             </div>
                           </form>
                         </div>
@@ -866,16 +866,16 @@ export function AdminPanel() {
             {activeTab === 'backgrounds' && (
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-os-text-inverse">Backgrounds <span className="text-os-text-inverse/35 font-normal">({backgrounds.length})</span></h2>
+                  <h2 className="text-sm font-semibold text-os-text-inverse">Backgrounds <span className="text-fg-tertiary font-normal">({backgrounds.length})</span></h2>
                 </div>
 
-                <label className={cn('flex items-center justify-center gap-2 px-4 py-4 rounded-lg border border-dashed border-os-line-dark text-sm text-os-text-inverse/60 transition-all', isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-brand-600/40 hover:text-os-text-inverse hover:bg-os-ink-900')}>
+                <label className={cn('flex items-center justify-center gap-2 px-4 py-4 rounded-lg border border-dashed border-os-line-dark text-sm text-fg-secondary transition-all', isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-brand-600/40 hover:text-os-text-inverse hover:bg-os-ink-900')}>
                   {isUploading ? <><Icons.Loader className="w-4 h-4 animate-spin" /> Uploading…</> : <><Icons.Upload className="w-4 h-4" /> Upload background images (JPG, PNG, WebP)</>}
                   <input type="file" accept="image/*" multiple onChange={handleBackgroundUpload} className="hidden" disabled={isUploading} />
                 </label>
 
                 {backgrounds.length === 0 ? (
-                  <div className="text-center py-16 text-os-text-inverse/25">
+                  <div className="text-center py-16 text-fg-tertiary">
                     <Icons.Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No backgrounds yet.</p>
                   </div>
@@ -891,12 +891,12 @@ export function AdminPanel() {
                           <div className="p-2.5 border-t border-os-line-dark bg-background-chrome-raised flex items-center justify-between gap-2">
                             <div className="min-w-0">
                               <p className="text-xs font-medium text-os-text-inverse truncate">{bg.name}</p>
-                              {isDefault && <p className="text-[10px] text-os-text-inverse/35">Built-in</p>}
+                              {isDefault && <p className="os-type-caption text-fg-tertiary">Built-in</p>}
                             </div>
                             {isSelected && <Icons.Check className="w-4 h-4 text-fg-brand flex-shrink-0" />}
                           </div>
                           {!isDefault && (
-                            <button onClick={(e) => { e.stopPropagation(); removeBackground(bg.id); }} className="absolute top-2 right-2 p-1 rounded bg-background-floating hover:bg-error-subtle text-os-text-inverse/60 hover:text-fg-error opacity-0 group-hover:opacity-100 transition-all">
+                            <button onClick={(e) => { e.stopPropagation(); removeBackground(bg.id); }} className="absolute top-2 right-2 p-1 rounded bg-background-floating hover:bg-error-subtle text-fg-secondary hover:text-fg-error opacity-0 group-hover:opacity-100 transition-all">
                               <Icons.Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -912,8 +912,8 @@ export function AdminPanel() {
             {activeTab === 'milestones' && (
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Milestones <span className="text-os-text-inverse/35 font-normal">({profile.milestones.length})</span></h2>
-                  <button onClick={() => { setShowMilestoneForm(!showMilestoneForm); setEditingMilestone(null); setMilestoneFormData({ title: '', description: '', date: new Date().toISOString().split('T')[0], category: 'project', images: [], links: [], tags: [], featured: false }); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showMilestoneForm ? 'bg-os-ink-800 border-os-line-dark text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/60 hover:text-os-text-inverse hover:bg-os-ink-800')}>
+                  <h2 className="text-sm font-semibold text-os-text-inverse flex-1">Milestones <span className="text-fg-tertiary font-normal">({profile.milestones.length})</span></h2>
+                  <button onClick={() => { setShowMilestoneForm(!showMilestoneForm); setEditingMilestone(null); setMilestoneFormData({ title: '', description: '', date: new Date().toISOString().split('T')[0], category: 'project', images: [], links: [], tags: [], featured: false }); }} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded text-xs border transition-colors', showMilestoneForm ? 'bg-os-ink-800 border-os-line-dark text-os-text-inverse' : 'bg-os-ink-900 border-os-line-dark text-fg-secondary hover:text-os-text-inverse hover:bg-os-ink-800')}>
                     <Icons.Plus className="w-3.5 h-3.5" /> Add Milestone
                   </button>
                 </div>
@@ -922,7 +922,7 @@ export function AdminPanel() {
                   {showMilestoneForm && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
                       <AppCard className="p-4">
-                        <h3 className="text-xs font-semibold text-os-text-inverse/60 mb-4 flex items-center gap-2"><Icons.Star className="w-3.5 h-3.5" />{editingMilestone ? 'Edit Milestone' : 'New Milestone'}</h3>
+                        <h3 className="text-xs font-semibold text-fg-secondary mb-4 flex items-center gap-2"><Icons.Star className="w-3.5 h-3.5" />{editingMilestone ? 'Edit Milestone' : 'New Milestone'}</h3>
                         <form onSubmit={(e) => {
                           e.preventDefault();
                           if (!milestoneFormData.title) return;
@@ -933,17 +933,17 @@ export function AdminPanel() {
                         }} className="space-y-3">
                           <div className="grid grid-cols-[1fr_auto] gap-3">
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Title *</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Title *</label>
                               <input type="text" value={milestoneFormData.title} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, title: e.target.value })} placeholder="Milestone title" required className={cn(appInputClass, 'px-3 py-2 text-sm w-full')} />
                             </div>
                             <div>
-                              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Date *</label>
+                              <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Date *</label>
                               <input type="date" value={milestoneFormData.date} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, date: e.target.value })} required className={cn(appInputClass, 'px-3 py-2 text-sm')} />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Category</label>
+                            <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Category</label>
                             <select value={milestoneFormData.category} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, category: e.target.value as any })} className={cn(appSelectClass, 'px-3 py-2 text-sm w-full')}>
                               <option value="project">Project</option>
                               <option value="achievement">Achievement</option>
@@ -955,15 +955,15 @@ export function AdminPanel() {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35 mb-1.5">Description</label>
+                            <label className="block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-1.5">Description</label>
                             <textarea value={milestoneFormData.description} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, description: e.target.value })} placeholder="Describe this milestone…" rows={3} className={cn(appInputClass, 'px-3 py-2 text-sm w-full resize-none')} />
                           </div>
 
                           <div>
                             <div className="flex items-center justify-between mb-1.5">
-                              <label className="text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">Tags</label>
+                              <label className="os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary">Tags</label>
                               {milestoneFormData.tags.length > 0 && (
-                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, tags: [] }))} className="text-[10px] text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors">Clear</button>
+                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, tags: [] }))} className="os-type-caption text-fg-tertiary hover:text-fg-secondary transition-colors">Clear</button>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-1.5 mb-2">
@@ -978,10 +978,10 @@ export function AdminPanel() {
                                       tags: active ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag],
                                     }))}
                                     className={cn(
-                                      'px-2 py-0.5 rounded text-[11px] border transition-colors',
+                                      'px-2 py-0.5 rounded os-type-caption border transition-colors',
                                       active
                                         ? 'bg-brand-600/15 border-brand-600/40 text-fg-brand'
-                                        : 'bg-os-ink-900 border-os-line-dark text-os-text-inverse/35 hover:bg-os-ink-800 hover:text-os-text-inverse/60',
+                                        : 'bg-os-ink-900 border-os-line-dark text-fg-tertiary hover:bg-os-ink-800 hover:text-fg-secondary',
                                     )}
                                   >
                                     {tag}
@@ -1009,8 +1009,8 @@ export function AdminPanel() {
                           {/* Images */}
                           <div>
                             <div className="flex items-center justify-between mb-1.5">
-                              <label className="text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">Images</label>
-                              <label className="flex items-center gap-1 text-[10px] text-os-text-inverse/35 hover:text-os-text-inverse/60 cursor-pointer transition-colors">
+                              <label className="os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary">Images</label>
+                              <label className="flex items-center gap-1 os-type-caption text-fg-tertiary hover:text-fg-secondary cursor-pointer transition-colors">
                                 <Icons.Upload className="w-3 h-3" /> Upload
                                 <input type="file" accept="image/*" multiple onChange={async (e) => {
                                   const files = e.target.files; if (!files) return;
@@ -1039,8 +1039,8 @@ export function AdminPanel() {
                           {/* Links */}
                           <div>
                             <div className="flex items-center justify-between mb-1.5">
-                              <label className="text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">Links</label>
-                              <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: [...prev.links, { label: '', url: '' }] }))} className="flex items-center gap-1 text-[10px] text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors">
+                              <label className="os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary">Links</label>
+                              <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: [...prev.links, { label: '', url: '' }] }))} className="flex items-center gap-1 os-type-caption text-fg-tertiary hover:text-fg-secondary transition-colors">
                                 <Icons.Plus className="w-3 h-3" /> Add
                               </button>
                             </div>
@@ -1048,12 +1048,12 @@ export function AdminPanel() {
                               <div key={idx} className="flex gap-2 mb-2">
                                 <input type="text" value={link.label} onChange={(e) => { const l = [...milestoneFormData.links]; l[idx].label = e.target.value; setMilestoneFormData({ ...milestoneFormData, links: l }); }} placeholder="Label" className={cn(appInputClass, 'px-3 py-2 text-sm flex-1')} />
                                 <input type="url" value={link.url} onChange={(e) => { const l = [...milestoneFormData.links]; l[idx].url = e.target.value; setMilestoneFormData({ ...milestoneFormData, links: l }); }} placeholder="URL" className={cn(appInputClass, 'px-3 py-2 text-sm flex-1')} />
-                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))} className="p-2 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                                <button type="button" onClick={() => setMilestoneFormData(prev => ({ ...prev, links: prev.links.filter((_, i) => i !== idx) }))} className="p-2 rounded hover:bg-error-subtle text-fg-tertiary hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             ))}
                           </div>
 
-                          <label className="flex items-center gap-2 text-xs text-os-text-inverse/60 cursor-pointer select-none">
+                          <label className="flex items-center gap-2 text-xs text-fg-secondary cursor-pointer select-none">
                             <input type="checkbox" checked={milestoneFormData.featured} onChange={(e) => setMilestoneFormData({ ...milestoneFormData, featured: e.target.checked })} className="w-3.5 h-3.5 accent-[var(--color-bg-accent)]" />
                             <Icons.Star className="w-3.5 h-3.5" /> Featured
                           </label>
@@ -1062,7 +1062,7 @@ export function AdminPanel() {
                             <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded bg-os-ink-800 hover:bg-os-ink-800 border border-os-line-dark text-sm font-medium text-os-text-inverse transition-colors">
                               {editingMilestone ? <><Icons.Save className="w-3.5 h-3.5" /> Update</> : <><Icons.Plus className="w-3.5 h-3.5" /> Create</>}
                             </button>
-                            <button type="button" onClick={() => { setShowMilestoneForm(false); setEditingMilestone(null); }} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-os-text-inverse/60 transition-colors">Cancel</button>
+                            <button type="button" onClick={() => { setShowMilestoneForm(false); setEditingMilestone(null); }} className="px-4 py-2 rounded bg-os-ink-900 hover:bg-os-ink-800 border border-os-line-dark text-sm text-fg-secondary transition-colors">Cancel</button>
                           </div>
                         </form>
                       </AppCard>
@@ -1071,7 +1071,7 @@ export function AdminPanel() {
                 </AnimatePresence>
 
                 {profile.milestones.length === 0 ? (
-                  <div className="text-center py-16 text-os-text-inverse/25">
+                  <div className="text-center py-16 text-fg-tertiary">
                     <Icons.Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No milestones yet.</p>
                   </div>
@@ -1086,19 +1086,19 @@ export function AdminPanel() {
                               {m.featured && <Icons.Star className="w-3.5 h-3.5 text-fg-warning fill-current" />}
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className={cn('text-[10px] px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-brand-600/15 text-fg-brand' : m.category === 'achievement' ? 'bg-warning-subtle text-fg-warning' : m.category === 'education' ? 'bg-info-subtle text-fg-info' : m.category === 'career' ? 'bg-success-subtle text-fg-success' : m.category === 'personal' ? 'bg-error-subtle text-fg-error' : 'bg-os-ink-800 text-os-text-inverse/60')}>{m.category}</span>
-                              <span className="text-xs text-os-text-inverse/35">{new Date(m.date).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                              <span className={cn('os-type-caption px-2 py-0.5 rounded font-medium', m.category === 'project' ? 'bg-brand-600/15 text-fg-brand' : m.category === 'achievement' ? 'bg-warning-subtle text-fg-warning' : m.category === 'education' ? 'bg-info-subtle text-fg-info' : m.category === 'career' ? 'bg-success-subtle text-fg-success' : m.category === 'personal' ? 'bg-error-subtle text-fg-error' : 'bg-os-ink-800 text-fg-secondary')}>{m.category}</span>
+                              <span className="text-xs text-fg-tertiary">{new Date(m.date).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             </div>
-                            {m.description && <p className="text-xs text-os-text-inverse/60 mb-2">{m.description}</p>}
+                            {m.description && <p className="text-xs text-fg-secondary mb-2">{m.description}</p>}
                             {m.tags && m.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1">
-                                {m.tags.map((tag, i) => <span key={i} className="text-[10px] px-1.5 py-0.5 bg-os-ink-900 text-os-text-inverse/35 border border-os-line-dark rounded">{tag}</span>)}
+                                {m.tags.map((tag, i) => <span key={i} className="os-type-caption px-1.5 py-0.5 bg-os-ink-900 text-fg-tertiary border border-os-line-dark rounded">{tag}</span>)}
                               </div>
                             )}
                           </div>
                           <div className="flex gap-1 flex-shrink-0">
-                            <button onClick={() => { setEditingMilestone(m.id); setMilestoneFormData({ title: m.title, description: m.description, date: m.date, category: m.category, images: m.images || [], links: m.links || [], tags: m.tags || [], featured: m.featured || false }); setShowMilestoneForm(true); }} className="p-1.5 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse transition-colors"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => { if (confirm('Delete this milestone?')) removeMilestone(m.id); }} className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { setEditingMilestone(m.id); setMilestoneFormData({ title: m.title, description: m.description, date: m.date, category: m.category, images: m.images || [], links: m.links || [], tags: m.tags || [], featured: m.featured || false }); setShowMilestoneForm(true); }} className="p-1.5 rounded hover:bg-os-ink-800 text-fg-tertiary hover:text-os-text-inverse transition-colors"><Icons.Edit2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { if (confirm('Delete this milestone?')) removeMilestone(m.id); }} className="p-1.5 rounded hover:bg-error-subtle text-fg-tertiary hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </div>
                       </AppCard>
@@ -1113,7 +1113,7 @@ export function AdminPanel() {
               <div className="p-6 space-y-4">
                 <div>
                   <h2 className="text-sm font-semibold text-os-text-inverse mb-1">Reads Import</h2>
-                  <p className="text-xs text-os-text-inverse/35">
+                  <p className="text-xs text-fg-tertiary">
                     Upload the source CSV to add new articles to the Browser Reads shelf. Existing articles are matched by slug and skipped.
                   </p>
                 </div>
@@ -1121,24 +1121,24 @@ export function AdminPanel() {
                 <AppCard className="p-4 space-y-4">
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                     <div>
-                      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-os-text-inverse/35">
+                      <label className="mb-1.5 block os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary">
                         Target content document
                       </label>
                       <div className="flex items-center rounded border border-os-line-dark bg-os-ink-800">
-                        <span className="shrink-0 border-r border-os-line-dark px-3 text-xs text-os-text-inverse/30">
+                        <span className="shrink-0 border-r border-os-line-dark px-3 text-xs text-fg-tertiary">
                           os-site_content /
                         </span>
                         <input
                           value={readImportTarget}
                           onChange={(event) => setReadImportTarget(event.target.value)}
-                          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-os-text-inverse outline-none placeholder:text-os-text-inverse/25"
+                          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-os-text-inverse outline-none placeholder:text-fg-tertiary"
                           placeholder="reads"
                         />
                       </div>
                     </div>
 
                     <label className={cn(
-                      'flex cursor-pointer items-center justify-center gap-2 rounded border border-os-line-dark bg-os-ink-800 px-4 py-2 text-sm text-os-text-inverse/70 transition-colors hover:bg-os-ink-700 hover:text-os-text-inverse',
+                      'flex cursor-pointer items-center justify-center gap-2 rounded border border-os-line-dark bg-os-ink-800 px-4 py-2 text-sm text-fg-secondary transition-colors hover:bg-os-ink-700 hover:text-os-text-inverse',
                       (!isAdmin || readImportStatus.state === 'parsing') && 'pointer-events-none opacity-45'
                     )}>
                       {readImportStatus.state === 'parsing' ? (
@@ -1175,7 +1175,7 @@ export function AdminPanel() {
                         ? 'border-stroke-success/40 bg-success-subtle text-fg-success'
                         : readImportStatus.state === 'error'
                           ? 'border-stroke-error/40 bg-error-subtle text-fg-error'
-                          : 'border-os-line-dark bg-os-ink-900 text-os-text-inverse/50'
+                          : 'border-os-line-dark bg-os-ink-900 text-fg-secondary'
                     )}>
                       {readImportStatus.message}
                     </div>
@@ -1188,8 +1188,8 @@ export function AdminPanel() {
                       { label: 'Default target', value: 'reads' },
                     ].map((item) => (
                       <div key={item.label} className="rounded border border-os-line-dark bg-os-ink-900 px-3 py-2">
-                        <p className="text-[10px] uppercase tracking-[0.08em] text-os-text-inverse/30">{item.label}</p>
-                        <p className="mt-1 text-sm font-medium text-os-text-inverse/75">{item.value}</p>
+                        <p className="os-type-caption uppercase tracking-normal text-fg-tertiary">{item.label}</p>
+                        <p className="mt-1 text-sm font-medium text-fg-secondary">{item.value}</p>
                       </div>
                     ))}
                   </div>
@@ -1202,11 +1202,11 @@ export function AdminPanel() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">
                     Feedback Moderation
-                    {pendingCount > 0 && <span className="ml-2 text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{pendingCount} pending</span>}
+                    {pendingCount > 0 && <span className="ml-2 os-type-caption bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{pendingCount} pending</span>}
                   </h2>
                   <div className="flex items-center gap-1 bg-os-ink-900 border border-os-line-dark rounded p-0.5">
                     {(['all', 'pending', 'approved', 'hidden'] as const).map((f) => (
-                      <button key={f} onClick={() => setFeedbackFilter(f)} className={cn('px-2.5 py-1 rounded text-[10px] font-medium transition-colors capitalize', feedbackFilter === f ? 'bg-os-ink-800 text-os-text-inverse' : 'text-os-text-inverse/35 hover:text-os-text-inverse/60')}>
+                      <button key={f} onClick={() => setFeedbackFilter(f)} className={cn('px-2.5 py-1 rounded os-type-caption font-medium transition-colors capitalize', feedbackFilter === f ? 'bg-os-ink-800 text-os-text-inverse' : 'text-fg-tertiary hover:text-fg-secondary')}>
                         {f}{f !== 'all' && ` (${feedbackItems.filter(x => x.status === f).length})`}
                       </button>
                     ))}
@@ -1214,7 +1214,7 @@ export function AdminPanel() {
                 </div>
 
                 {filteredFeedback.length === 0 ? (
-                  <div className="text-center py-16 text-os-text-inverse/25">
+                  <div className="text-center py-16 text-fg-tertiary">
                     <Icons.MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No {feedbackFilter === 'all' ? '' : feedbackFilter} feedback.</p>
                   </div>
@@ -1226,21 +1226,21 @@ export function AdminPanel() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-sm font-medium text-os-text-inverse">{item.name}</span>
-                              <span className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', item.status === 'approved' ? 'bg-success-subtle text-fg-success' : item.status === 'hidden' ? 'bg-os-ink-900 text-os-text-inverse/35' : 'bg-warning-subtle text-fg-warning')}>{item.status}</span>
-                              <span className="text-[10px] text-os-text-inverse/25 ml-auto">
+                              <span className={cn('os-type-caption px-1.5 py-0.5 rounded font-medium', item.status === 'approved' ? 'bg-success-subtle text-fg-success' : item.status === 'hidden' ? 'bg-os-ink-900 text-fg-tertiary' : 'bg-warning-subtle text-fg-warning')}>{item.status}</span>
+                              <span className="os-type-caption text-fg-tertiary ml-auto">
                                 {item.timestamp?.toDate?.().toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) ?? '—'}
                               </span>
                             </div>
-                            <p className="text-sm text-os-text-inverse/60 leading-relaxed">{item.message}</p>
+                            <p className="text-sm text-fg-secondary leading-relaxed">{item.message}</p>
                           </div>
                           <div className="flex gap-1 flex-shrink-0 mt-0.5">
                             {item.status !== 'approved' && (
-                              <button onClick={() => handleFeedbackStatus(item.id, 'approved')} title="Approve" className="p-1.5 rounded hover:bg-success-subtle text-os-text-inverse/35 hover:text-fg-success transition-colors"><Icons.Check className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleFeedbackStatus(item.id, 'approved')} title="Approve" className="p-1.5 rounded hover:bg-success-subtle text-fg-tertiary hover:text-fg-success transition-colors"><Icons.Check className="w-3.5 h-3.5" /></button>
                             )}
                             {item.status !== 'hidden' && (
-                              <button onClick={() => handleFeedbackStatus(item.id, 'hidden')} title="Hide" className="p-1.5 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors"><Icons.EyeOff className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleFeedbackStatus(item.id, 'hidden')} title="Hide" className="p-1.5 rounded hover:bg-os-ink-800 text-fg-tertiary hover:text-fg-secondary transition-colors"><Icons.EyeOff className="w-3.5 h-3.5" /></button>
                             )}
-                            <button onClick={() => handleFeedbackDelete(item.id)} title="Delete" className="p-1.5 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => handleFeedbackDelete(item.id)} title="Delete" className="p-1.5 rounded hover:bg-error-subtle text-fg-tertiary hover:text-fg-error transition-colors"><Icons.Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </div>
                       </AppCard>
@@ -1256,11 +1256,11 @@ export function AdminPanel() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-os-text-inverse flex-1">
                     Gallery Moderation
-                    {galleryPendingCount > 0 && <span className="ml-2 text-[10px] bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{galleryPendingCount} pending</span>}
+                    {galleryPendingCount > 0 && <span className="ml-2 os-type-caption bg-brand-600/15 text-fg-brand px-1.5 py-0.5 rounded-full">{galleryPendingCount} pending</span>}
                   </h2>
                   <div className="flex items-center gap-1 bg-os-ink-900 border border-os-line-dark rounded p-0.5">
                     {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
-                      <button key={f} onClick={() => setGalleryFilter(f)} className={cn('px-2.5 py-1 rounded text-[10px] font-medium transition-colors capitalize', galleryFilter === f ? 'bg-os-ink-800 text-os-text-inverse' : 'text-os-text-inverse/35 hover:text-os-text-inverse/60')}>
+                      <button key={f} onClick={() => setGalleryFilter(f)} className={cn('px-2.5 py-1 rounded os-type-caption font-medium transition-colors capitalize', galleryFilter === f ? 'bg-os-ink-800 text-os-text-inverse' : 'text-fg-tertiary hover:text-fg-secondary')}>
                         {f}{f !== 'all' && ` (${galleryImages.filter(x => x.status === f).length})`}
                       </button>
                     ))}
@@ -1268,7 +1268,7 @@ export function AdminPanel() {
                 </div>
 
                 {filteredGallery.length === 0 ? (
-                  <div className="text-center py-16 text-os-text-inverse/25">
+                  <div className="text-center py-16 text-fg-tertiary">
                     <Icons.GalleryHorizontal className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No {galleryFilter === 'all' ? '' : galleryFilter} uploads.</p>
                     {galleryFilter === 'all' && <p className="text-xs mt-1">Images uploaded to Visitor Gallery appear here for review.</p>}
@@ -1279,22 +1279,22 @@ export function AdminPanel() {
                       <AppCard key={img.id} className="relative overflow-hidden p-0">
                         <img src={img.url} alt={img.name} className="w-full aspect-video object-cover" />
                         <div className="absolute bottom-0 left-0 right-0 bg-black/85 px-2 py-1.5 flex items-center gap-1.5">
-                          <span className={cn('text-[9px] px-1 py-0.5 rounded font-medium shrink-0', img.status === 'approved' ? 'bg-success-subtle text-fg-success' : img.status === 'rejected' ? 'bg-error-subtle text-fg-error' : 'bg-warning-subtle text-fg-warning')}>
+                          <span className={cn('os-type-caption px-1 py-0.5 rounded font-medium shrink-0', img.status === 'approved' ? 'bg-success-subtle text-fg-success' : img.status === 'rejected' ? 'bg-error-subtle text-fg-error' : 'bg-warning-subtle text-fg-warning')}>
                             {img.status}
                           </span>
-                          <p className="text-[10px] text-os-text-inverse/60 truncate flex-1 min-w-0">{img.name}</p>
+                          <p className="os-type-caption text-fg-secondary truncate flex-1 min-w-0">{img.name}</p>
                           <div className="flex items-center gap-0.5 shrink-0">
                             {img.status !== 'approved' && (
-                              <button onClick={() => handleGalleryStatus(img.id, 'approved')} title="Approve" className="p-1 rounded hover:bg-success-subtle text-os-text-inverse/35 hover:text-fg-success transition-colors">
+                              <button onClick={() => handleGalleryStatus(img.id, 'approved')} title="Approve" className="p-1 rounded hover:bg-success-subtle text-fg-tertiary hover:text-fg-success transition-colors">
                                 <Icons.Check className="w-3 h-3" />
                               </button>
                             )}
                             {img.status !== 'rejected' && (
-                              <button onClick={() => handleGalleryStatus(img.id, 'rejected')} title="Reject" className="p-1 rounded hover:bg-os-ink-800 text-os-text-inverse/35 hover:text-os-text-inverse/60 transition-colors">
+                              <button onClick={() => handleGalleryStatus(img.id, 'rejected')} title="Reject" className="p-1 rounded hover:bg-os-ink-800 text-fg-tertiary hover:text-fg-secondary transition-colors">
                                 <Icons.X className="w-3 h-3" />
                               </button>
                             )}
-                            <button onClick={() => handleGalleryDelete(img.id, img.storagePath)} title="Delete permanently" className="p-1 rounded hover:bg-error-subtle text-os-text-inverse/35 hover:text-fg-error transition-colors">
+                            <button onClick={() => handleGalleryDelete(img.id, img.storagePath)} title="Delete permanently" className="p-1 rounded hover:bg-error-subtle text-fg-tertiary hover:text-fg-error transition-colors">
                               <Icons.Trash2 className="w-3 h-3" />
                             </button>
                           </div>
@@ -1316,9 +1316,9 @@ export function AdminPanel() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-os-line-dark shrink-0">
               <div>
                 <p className="text-sm font-medium text-os-text-inverse">Preview</p>
-                <p className="text-xs text-os-text-inverse/35 truncate max-w-md">{previewURL}</p>
+                <p className="text-xs text-fg-tertiary truncate max-w-md">{previewURL}</p>
               </div>
-              <button onClick={() => setPreviewURL(null)} className="p-1.5 rounded hover:bg-os-ink-800 text-os-text-inverse/60 hover:text-white transition-colors"><Icons.X className="w-4 h-4" /></button>
+              <button onClick={() => setPreviewURL(null)} className="p-1.5 rounded hover:bg-os-ink-800 text-fg-secondary hover:text-white transition-colors"><Icons.X className="w-4 h-4" /></button>
             </div>
             <iframe src={previewURL} className="flex-1 border-0 bg-white" title="Preview" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" />
           </motion.div>

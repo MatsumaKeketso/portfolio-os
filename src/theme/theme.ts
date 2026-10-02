@@ -214,6 +214,7 @@ export const theme = {
     contextMenu: 10002,
     modalOverlay: 14999,
     modal: 15000,
+    lockScreen: 21000,
     tooltip: 20000,
   },
 

@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "lint:tokens": "node scripts/check-design-tokens.mjs",
+    "test:readability": "node --test scripts/check-readability.test.mjs",
+    "test:lock-screen": "node --experimental-vm-modules --test scripts/lock-screen.test.mjs",
     "reads:import": "node scripts/importReadsFromCsv.mjs"
   },
   "dependencies": {

@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   User,
 } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
@@ -20,6 +22,7 @@ interface AuthState {
   isLoading: boolean;
   login: (password: string, email?: string) => Promise<{ success: boolean; error?: string; role?: AuthRole }>;
   logout: () => Promise<void>;
+  unlockSession: (password: string) => Promise<{ success: boolean; error?: string }>;
   checkSession: () => Promise<void>;
 }
 
@@ -118,6 +121,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       console.error('Superuser login failed:', error.message);
       return { success: false, error: error.message };
+    }
+  },
+
+  unlockSession: async (password) => {
+    const user = auth.currentUser;
+    if (!user?.email) return { success: false, error: 'Your session has ended. Sign in again.' };
+    try {
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+      if (auth.currentUser?.uid !== user.uid) {
+        return { success: false, error: 'Your session changed. Please try again.' };
+      }
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.code === 'auth/too-many-requests'
+          ? 'Too many attempts. Please try again later.'
+          : error.code === 'auth/network-request-failed'
+            ? 'Unable to connect. Check your connection and try again.'
+            : 'Unable to unlock. Check your password and try again.',
+      };
     }
   },
 

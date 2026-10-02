@@ -239,7 +239,7 @@ export function Settings() {
           <Icons.Settings className="w-6 h-6" />
           Settings
         </h1>
-        <p className="text-white/40 text-sm mt-1">Manage your portfolio settings and preferences</p>
+        <p className="text-fg-tertiary text-sm mt-1">Manage your portfolio settings and preferences</p>
       </div>
 
       {/* Tab Navigation */}
@@ -306,7 +306,7 @@ export function Settings() {
                 <>
                   <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4">Quick Edit</h3>
-                    <p className="text-white/40 text-sm mb-4">
+                    <p className="text-fg-tertiary text-sm mb-4">
                       Update your basic information quickly here, or open the About Me app for full profile editing.
                     </p>
                     <div className="space-y-4">
@@ -346,7 +346,7 @@ export function Settings() {
                       <Icons.Info className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Profile Information</h4>
-                        <p className="text-white/60 text-sm leading-relaxed">
+                        <p className="text-fg-secondary text-sm leading-relaxed">
                           Your profile data is stored locally in your browser and automatically saved.
                           Use the Data tab to export a backup or import profile data from another device.
                         </p>
@@ -356,9 +356,9 @@ export function Settings() {
                 </>
               ) : (
                 <div className={cn(panelClass, 'text-center')}>
-                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                  <Icons.Lock className="w-12 h-12 text-fg-tertiary mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-white/40 text-sm">
+                  <p className="text-fg-tertiary text-sm">
                     Please sign in as admin to edit profile information.
                   </p>
                 </div>
@@ -393,7 +393,7 @@ export function Settings() {
                   )}
                 </div>
 
-                <p className="text-white/40 text-sm mb-4">
+                <p className="text-fg-tertiary text-sm mb-4">
                   Choose a background or upload your own custom image (max 5MB)
                 </p>
 
@@ -467,7 +467,7 @@ export function Settings() {
                     <div className="space-y-5 max-h-[28rem] overflow-y-auto pr-1">
                       {groups.map(([cat, list]) => (
                         <div key={cat}>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30 mb-2">{cat}</p>
+                          <p className="os-type-caption font-semibold uppercase tracking-normal text-fg-tertiary mb-2">{cat}</p>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {list.map(renderCard)}
                           </div>
@@ -487,7 +487,7 @@ export function Settings() {
                   <Icons.Palette className="w-5 h-5" />
                   Theme
                 </h3>
-                <p className="text-white/40 text-sm mb-4">
+                <p className="text-fg-tertiary text-sm mb-4">
                   One brand color drives the entire interface. Pick a preset or set a custom color — every tint, hover, focus ring, and active state is generated from it.
                 </p>
 
@@ -507,7 +507,7 @@ export function Settings() {
                         title={preset.name}
                       >
                         <span className="w-7 h-7 rounded-full ring-1 ring-white/15" style={{ backgroundColor: preset.theme.colors.primary }} />
-                        <span className="text-[10px] text-white/60 text-center leading-tight">{preset.name}</span>
+                        <span className="os-type-caption text-fg-secondary text-center leading-tight">{preset.name}</span>
                       </button>
                     );
                   })}
@@ -524,7 +524,7 @@ export function Settings() {
                     />
                     <div className="flex-1">
                       <p className="text-white font-semibold text-sm">Brand Color</p>
-                      <p className="text-white/40 text-xs font-mono">{theme.colors.primary}</p>
+                      <p className="text-fg-tertiary text-xs font-mono">{theme.colors.primary}</p>
                     </div>
                   </div>
                   <div className="mt-3 flex h-6 overflow-hidden rounded">
@@ -537,7 +537,7 @@ export function Settings() {
                 {/* Interface shape — global layout prefs (migrated from the old Customization modal) */}
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
                   <div>
-                    <label className="text-white/70 text-xs mb-1.5 block">Corner radius</label>
+                    <label className="text-fg-secondary text-xs mb-1.5 block">Corner radius</label>
                     <select value={theme.borderRadius} onChange={(e) => setBorderRadius(e.target.value as any)} className={selectClass}>
                       {(['none', 'sm', 'md', 'lg', 'xl'] as const).map((r) => (
                         <option key={r} value={r} className="bg-black/30">{r === 'none' ? 'Sharp' : r.toUpperCase()}</option>
@@ -545,7 +545,7 @@ export function Settings() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-white/70 text-xs mb-1.5 block">Spacing</label>
+                    <label className="text-fg-secondary text-xs mb-1.5 block">Spacing</label>
                     <select value={theme.spacing} onChange={(e) => setSpacing(e.target.value as any)} className={selectClass}>
                       {(['compact', 'normal', 'comfortable'] as const).map((s) => (
                         <option key={s} value={s} className="bg-black/30 capitalize">{s}</option>
@@ -553,7 +553,7 @@ export function Settings() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-white/70 text-xs mb-1.5 block">Icon style</label>
+                    <label className="text-fg-secondary text-xs mb-1.5 block">Icon style</label>
                     <select value={theme.iconStyle} onChange={(e) => setIconStyle(e.target.value as any)} className={selectClass}>
                       {(['default', 'rounded', 'sharp'] as const).map((s) => (
                         <option key={s} value={s} className="bg-black/30 capitalize">{s}</option>
@@ -568,7 +568,7 @@ export function Settings() {
                   <Icons.Sparkles className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">Personalization</h4>
-                    <p className="text-white/60 text-sm leading-relaxed">
+                    <p className="text-fg-secondary text-sm leading-relaxed">
                       Customize your GenOS experience with backgrounds, colors, and display preferences.
                       All changes are saved automatically and applied immediately.
                     </p>
@@ -608,7 +608,7 @@ export function Settings() {
                       <option value="left" className="bg-black/30">Left</option>
                       <option value="right" className="bg-black/30">Right</option>
                     </select>
-                    <p className="text-white/40 text-xs mt-1">Change where the taskbar appears</p>
+                    <p className="text-fg-tertiary text-xs mt-1">Change where the taskbar appears</p>
                   </div>
 
                   <div>
@@ -630,7 +630,7 @@ export function Settings() {
                       <option value="medium" className="bg-black/30">Medium</option>
                       <option value="large" className="bg-black/30">Large</option>
                     </select>
-                    <p className="text-white/40 text-xs mt-1">Adjust taskbar height/width</p>
+                    <p className="text-fg-tertiary text-xs mt-1">Adjust taskbar height/width</p>
                   </div>
 
                   <label className={cn(rowClass, 'cursor-pointer hover:bg-os-ink-800')}>
@@ -653,7 +653,7 @@ export function Settings() {
                         <Icons.Maximize2 className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Auto-hide Taskbar</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-1">
+                      <p className="text-fg-tertiary text-xs mt-1">
                         Automatically hide taskbar when not in use
                       </p>
                     </div>
@@ -673,7 +673,7 @@ export function Settings() {
                             'flex-1 flex flex-col items-center gap-2 rounded-lg border px-3 py-3 transition-all',
                             (systemPreferences.startIconVariant ?? 'color') === variant
                               ? 'border-brand-600 bg-brand-600/10 text-fg-brand'
-                              : 'border-os-line-dark bg-os-ink-950/60 text-white/40 hover:border-os-line-dark-hover hover:text-white/70'
+                              : 'border-os-line-dark bg-os-ink-950/60 text-fg-tertiary hover:border-os-line-dark-hover hover:text-fg-secondary'
                           )}
                         >
                           <span className={cn(
@@ -690,7 +690,7 @@ export function Settings() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-white/40 text-xs mt-1">Choose the logo variant for the start button</p>
+                    <p className="text-fg-tertiary text-xs mt-1">Choose the logo variant for the start button</p>
                   </div>
                 </div>
               </div>
@@ -721,7 +721,7 @@ export function Settings() {
                       <option value="medium" className="bg-black/30">Medium (80px)</option>
                       <option value="large" className="bg-black/30">Large (96px)</option>
                     </select>
-                    <p className="text-white/40 text-xs mt-1">Adjust desktop icon size</p>
+                    <p className="text-fg-tertiary text-xs mt-1">Adjust desktop icon size</p>
                   </div>
 
                   <div>
@@ -735,7 +735,7 @@ export function Settings() {
                       <option value="auto-grid" className="bg-black/30">Auto Grid</option>
                       <option value="auto-align" className="bg-black/30">Auto Align</option>
                     </select>
-                    <p className="text-white/40 text-xs mt-1">Coming soon: Control how icons are arranged</p>
+                    <p className="text-fg-tertiary text-xs mt-1">Coming soon: Control how icons are arranged</p>
                   </div>
 
                   <label className={cn(rowClass, 'cursor-not-allowed opacity-50')}>
@@ -750,7 +750,7 @@ export function Settings() {
                         <Icons.Grid3x3 className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Snap to Grid</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-1">
+                      <p className="text-fg-tertiary text-xs mt-1">
                         Coming soon: Automatically snap icons to grid when dragging
                       </p>
                     </div>
@@ -785,7 +785,7 @@ export function Settings() {
                         <Icons.Wind className="w-4 h-4 text-fg-brand" />
                         <span className="text-white font-medium">Window Animations</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-1">
+                      <p className="text-fg-tertiary text-xs mt-1">
                         Enable smooth window open/close animations
                       </p>
                     </div>
@@ -803,7 +803,7 @@ export function Settings() {
                         <Icons.Sparkles className="w-4 h-4 text-fg-warning" />
                         <span className="text-white font-medium">Visual Effects</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-1">
+                      <p className="text-fg-tertiary text-xs mt-1">
                         Coming soon: Enable blur effects and shadows
                       </p>
                     </div>
@@ -821,7 +821,7 @@ export function Settings() {
                         <Icons.Gauge className="w-4 h-4 text-fg-success" />
                         <span className="text-white font-medium">Performance Mode</span>
                       </div>
-                      <p className="text-white/40 text-xs mt-1">
+                      <p className="text-fg-tertiary text-xs mt-1">
                         Coming soon: Disable animations for better performance
                       </p>
                     </div>
@@ -835,7 +835,7 @@ export function Settings() {
                   <Icons.Power className="w-5 h-5" />
                   Startup Applications
                 </h3>
-                <p className="text-white/40 text-sm mb-4">
+                <p className="text-fg-tertiary text-sm mb-4">
                   Configure which applications open automatically when GenOS starts
                 </p>
                 <div className="space-y-2 opacity-50">
@@ -853,7 +853,7 @@ export function Settings() {
                     </div>
                     <input type="checkbox" disabled className="w-4 h-4" />
                   </div>
-                  <p className="text-white/40 text-xs mt-2">Coming soon: Manage startup applications</p>
+                  <p className="text-fg-tertiary text-xs mt-2">Coming soon: Manage startup applications</p>
                 </div>
               </div>
 
@@ -862,10 +862,10 @@ export function Settings() {
                   <Icons.Settings className="w-6 h-6 text-fg-brand flex-shrink-0 mt-1" />
                   <div>
                     <h4 className="text-white font-semibold mb-2">System Customization Available</h4>
-                    <p className="text-white/60 text-sm leading-relaxed mb-2">
+                    <p className="text-fg-secondary text-sm leading-relaxed mb-2">
                       <strong className="text-fg-brand">Now Active:</strong> Taskbar positioning & size, desktop icon sizing, window animations, and auto-hide taskbar.
                     </p>
-                    <p className="text-white/60 text-sm leading-relaxed">
+                    <p className="text-fg-secondary text-sm leading-relaxed">
                       <strong className="text-fg-brand">Coming Soon:</strong> Icon arrangement modes, visual effects controls, performance mode, and startup applications manager.
                     </p>
                   </div>
@@ -881,7 +881,7 @@ export function Settings() {
                 <>
                   <div className={panelClass}>
                     <h3 className="text-xl font-semibold text-white mb-4">Contact Visibility</h3>
-                    <p className="text-white/40 text-sm mb-4">
+                    <p className="text-fg-tertiary text-sm mb-4">
                       Control what contact information is publicly visible on your portfolio.
                     </p>
                     <div className="space-y-4">
@@ -897,7 +897,7 @@ export function Settings() {
                             <Icons.Mail className="w-4 h-4 text-fg-brand" />
                             <span className="text-white font-medium">Show Email Address</span>
                           </div>
-                          <p className="text-white/40 text-xs mt-1">
+                          <p className="text-fg-tertiary text-xs mt-1">
                             Display your email on the Contact tab and public profiles
                           </p>
                         </div>
@@ -915,7 +915,7 @@ export function Settings() {
                             <Icons.Phone className="w-4 h-4 text-fg-success" />
                             <span className="text-white font-medium">Show Phone Number</span>
                           </div>
-                          <p className="text-white/40 text-xs mt-1">
+                          <p className="text-fg-tertiary text-xs mt-1">
                             Display your phone number on the Contact tab and public profiles
                           </p>
                         </div>
@@ -933,7 +933,7 @@ export function Settings() {
                       <Icons.ShieldCheck className="w-6 h-6 text-fg-success flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Privacy & Security</h4>
-                        <p className="text-white/60 text-sm leading-relaxed">
+                        <p className="text-fg-secondary text-sm leading-relaxed">
                           All your data is stored locally in your browser. No information is sent to external servers.
                           You have complete control over your privacy settings.
                         </p>
@@ -943,9 +943,9 @@ export function Settings() {
                 </>
               ) : (
                 <div className={cn(panelClass, 'text-center')}>
-                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                  <Icons.Lock className="w-12 h-12 text-fg-tertiary mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-white/40 text-sm">
+                  <p className="text-fg-tertiary text-sm">
                     Please sign in as admin to manage privacy settings.
                   </p>
                 </div>
@@ -963,7 +963,7 @@ export function Settings() {
                       <Icons.Download className="w-5 h-5" />
                       Export Profile
                     </h3>
-                    <p className="text-white/40 text-sm mb-4">
+                    <p className="text-fg-tertiary text-sm mb-4">
                       Download your complete profile data as JSON. Use this to backup your portfolio or transfer it to another device.
                     </p>
                     <Button variant="soft-system-primary" size="md" onClick={handleExport}>
@@ -977,7 +977,7 @@ export function Settings() {
                       <Icons.Upload className="w-5 h-5" />
                       Import Profile
                     </h3>
-                    <p className="text-white/40 text-sm mb-4">
+                    <p className="text-fg-tertiary text-sm mb-4">
                       Upload a previously exported profile JSON file to restore your portfolio data.
                     </p>
                     <label className="inline-block">
@@ -992,7 +992,7 @@ export function Settings() {
                         className="hidden"
                       />
                     </label>
-                    <p className="text-white/30 text-xs mt-2">
+                    <p className="text-fg-tertiary text-xs mt-2">
                       Importing will replace your current profile data
                     </p>
                   </div>
@@ -1002,7 +1002,7 @@ export function Settings() {
                       <Icons.RotateCcw className="w-5 h-5" />
                       Reset Profile
                     </h3>
-                    <p className="text-white/40 text-sm mb-4">
+                    <p className="text-fg-tertiary text-sm mb-4">
                       Reset your profile to default values. This will erase all your custom data.
                     </p>
                     <Button variant="soft-system-secondary" size="md" onClick={handleReset} className="text-fg-error border-stroke-error/40 hover:bg-error-subtle">
@@ -1019,7 +1019,7 @@ export function Settings() {
                       <Icons.AlertCircle className="w-6 h-6 text-fg-warning flex-shrink-0 mt-1" />
                       <div>
                         <h4 className="text-white font-semibold mb-2">Data Management</h4>
-                        <p className="text-white/60 text-sm leading-relaxed">
+                        <p className="text-fg-secondary text-sm leading-relaxed">
                           Regularly export your profile to keep a backup. Imported data must match the expected format.
                           Always verify your backup after exporting.
                         </p>
@@ -1029,9 +1029,9 @@ export function Settings() {
                 </>
               ) : (
                 <div className={cn(panelClass, 'text-center')}>
-                  <Icons.Lock className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                  <Icons.Lock className="w-12 h-12 text-fg-tertiary mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">Authentication Required</h3>
-                  <p className="text-white/40 text-sm">
+                  <p className="text-fg-tertiary text-sm">
                     Please sign in as admin to manage data settings.
                   </p>
                 </div>

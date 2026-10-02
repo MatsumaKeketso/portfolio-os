@@ -35,6 +35,9 @@ interface DesktopStore {
   windows: WindowState[];
   isStartMenuOpen: boolean;
   isAdminMode: boolean;
+  isScreenLocked: boolean;
+  lockScreen: () => void;
+  unlockScreen: () => void;
   maxZIndex: number;
   backgrounds: DesktopBackground[];
   selectedBackgroundId: string;
@@ -375,7 +378,49 @@ const mergeBackgrounds = (...backgroundSets: Array<DesktopBackground[] | null | 
   return Array.from(byId.values());
 };
 
+// ── Apps backup (mirrors backgrounds) ─────────────────────────────────────
+// Custom (owner-added) apps are backed up to localStorage so a transient read
+// error or an empty/overwritten remote can never silently wipe them again.
+const APPS_BACKUP_KEY = 'portfolioOS_apps';
+const defaultAppIds = new Set(defaultApps.map((a) => a.id));
+
+const loadLocalApps = (): App[] => {
+  try {
+    const stored = localStorage.getItem(APPS_BACKUP_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored) as { data?: App[] };
+    return Array.isArray(parsed.data) ? parsed.data : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalApps = (apps: App[]) => {
+  try {
+    // Only the owner's custom apps need backing up — defaults live in code.
+    const customApps = apps.filter((a) => !defaultAppIds.has(a.id));
+    localStorage.setItem(APPS_BACKUP_KEY, JSON.stringify({ data: customApps, updated_at: new Date().toISOString() }));
+  } catch (err) {
+    console.error('Failed to save local apps backup:', err);
+  }
+};
+
+// Union by id. Later sets win for shared ids; ids only present in earlier sets
+// are preserved (never dropped) — so custom apps survive a partial remote.
+const mergeAppsById = (...appSets: Array<App[] | null | undefined>): App[] => {
+  const byId = new Map<string, App>();
+  for (const apps of appSets) {
+    for (const app of apps ?? []) {
+      byId.set(app.id, { ...byId.get(app.id), ...app });
+    }
+  }
+  return Array.from(byId.values());
+};
+
 const saveAppsToFirestore = async (apps: App[]): Promise<PublishResult> => {
+  // Always keep the local backup current, even if the remote write is blocked.
+  saveLocalApps(apps);
+
   if (!canWrite()) {
     return {
       success: false,
@@ -401,6 +446,7 @@ const saveAppsToFirestore = async (apps: App[]): Promise<PublishResult> => {
 };
 
 const fetchAppsFromFirestore = async (): Promise<App[]> => {
+  const localApps = loadLocalApps();
   try {
     const docSnap = await getDoc(doc(db, 'os-site_content', 'apps'));
     if (docSnap.exists() && docSnap.data().data) {
@@ -409,22 +455,28 @@ const fetchAppsFromFirestore = async (): Promise<App[]> => {
           ? { ...app, name: 'Archive' }
           : app
       );
-      const missingApps = defaultApps.filter(defApp => !dbApps.some(dbApp => dbApp.id === defApp.id));
-      if (missingApps.length > 0) {
-        const mergedApps = [...dbApps, ...missingApps];
-        if (canWrite()) await saveAppsToFirestore(mergedApps);
-        return mergedApps;
-      }
-      if (canWrite() && (docSnap.data().data as App[]).some((app) => app.id === 'file-explorer' && app.name === 'File Explorer')) {
-        await saveAppsToFirestore(dbApps);
-      }
-      return dbApps;
+      // Base = built-in defaults; local backup restores any custom app missing
+      // from remote; remote wins last for ids it actually has (it's freshest).
+      const merged = mergeAppsById(defaultApps, localApps, dbApps);
+      const remoteIds = new Set(dbApps.map((a) => a.id));
+      // Re-publish only when the merge added something the remote lacked
+      // (a missing built-in, or a custom app recovered from the local backup).
+      const needsRepublish = merged.some((a) => !remoteIds.has(a.id))
+        || dbApps.some((app) => app.id === 'file-explorer' && app.name === 'File Explorer');
+      if (canWrite() && needsRepublish) await saveAppsToFirestore(merged);
+      else saveLocalApps(merged);
+      return merged;
     }
-    if (canWrite()) await saveAppsToFirestore(defaultApps);
-    return defaultApps;
+    // Doc missing or empty: NEVER clobber with defaults if we hold custom apps
+    // locally — restore them instead (and re-publish if we're the owner).
+    const merged = mergeAppsById(defaultApps, localApps);
+    if (canWrite() && localApps.length > 0) await saveAppsToFirestore(merged);
+    else saveLocalApps(merged);
+    return merged;
   } catch (err: any) {
     console.error('Error fetching apps:', err);
-    return defaultApps;
+    // On error, show defaults + any locally-backed-up custom apps. Never write.
+    return mergeAppsById(defaultApps, localApps);
   }
 };
 
@@ -667,6 +719,9 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   windows: [],
   isStartMenuOpen: false,
   isAdminMode: false,
+  isScreenLocked: true,
+  lockScreen: () => set({ isScreenLocked: true, isStartMenuOpen: false, isAdminMode: false }),
+  unlockScreen: () => set({ isScreenLocked: false }),
   maxZIndex: 1000,
   backgrounds: defaultBackgrounds,
   selectedBackgroundId: 'default-quantum',

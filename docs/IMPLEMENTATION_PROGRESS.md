@@ -1,5 +1,27 @@
 # Implementation Progress Tracker
 
+## Boot / Wallpaper Loading Design (2026-10-03)
+
+- Aligned boot with shared Typography and semantic chrome, foreground, brand, and feedback tokens. Lowercase `genos` matches sign-in branding.
+- Replaced decorative gradients and nested cards with divided startup rows, readable task details, explicit status text, and an accessible completion progress bar.
+- Added reduced-motion handling and scrollable short-screen layout. Wallpaper loading now uses a semantic Lucide indicator.
+- Startup tasks, timing, fallback handling, and lock-screen handoff are unchanged. Live boot rendering and lock handoff checked on localhost; this is not a full accessibility conformance audit.
+
+## Lock Screen (2026-10-03)
+
+- Added boot-to-lock entry, wallpaper clock/date layout, fading password stage with background blur, visitor entry, and exact-user Firebase reauthentication.
+- Start menu, desktop context menu, and Ctrl+Shift+L expose Lock. Desktop windows stay mounted; the overlay blocks background interaction and restores focus on return.
+- Added four isolated authentication regression tests. Live localhost checks cover public entry, owner/guest forms, cancellation, keyboard lock, and narrow layout; real-password success and active playback remain unverified.
+- See [LOCK_SCREEN.md](./LOCK_SCREEN.md) for flow, security boundaries, and remaining verification.
+
+## Settings / Admin Readability (2026-09-21)
+
+- Replaced neutral alpha text in Settings and Admin with existing `fg-primary`, `fg-secondary`, and `fg-tertiary` roles. Compact 9-11px text now uses the 12px caption role and normal letter spacing.
+- Changes are limited to presentation classes; handlers, persistence, permissions, and app registry logic are unchanged by this slice.
+- Added `npm run test:readability`: nine solid-surface contrast pairs and two scoped source guardrails. These checks and `lint:tokens` pass. Browser verification is still required for wrapping, zoom/text spacing, focus, keyboard use, and rendered states; this is not a WCAG conformance claim.
+- Both Vite dev startup and production build were blocked by esbuild's `Cannot read directory "../../..": Access is denied` while loading `vite.config.ts`. Do not mark this slice visually verified or production-build verified until rerun in an environment where the normal tooling can start.
+- Remaining: verify Settings and authenticated Admin at desktop/narrow widths, then migrate other apps incrementally. Older entries below are historical and may describe superseded behavior.
+
 > Last audited: 2026-05-02, updated 2026-05-10. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary

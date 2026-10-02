@@ -6,6 +6,8 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
 
 ### Core Documentation
 
+- **[LOCK_SCREEN.md](./LOCK_SCREEN.md)** - Boot-to-lock flow, password reauthentication, visitor entry, and verification boundaries
+
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - **Canonical design system reference** ⭐
   - Layered architecture (primitive tokens → CSS variables → theme presets → Tailwind utilities → primitives → apps)
   - Full token reference (OS ink/canvas/line/text, semantic bg/fg/stroke, typography scale, interaction primitives)
@@ -28,6 +30,7 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete system architecture and technical overview
   - Original comprehensive documentation (formerly READMEAI.md)
+- **[ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)** - Eraser diagram-as-code (9 diagrams): load phases + boot sequence, permission layers (UI → store → Firestore → Storage rules), upload persistence path per surface, window lifecycle, store/localStorage merge precedence, theme pipeline, Storage folder × rule × writer matrix
   - Project structure and component breakdown
   - Technology stack details
   - Built-in applications overview

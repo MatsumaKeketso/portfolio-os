@@ -80,7 +80,7 @@ Tailwind utilities expose these as `bg-os-ink-950`, `border-os-line-dark`, `text
 
 ### Layer 2 — Semantic tokens
 
-Used by buttons, cards, surfaces, and theme presets. These **do** flip on dark mode.
+Used by buttons, cards, surfaces, and theme presets. These resolve to the canonical dark palette; there is no light/dark mode switch.
 
 ```
 Surface backgrounds          Brand backgrounds (from the brand ramp)
@@ -388,7 +388,7 @@ These are absolutes. CI/code review should reject violations.
 
 - **No raw hex** in app components: `bg-[#141414]`, `text-[#171717]`, `border-[#e8e8e5]` — wrong. Use the semantic token (`bg-background-chrome`, `text-os-text-strong`, `border-os-line-light`).
 - **No raw Tailwind palette** for brand intent: `bg-blue-500`, `text-emerald-300` — wrong when the meaning is "primary action" or "success". Use `bg-brand-solid` / `fg-success` etc. Tailwind palette is OK for purely decorative one-offs (project artwork, gradient placeholders).
-- **Raw white-alpha is allowed**, but prefer the named token: `border-white/[0.08]` → `border-os-line-dark` is identical and reads better.
+- **Raw white-alpha is allowed for decorative chrome**, but prefer named surface/border tokens. `border-os-line-dark` uses 0.055 alpha, not 0.08. Meaningful text uses foreground roles below, not opacity-based hierarchy.
 
 ### Borders, radius, focus
 
@@ -406,16 +406,19 @@ Focus is always `os-focus-ring` for interactive elements; inputs additionally us
 
 | Role | Token |
 |---|---|
-| Primary content (on chrome) | `text-os-text-inverse` (white) |
-| Secondary content (on chrome) | `text-white/70` |
-| Muted (on chrome) | `text-white/50` |
-| Hint (on chrome) | `text-white/30` |
+| Primary content (on chrome) | `text-fg-primary` |
+| Secondary content (on chrome) | `text-fg-secondary` |
+| Muted / hint (on chrome) | `text-fg-tertiary` |
 | Primary content (on canvas) | `text-os-text-strong` |
 | Secondary content (on canvas) | `text-os-text-muted` |
 | Hint (on canvas) | `text-os-text-faint` |
 | Brand link / active | `text-fg-brand` |
 
-Section labels use `os-type-label text-white/30` on chrome or `os-type-label text-os-text-faint` on canvas.
+Section labels use `os-type-label text-fg-tertiary` on chrome. Do not dim meaningful labels or helper text with opacity. Canvas/print surfaces need separately measured foreground pairs.
+
+Settings and Admin use the 12px `os-type-caption` role for compact metadata instead of local 9-11px sizes, with normal letter spacing. This is a project readability convention, not a WCAG minimum font-size requirement. Preserve heading semantics and allow text to wrap rather than shrinking it to fit.
+
+`npm run test:readability` checks primary/secondary/tertiary foregrounds against the three solid ink surfaces at the [WCAG normal-text minimum of 4.5:1](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html), plus scoped Settings/Admin source guardrails. It does not certify rendered contrast, transparent overlays, keyboard access, focus visibility, zoom, or text-spacing/reflow. Those require browser checks. The rest of the application still needs incremental adoption and verification.
 
 ### Dividers
 
