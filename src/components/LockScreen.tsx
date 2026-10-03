@@ -29,7 +29,7 @@ export function LockScreen() {
   const emailRef = useRef<HTMLInputElement>(null);
   const swipeStart = useRef<number | null>(null);
   const reducedMotion = useReducedMotion();
-  const { isAuthenticated, isAdmin, user, login, unlockSession } = useAuthStore();
+  const { isAuthenticated, isAdmin, user, login, unlockSession, logout } = useAuthStore();
   const { backgrounds, selectedBackgroundId, unlockScreen } = useDesktopStore();
   const background = backgrounds.find(item => item.id === selectedBackgroundId) ?? backgrounds[0];
   const personal = useUserStore(state => state.profile.personal);
@@ -107,6 +107,22 @@ export function LockScreen() {
     }
   };
 
+  const continueAsGuest = async () => {
+    if (submittingRef.current) return;
+    if (useAuthStore.getState().isAuthenticated && !globalThis.confirm('Sign out of your current account and continue as a guest?')) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    try {
+      if (useAuthStore.getState().isAuthenticated) await logout();
+      if (!useAuthStore.getState().isAuthenticated) unlockScreen();
+    } catch {
+      setError('Unable to sign out. Please try again.');
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <motion.div
       ref={panelRef}
@@ -115,7 +131,7 @@ export function LockScreen() {
       aria-label={stage === 'locked' ? 'GenOS lock screen' : 'Unlock GenOS'}
       className="fixed inset-0 isolate overflow-hidden bg-background-chrome text-fg-primary"
       style={{ zIndex: theme.zIndex.lockScreen }}
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={transition}
@@ -208,18 +224,18 @@ export function LockScreen() {
                     <input ref={passwordRef} id="lock-password" name="password" type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} disabled={isSubmitting} aria-invalid={!!error} aria-describedby={error ? 'lock-error' : undefined} className={cn(appInputClass, 'w-full px-3 py-2')} />
                   </div>
                   {error && <p id="lock-error" role="alert" className="os-type-caption text-fg-error">{error}</p>}
-                  <Button type="submit" variant="solid-system-primary" className="w-full rounded" disabled={isSubmitting}>
+                  <Button type="submit" variant="solid-brand-primary" className="w-full rounded normal-case tracking-normal" disabled={isSubmitting}>
                     {isSubmitting ? <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Icons.ArrowRight className="mr-2 h-4 w-4" />}
                     {isSubmitting ? 'Signing in...' : isAuthenticated ? 'Unlock' : 'Sign in'}
                   </Button>
                   {!isAuthenticated && mode === 'guest' && <Typography variant="caption" className="text-fg-secondary">New emails create a guest account.</Typography>}
                 </form>
-                {!isAuthenticated && (
-                  <div className="mt-4 flex w-full flex-col gap-2">
-                    <Button variant="soft-system-secondary" className="w-full rounded" disabled={isSubmitting} onClick={() => { if (!useAuthStore.getState().isAuthenticated) unlockScreen(); }}>Continue as visitor</Button>
+                <div className="mt-4 flex w-full flex-col gap-2">
+                    <Button variant="outline-system" className="w-full rounded" disabled={isSubmitting} onClick={continueAsGuest}>Continue as guest</Button>
+                    {!isAuthenticated && (
                     <Button variant="ghost" disabled={isSubmitting} onClick={() => setMode(mode === 'superuser' ? 'guest' : 'superuser')}>{mode === 'superuser' ? 'Guest account' : 'Owner sign in'}</Button>
-                  </div>
-                )}
+                    )}
+                </div>
                 <Button variant="ghost" className="mt-8 flex-col gap-1 h-auto py-2" disabled={isSubmitting} onClick={returnToLock}>
                   <Icons.XCircle className="h-6 w-6" aria-hidden="true" />
                   <Typography as="span" variant="caption">Cancel</Typography>

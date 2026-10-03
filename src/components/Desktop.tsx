@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
@@ -381,10 +381,11 @@ export function Desktop({ onBootComplete }: { onBootComplete?: () => void }) {
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
-  const [showTimeline, setShowTimeline] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const [hasBootstrapped, setHasBootstrapped] = useState(false);
+  const [hasEnteredDesktop, setHasEnteredDesktop] = useState(false);
   const [bootTasks, setBootTasks] = useState<BootTask[]>(BOOT_TASKS);
   const bootStartedRef = useRef(false);
   const skipNextAuthRefreshRef = useRef(false);
@@ -398,9 +399,13 @@ export function Desktop({ onBootComplete }: { onBootComplete?: () => void }) {
   const { loadTimeline } = useTimelineStore();
   const { loadObservatory } = useObservatoryStore();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hasBootstrapped) onBootComplete?.();
   }, [hasBootstrapped, onBootComplete]);
+
+  useEffect(() => {
+    if (hasBootstrapped && !isScreenLocked) setHasEnteredDesktop(true);
+  }, [hasBootstrapped, isScreenLocked]);
 
   useEffect(() => {
     const mediaQuery = globalThis.window.matchMedia('(max-width: 767px)');
@@ -815,6 +820,8 @@ export function Desktop({ onBootComplete }: { onBootComplete?: () => void }) {
     );
   }
 
+  if (!hasEnteredDesktop) return null;
+
   if (isSmallDevice) {
     return (
       <div className="relative h-screen w-screen overflow-hidden bg-os-ink-950 text-white">
@@ -870,6 +877,9 @@ export function Desktop({ onBootComplete }: { onBootComplete?: () => void }) {
               push the layout sideways (absolute children don't affect flex sizing). */}
           <div className="flex-1 relative min-w-0">
             <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
+            <button type="button" title="Timeline" aria-label="Timeline" aria-pressed={showTimeline} onClick={() => setShowTimeline(value => !value)} className="os-focus-ring absolute right-36 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-lg border border-os-line-dark bg-background-chrome text-fg-secondary hover:text-fg-primary">
+              <Icons.PanelRight className="h-4 w-4" aria-hidden="true" />
+            </button>
             <WindowManager />
           </div>
 

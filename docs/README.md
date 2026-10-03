@@ -6,6 +6,8 @@ Welcome to the GenOS documentation directory. This folder contains detailed tech
 
 ### Core Documentation
 
+- **[WINDOW_LAB.md](./WINDOW_LAB.md)** - Isolated centre-to-edge window scaling and sticky-icon prototype at `/window-lab`
+
 - **[LOCK_SCREEN.md](./LOCK_SCREEN.md)** - Boot-to-lock flow, password reauthentication, visitor entry, and verification boundaries
 
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - **Canonical design system reference** ⭐

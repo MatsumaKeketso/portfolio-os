@@ -116,6 +116,9 @@ const buttonVariants = cva(
         outline:
           'bg-transparent border border-stroke-brand/40 text-fg-brand hover:border-stroke-brand hover:bg-brand-subtle-hover hover:text-fg-brand-hover hover:translate-y-[-1px] font-bold uppercase overflow-hidden relative',
 
+        'outline-system':
+          'bg-transparent border border-stroke-secondary text-fg-primary hover:bg-background-chrome-raised hover:border-stroke-primary',
+
         // Taskbar - Special taskbar buttons (no angled corners)
         taskbar:
           'text-os-text-inverse/65 hover:text-os-text-inverse hover:bg-os-ink-800/70 relative rounded',

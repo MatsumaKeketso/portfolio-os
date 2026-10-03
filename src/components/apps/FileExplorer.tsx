@@ -24,6 +24,7 @@ import { createThumbnail } from '../../lib/imageUtils';
 import { SplitCard, type SplitCardStat } from '../ui/SplitCard';
 import { Icon3D, resolveIcon3DType } from '../ui/Icon3D';
 import { ProjectCaseStudyPanel } from './ProjectCaseStudyPanel';
+import { navigateWithinOS } from '../../lib/appNavigation';
 
 // Compact relative-time formatter ("3d ago", "2h ago", "just now"). Pure UI
 // sugar — fine to inline here while it has no other caller.
@@ -941,18 +942,22 @@ export function FileExplorer() {
       </div>
 
       {/* Toolbar */}
-      <div className="border-b border-os-line-dark p-2 flex items-center gap-2">
+      <div className="border-b border-os-line-dark px-3 py-2 flex flex-wrap items-center gap-2">
         {/* View Mode */}
         <div className="flex items-center gap-1 bg-os-ink-900 rounded-lg p-1 border border-os-line-dark">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+            aria-pressed={viewMode === 'grid'}
+            title="Grid view"
+            className={`os-focus-ring px-2 py-1 os-type-caption rounded flex items-center gap-1 transition-colors ${viewMode === 'grid' ? 'bg-background-chrome-raised text-fg-primary' : 'text-fg-secondary hover:bg-os-ink-800'}`}
           >
             <Icons.Grid3x3 className="w-3 h-3" /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-2 py-1 text-xs rounded flex items-center gap-1 transition-all ${viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+            aria-pressed={viewMode === 'list'}
+            title="List view"
+            className={`os-focus-ring px-2 py-1 os-type-caption rounded flex items-center gap-1 transition-colors ${viewMode === 'list' ? 'bg-background-chrome-raised text-fg-primary' : 'text-fg-secondary hover:bg-os-ink-800'}`}
           >
             <Icons.List className="w-3 h-3" /> List
           </button>
@@ -1032,7 +1037,10 @@ export function FileExplorer() {
                 <button
                   key={s}
                   onClick={() => setIconSize(s)}
-                  className={`px-2 py-1 text-xs rounded transition-all ${iconSize === s ? 'bg-brand-600 text-white' : 'text-white/40 hover:bg-os-ink-800 hover:text-white'}`}
+                  title={`${s} tiles`}
+                  aria-label={`${s} tiles`}
+                  aria-pressed={iconSize === s}
+                  className={`os-focus-ring px-2 py-1 os-type-caption rounded transition-colors ${iconSize === s ? 'bg-background-chrome-raised text-fg-primary' : 'text-fg-secondary hover:bg-os-ink-800'}`}
                 >
                   {s[0].toUpperCase()}
                 </button>
@@ -1059,7 +1067,8 @@ export function FileExplorer() {
             placeholder="Search files..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 pr-3 py-1 text-xs bg-os-ink-800 text-white rounded border border-os-line-dark focus:outline-none focus:border-stroke-brand w-48"
+            aria-label="Search files"
+            className="pl-7 pr-7 py-1.5 os-type-caption bg-background-chrome-raised text-fg-primary placeholder:text-fg-tertiary rounded border border-os-line-dark os-focus-ring w-40 max-w-full"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
@@ -1075,10 +1084,10 @@ export function FileExplorer() {
       </div>
 
       {/* Main area: sidebar + content */}
-      <div className="flex-1 flex overflow-hidden p-2 gap-2">
+      <div className="flex-1 min-h-0 flex overflow-hidden">
 
         {/* Sidebar */}
-        <div className="w-[188px] flex-shrink-0 rounded-xl overflow-hidden border border-os-line-dark">
+        <div className="w-[168px] flex-shrink-0 overflow-hidden border-r border-os-line-dark">
           <div className="flex-1 h-full w-full bg-os-ink-950/70 flex flex-col overflow-hidden relative">
             <div className="flex-1 overflow-y-auto flex flex-col">
               <SystemRowGroup context="chrome" className="pt-3">Locations</SystemRowGroup>
@@ -1095,14 +1104,14 @@ export function FileExplorer() {
                       />
                     )}
                     <SystemRow
-                      icon={<Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-fg-brand" : "text-white/40")} />}
+                      icon={<Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-fg-primary" : "text-fg-secondary")} />}
                       label={loc.label}
                       context="chrome"
                       selected={isActive}
                       accentRail={false}
                       className={cn(
                         "transition-all duration-200",
-                        isActive ? "bg-os-ink-800 text-white" : "hover:bg-os-ink-800/60 text-white/60"
+                        isActive ? "bg-background-chrome-raised text-fg-primary" : "hover:bg-os-ink-800 text-fg-secondary"
                       )}
                       onClick={() => navigateToLocation(loc.folderId ?? null)}
                     />
@@ -1112,7 +1121,7 @@ export function FileExplorer() {
               <SystemRowDivider context="chrome" className="mt-2" />
               <SystemRowGroup context="chrome">Info</SystemRowGroup>
               <div className="px-3 py-2">
-                <p className="text-[11px] text-white/25 leading-relaxed">
+                <p className="os-type-caption text-fg-secondary leading-relaxed">
                   {locationContext === 'visitorGallery'
                     ? 'Visitor Gallery: folders and images only.'
                     : locationContext === 'system'
@@ -1120,66 +1129,18 @@ export function FileExplorer() {
                       : 'Open location for full access.'}
                 </p>
               </div>
+              <div className="mt-auto px-3 pb-3 pt-4">
+                <section aria-label="Spatial desktop experiment" className="rounded-lg border border-stroke-secondary bg-background-chrome-raised p-3">
+                  <Icons.PanelsTopLeft className="mb-2 h-5 w-5 text-fg-secondary" aria-hidden="true" />
+                  <h3 className="os-type-body-strong text-fg-primary">Window lab</h3>
+                  <p className="mt-2 os-type-caption text-fg-secondary">A different place for your windows. Keep a task close, or leave it waiting at the edge.</p>
+                  <a href="/window-lab" onClick={event=>{if(event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){event.preventDefault();navigateWithinOS('/window-lab');}}} className="os-focus-ring mt-3 flex items-center justify-between gap-2 rounded py-1 os-type-caption text-fg-primary" aria-label="Explore Window lab">Explore<Icons.ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" /></a>
+                </section>
+              </div>
             </div>
 
-            {/* SideNav Footer Card */}
-            <div className="p-2 mt-auto">
-              <div className="group/footer relative overflow-hidden rounded-xl border border-os-line-dark bg-os-ink-950/78 p-2.5 shadow-os-card">
-                <svg
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 -top-2 h-7 w-full text-fg-brand/50"
-                  viewBox="0 0 188 32"
-                  preserveAspectRatio="none"
-                >
-                  <motion.path
-                    d="M-38 16 C-18 7, 2 25, 22 16 S62 7, 82 16 S122 25, 142 16 S182 7, 222 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    animate={{ x: [0, 40, 0], opacity: [0.32, 0.72, 0.32] }}
-                    transition={{ x: { duration: 7.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
-                  />
-                  <path
-                    d="M-24 21 C-4 13, 16 28, 36 20 S76 13, 96 20 S136 28, 156 20 S196 13, 216 20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.8"
-                    strokeLinecap="round"
-                    opacity="0.24"
-                  />
-                </svg>
-                <div className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-600/50 to-transparent" />
-
-                <div className="relative pt-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <Icons.Activity className="h-3.5 w-3.5 text-fg-brand" />
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">System Status</p>
-                    </div>
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-35" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-400" />
-                    </span>
-                  </div>
-
-                  <div className="mt-2">
-                    <p className="text-[11px] font-semibold leading-none text-white/85">Latest Update</p>
-                    <p className="mt-1 text-[10px] font-medium leading-4 text-white/45">Visual Design v2.4</p>
-                  </div>
-
-                  <div className="mt-2 grid grid-cols-2 gap-1.5">
-                    <div className="rounded-md border border-os-line-dark bg-os-ink-900/70 px-2 py-1">
-                      <p className="text-[9px] uppercase tracking-[0.08em] text-white/25">Mode</p>
-                      <p className="mt-0.5 text-[10px] font-medium text-white/65">Archive</p>
-                    </div>
-                    <div className="rounded-md border border-os-line-dark bg-os-ink-900/70 px-2 py-1">
-                      <p className="text-[9px] uppercase tracking-[0.08em] text-white/25">State</p>
-                      <p className="mt-0.5 text-[10px] font-medium text-white/65">Live</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="mt-auto border-t border-os-line-dark px-3 py-3 os-type-caption text-fg-tertiary">
+              Archive
             </div>
           </div>
         </div>
@@ -1226,7 +1187,7 @@ export function FileExplorer() {
             <div
               className={cn(
                 '@container',
-                'grid auto-rows-min items-start content-start gap-5 p-6 overflow-y-auto',
+                'grid auto-rows-min items-start content-start gap-4 p-4',
                 // Responsive column tracks driven by FileExplorer window width
                 // (not viewport) via container queries + auto-fill.
                 'grid-cols-[repeat(auto-fill,minmax(160px,1fr))]',
@@ -1308,8 +1269,8 @@ export function FileExplorer() {
                         ) : (
                           <Icon3D
                             type={resolveIcon3DType(file)}
-                            size={120}
-                            animate={isSelected}
+                            size={84}
+                            animate={false}
                             className="transition-transform duration-500 group-hover/hero:scale-[1.06]"
                           />
                         )
@@ -1340,9 +1301,11 @@ export function FileExplorer() {
                           <button
                             type="button"
                             onClick={handleOpen}
-                            className="px-3 py-1.5 text-[11px] font-medium text-white bg-black/55 hover:bg-black/75 backdrop-blur-sm rounded-full border border-white/15 transition-colors"
+                            title={file.type === 'folder' ? `Open ${file.name}` : `View ${file.name}`}
+                            aria-label={file.type === 'folder' ? `Open ${file.name}` : `View ${file.name}`}
+                            className="os-focus-ring flex h-8 w-8 items-center justify-center text-fg-secondary hover:text-fg-primary hover:bg-background-chrome rounded transition-colors"
                           >
-                            {file.type === 'folder' ? 'Open' : 'View'}
+                            <Icons.ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                           </button>
                         )
                       }
@@ -1385,9 +1348,9 @@ export function FileExplorer() {
               })}
             </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex min-w-[600px] flex-col">
               {/* List header */}
-              <div className="grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 px-3 py-2 bg-os-ink-950/90 border-b border-os-line-dark text-xs font-semibold text-white/40 sticky top-0">
+              <div className="grid grid-cols-[32px_minmax(120px,1fr)_80px_80px_120px] gap-3 px-3 py-2 bg-background-chrome border-b border-os-line-dark os-type-caption text-fg-secondary sticky top-0">
                 <div />
                 <div className="flex items-center gap-1 cursor-pointer hover:text-white" onClick={() => setSortBy('name')}>
                   Name {sortBy === 'name' && (sortOrder === 'asc' ? <Icons.ChevronUp className="w-3 h-3" /> : <Icons.ChevronDown className="w-3 h-3" />)}
@@ -1420,9 +1383,9 @@ export function FileExplorer() {
                     onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, file)}
                     onDragOver={(e) => handleDragOver(e, file)}
                     onDrop={(e) => handleDrop(e, file)}
-                    className={`grid grid-cols-[40px_1fr_120px_100px_140px] gap-4 py-2 text-left border-b border-os-line-dark transition-all ${
+                    className={`os-focus-ring grid grid-cols-[32px_minmax(120px,1fr)_80px_80px_120px] gap-3 py-3 text-left border-b border-os-line-dark transition-colors ${
                       isSelected
-                        ? 'bg-brand-600/25 pl-2 border-l-2 border-l-brand-400 pr-3'
+                        ? 'bg-background-chrome-raised pl-2 border-l-2 border-l-brand-400 pr-3'
                         : 'px-3 hover:bg-os-ink-900'
                     } ${isCut ? 'opacity-50' : ''} ${isDropTarget ? 'ring-2 ring-brand-600 bg-brand-600/30' : ''}`}
                   >
@@ -1455,12 +1418,12 @@ export function FileExplorer() {
                           className="w-full bg-os-ink-800 text-white text-sm border border-stroke-brand rounded px-2 py-1 focus:outline-none"
                         />
                       ) : (
-                        <span className="text-sm text-white truncate">{file.name}</span>
+                        <span className="os-type-body text-fg-primary truncate">{file.name}</span>
                       )}
                     </div>
-                    <div className="flex items-center text-sm text-white/40">{file.type === 'folder' ? '—' : formatFileSize(file.size)}</div>
-                    <div className="flex items-center text-sm text-white/40 capitalize">{file.type}</div>
-                    <div className="flex items-center text-sm text-white/40">
+                    <div className="flex items-center os-type-caption text-fg-secondary">{file.type === 'folder' ? '—' : formatFileSize(file.size)}</div>
+                    <div className="flex items-center os-type-caption text-fg-secondary capitalize">{file.type}</div>
+                    <div className="flex items-center os-type-caption text-fg-secondary">
                       {new Date(file.modifiedAt || file.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </motion.button>
