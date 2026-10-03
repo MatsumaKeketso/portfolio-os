@@ -99,13 +99,13 @@ The older glass contract below may still describe existing code, but it is no lo
 | Layer | Component | Background |
 |---|---|---|
 | Window body | `Window.tsx` (automatic) | Solid or low-cost gradient surface |
-| Toolbar / action bar | `<AppToolbar>` | `bg-white/[0.06]` |
-| Sidebar / left nav | `<AppSidebar>` | `bg-black/50` |
+| Toolbar / action bar | `<AppToolbar>` | `bg-os-ink-900` |
+| Sidebar / left nav | `<AppSidebar>` | `bg-os-ink-950` |
 | Main content area | `<AppContent>` | transparent |
 | Card / section panel | `<AppCard>` | `bg-os-ink-900` + `border-os-line-dark` |
-| Input / select / textarea | `appInputClass` | `bg-white/[0.08]` |
-| Sticky list header | `<AppStickyHeader>` | `bg-black/40 backdrop-blur-sm` |
-| In-app dialog | `<AppModal>` | `bg-black/80 backdrop-blur-md` |
+| Input / select / textarea | `appInputClass` | `bg-os-ink-800` |
+| Sticky list header | `<AppStickyHeader>` | `bg-os-ink-950` |
+| In-app dialog | `<AppModal>` | `bg-background-floating` over `bg-background-overlay` |
 
 **Never** use `bg-os-ink-*` inside an app component. Those tokens are for OS chrome only (taskbar, title bar, context menus). If you find yourself reaching for them in app code, use the table above instead.
 
@@ -115,10 +115,10 @@ The older glass contract below may still describe existing code, but it is no lo
 
 - **Color sourcing:** components must not use arbitrary hex classes such as `bg-[#141414]`, `text-[#...]`, or `border-[#...]`. If a color is needed, add or reuse a primitive token, map it through a semantic token, then use the semantic utility in components.
 - **Chrome backgrounds:** use `bg-background-chrome`, `bg-background-chrome-raised`, `bg-background-floating`, or existing semantic OS utilities. Do not hardcode the equivalent hex in JSX.
-- **Borders:** always `border-white/[0.08]`. Never hardcode a border color.
-- **Text:** `text-white/80` content · `text-white/50` muted · `text-white/30` hints · `text-white` active/selected
+- **Borders:** prefer `border-os-line-dark` on dark surfaces. Never hardcode a border color.
+- **Text on dark chrome:** `text-fg-primary` content, `text-fg-secondary` supporting text, `text-fg-tertiary` hints. Do not dim meaningful text with opacity. Print/canvas surfaces require separate foregrounds.
 - **Dividers:** `<AppDivider />` or `h-px bg-white/[0.08]`
-- **Section labels:** `text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30`
+- **Section labels:** `os-type-label text-fg-tertiary`; compact metadata uses `os-type-caption` (12px), with normal letter spacing.
 - **Focus ring:** `focus:border-stroke-brand` on inputs, `os-focus-ring` (or `focus-visible:ring-2 focus-visible:ring-brand-600`) on buttons
 - **Radius:** `rounded` (4px) for small controls · `rounded-lg` (8px) for cards/panels · `rounded-xl` for sidebar wrappers · `rounded-2xl` for the taskbar island
 - **Brand color:** use the ramp — `bg-brand-600` (solid), `text-fg-brand` (brand text/icons, bright on chrome), `border-brand-600`, `text-fg-on-primary` (auto-contrast foreground on a brand fill). Never `primary-*`/`secondary-*`/`tertiary-*`/`accent-*` (legacy; removed from components).
@@ -148,7 +148,7 @@ The older glass contract below may still describe existing code, but it is no lo
 | Taskbar | — (not a window) | `bg-[#141414]/80 backdrop-blur-md` |
 | Window title bar | — (always dark) | `bg-os-ink-950` |
 | Context menus | — (floating) | `bg-background-floating` |
-| All app windows | `'glass'` | `bg-black/20 backdrop-blur-xl` |
+| App windows | legacy `'glass'` metadata | Solid/low-cost surfaces; do not reintroduce backdrop blur on draggable bodies |
 
 ---
 

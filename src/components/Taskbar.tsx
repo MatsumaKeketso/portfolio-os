@@ -73,11 +73,12 @@ function CvTaskbarPreview({
       <AnimatePresence>
         {isVisible && !collapsed && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            // Centering lives in x, not -translate-x-1/2: Framer's inline transform overrides the utility.
+            initial={{ opacity: 0, x: '-50%', y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
+            exit={{ opacity: 0, x: '-50%', y: 10, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto absolute bottom-[calc(100%+10px)] left-1/2 z-[10002] w-[330px] -translate-x-1/2"
+            className="pointer-events-auto absolute bottom-[calc(100%+10px)] left-1/2 z-[10002] w-[330px]"
             style={{ overflow: 'visible' }}
           >
             <div aria-hidden className="absolute -bottom-3 left-1/2 h-3 w-20 -translate-x-1/2" />

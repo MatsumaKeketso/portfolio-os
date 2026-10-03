@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { useDesktopStore } from '../store/desktopStore';
 import { useFileStore } from '../store/fileStore';
@@ -13,14 +13,14 @@ import { WindowManager } from './WindowManager';
 import { AdminPanel } from './AdminPanel';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
-import { LoginModal } from './LoginModal';
 import { WelcomeScreen } from './WelcomeScreen';
 import { NotificationContainer } from './NotificationContainer';
 import { Timeline } from './Timeline';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { ContextMenuItemDef, ContextPermission, resolveAndSort } from '../lib/contextMenuRegistry';
 import { MiniPlayer } from './MiniPlayer';
-import { BootHeaderStrip, WindowHeaderStrip } from './TaskbarStrip';
+import { WindowHeaderStrip } from './TaskbarStrip';
+import { Typography } from './ui/Typography';
 import logoWhite from '../assets/png-white-symbol.png';
 import { createThumbnail } from '../lib/imageUtils';
 
@@ -97,23 +97,27 @@ const createDesktopThumbnail = async (file: File): Promise<string | undefined> =
   }
 };
 
-function DesktopBackground({
+export function DesktopBackground({
   url,
   thumbnail,
   isGradient,
   type,
   config,
+  fallbackUrl,
 }: {
   url?: string;
   thumbnail?: string;
   isGradient: boolean;
   type?: string;
   config?: { colors?: string[]; base?: string };
+  fallbackUrl?: string;
 }) {
   const [isLoaded, setIsLoaded] = useState(isGradient || !url);
+  const [hasFailed, setHasFailed] = useState(false);
 
   useEffect(() => {
     setIsLoaded(isGradient || !url);
+    setHasFailed(false);
   }, [isGradient, url]);
 
   if (type === 'animated-gradient') {
@@ -155,19 +159,23 @@ function DesktopBackground({
         />
       )}
       {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-os-ink-950">
-          <div className="h-8 w-8 rounded-full border border-white/10 border-t-brand-400/80 animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center bg-background-chrome" role="status" aria-label="Loading wallpaper">
+          <Icons.Loader2 aria-hidden="true" className="h-6 w-6 animate-spin text-fg-secondary motion-reduce:animate-none" />
         </div>
       )}
       <motion.img
         key={url}
-        src={url}
+        src={hasFailed && fallbackUrl ? fallbackUrl : url}
         alt=""
         draggable={false}
         initial={{ opacity: 0, scale: 1.015 }}
         animate={{ opacity: isLoaded ? 1 : 0, scale: isLoaded ? 1 : 1.015 }}
         transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
         onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          if (fallbackUrl && !hasFailed) setHasFailed(true);
+          else setIsLoaded(true);
+        }}
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
     </>
@@ -179,6 +187,7 @@ function BootScreen({
 }: {
   tasks: BootTask[];
 }) {
+  const reducedMotion = useReducedMotion();
   const completed = tasks.filter((task) => task.status === 'done' || task.status === 'error').length;
   const progress = Math.round((completed / tasks.length) * 100);
   const activeTask =
@@ -187,85 +196,72 @@ function BootScreen({
     tasks[tasks.length - 1];
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-os-ink-950 text-white">
-      <BootHeaderStrip />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--color-primary),0.16),transparent_34%),radial-gradient(circle_at_50%_100%,rgba(var(--color-tertiary),0.08),transparent_38%)]" />
-      <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(circle,rgba(255,255,255,0.72)_1px,transparent_1px)] [background-size:8px_8px]" />
+    <div className="fixed inset-0 overflow-y-auto bg-background-chrome text-fg-primary">
 
-      <div className="relative z-10 flex h-full w-full items-center justify-center px-6 py-16">
+      <div className="flex min-h-full w-full items-center justify-center px-6 py-10">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-          className="flex w-full max-w-[560px] flex-col items-center"
+          transition={{ duration: reducedMotion ? 0 : 0.24 }}
+          className="flex w-full max-w-md flex-col"
         >
-          <div className="mb-7 flex flex-col items-center text-center">
-            <img src={logoWhite} alt="" className="mb-5 h-11 w-11 object-contain opacity-95 drop-shadow-[0_0_18px_rgba(255,255,255,0.18)]" />
-            <h1 className="text-6xl font-semibold leading-none tracking-normal text-white md:text-7xl">
-              GenoOS
-            </h1>
-            <p className="mt-3 text-sm font-medium uppercase tracking-[0.22em] text-white/36">
-              Generative OS
-            </p>
-            <p className="mt-6 text-sm text-white/42">
-              {activeTask.detail}
-            </p>
+          <div className="mb-8 flex items-center gap-4">
+            <img src={logoWhite} alt="" className="h-10 w-10 shrink-0 object-contain" />
+            <div>
+              <Typography as="h1" variant="title1">genos</Typography>
+              <Typography variant="secondary" className="mt-1 text-fg-secondary">Your creative workspace</Typography>
+            </div>
           </div>
 
           <div className="w-full">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-os-line-dark to-os-line-dark" />
-              <span className="text-[10px] font-semibold tabular-nums text-white/35">{progress}%</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent via-os-line-dark to-os-line-dark" />
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <Typography variant="body" className="min-w-0 text-fg-secondary" role="status">{activeTask.detail}</Typography>
+              <Typography as="span" variant="caption" className="shrink-0 tabular-nums text-fg-secondary">{progress}%</Typography>
             </div>
 
-            <div className="mb-4 overflow-hidden rounded-full border border-os-line-dark bg-os-ink-900">
+            <div role="progressbar" aria-label="Starting genos" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="mb-6 h-1 overflow-hidden rounded bg-background-chrome-raised">
               <motion.div
-                className="h-1.5 rounded-full bg-gradient-to-r from-brand-600 via-white to-brand-400 shadow-[0_0_18px_rgb(var(--brand)/0.45)]"
-                initial={{ width: '4%' }}
-                animate={{ width: `${Math.max(progress, 8)}%` }}
-                transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                className="h-full bg-brand-solid"
+                initial={{ width: '0%' }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: reducedMotion ? 0 : 0.24 }}
               />
             </div>
 
-            <div className="grid gap-1.5 rounded-2xl border border-os-line-dark bg-background-chrome/72 p-2 shadow-os-window">
+            <ul aria-label="Startup tasks" className="divide-y divide-os-line-dark border-y border-os-line-dark">
               {tasks.map((task) => {
                 const isDone = task.status === 'done';
                 const isLoading = task.status === 'loading';
                 const isError = task.status === 'error';
 
                 return (
-                  <div
+                  <li
                     key={task.id}
-                    className="flex items-center gap-3 rounded-lg border border-os-line-dark bg-os-ink-900/62 px-3 py-2"
+                    className="flex items-start gap-3 py-2"
                   >
                     <div
                       className={[
-                        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border',
-                        isDone ? 'border-brand-600/40 bg-brand-600/12 text-fg-brand' : '',
-                        isLoading ? 'border-os-line-dark-hover bg-os-ink-800/40 text-os-text-inverse/70' : '',
-                        isError ? 'border-brand-600/35 bg-brand-600/10 text-fg-brand' : '',
-                        task.status === 'pending' ? 'border-os-line-dark bg-os-ink-950 text-white/20' : '',
+                        'flex h-6 w-6 shrink-0 items-center justify-center',
+                        isDone ? 'text-fg-success' : '',
+                        isLoading ? 'text-fg-brand' : '',
+                        isError ? 'text-fg-warning' : '',
+                        task.status === 'pending' ? 'text-fg-tertiary' : '',
                       ].join(' ')}
                     >
-                      {isDone && <Icons.Check className="h-3.5 w-3.5" />}
-                      {isLoading && <Icons.Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                      {isError && <Icons.AlertTriangle className="h-3.5 w-3.5" />}
+                      {isDone && <Icons.Check aria-hidden="true" className="h-4 w-4" />}
+                      {isLoading && <Icons.Loader2 aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" />}
+                      {isError && <Icons.AlertTriangle aria-hidden="true" className="h-4 w-4" />}
                       {task.status === 'pending' && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-white/78">{task.label}</p>
-                      <p className="truncate text-[10px] text-white/32">{task.detail}</p>
+                      <Typography variant="bodyStrong">{task.label}</Typography>
+                      <Typography variant="caption" className="text-fg-secondary">{task.detail}</Typography>
                     </div>
-                    {typeof task.durationMs === 'number' && (
-                      <span className="shrink-0 text-[10px] tabular-nums text-white/25">
-                        {task.durationMs}ms
-                      </span>
-                    )}
-                  </div>
+                    <Typography as="span" variant="caption" className="shrink-0 pt-1 text-fg-tertiary">{isDone ? 'Ready' : isError ? 'Fallback' : isLoading ? 'Loading' : 'Waiting'}</Typography>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </motion.div>
       </div>
@@ -360,7 +356,7 @@ function MobileAboutSurface() {
   );
 }
 
-export function Desktop() {
+export function Desktop({ onBootComplete }: { onBootComplete?: () => void }) {
   const {
     setStartMenuOpen,
     toggleAdminMode,
@@ -378,17 +374,18 @@ export function Desktop() {
   } = useDesktopStore();
   const fileStore = useFileStore();
   const { isAuthenticated, isAdmin, checkSession } = useAuthStore();
+  const isScreenLocked = useDesktopStore((state) => state.isScreenLocked);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const selectedBackground = getSelectedBackground();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'date'>('name');
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
-  const [showTimeline, setShowTimeline] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgressType[]>([]);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const [hasBootstrapped, setHasBootstrapped] = useState(false);
+  const [hasEnteredDesktop, setHasEnteredDesktop] = useState(false);
   const [bootTasks, setBootTasks] = useState<BootTask[]>(BOOT_TASKS);
   const bootStartedRef = useRef(false);
   const skipNextAuthRefreshRef = useRef(false);
@@ -401,6 +398,14 @@ export function Desktop() {
   const { fetchTheme } = useThemeStore();
   const { loadTimeline } = useTimelineStore();
   const { loadObservatory } = useObservatoryStore();
+
+  useLayoutEffect(() => {
+    if (hasBootstrapped) onBootComplete?.();
+  }, [hasBootstrapped, onBootComplete]);
+
+  useEffect(() => {
+    if (hasBootstrapped && !isScreenLocked) setHasEnteredDesktop(true);
+  }, [hasBootstrapped, isScreenLocked]);
 
   useEffect(() => {
     const mediaQuery = globalThis.window.matchMedia('(max-width: 767px)');
@@ -516,6 +521,12 @@ export function Desktop() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (useDesktopStore.getState().isScreenLocked) return;
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        useDesktopStore.getState().lockScreen();
+        return;
+      }
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
         e.preventDefault();
         if (isAdmin) {
@@ -528,13 +539,12 @@ export function Desktop() {
             duration: 4000,
           });
         } else {
-          setShowLoginModal(true);
+          useDesktopStore.getState().lockScreen();
         }
       }
 
       if (e.key === 'Escape') {
         setStartMenuOpen(false);
-        setShowLoginModal(false);
       }
     };
 
@@ -646,6 +656,16 @@ export function Desktop() {
       action: () => setShowBackgroundSelector(true),
     },
     {
+      id: 'lock-screen',
+      label: 'Lock',
+      icon: Icons.Lock,
+      group: 'system',
+      action: () => {
+        setContextMenu(null);
+        useDesktopStore.getState().lockScreen();
+      },
+    },
+    {
       id: 'admin',
       label: isAdmin ? 'Admin Panel' : isAuthenticated ? 'Guest Session' : 'Sign In',
       icon: Icons.Settings,
@@ -659,13 +679,14 @@ export function Desktop() {
             message: 'Only admin@os.com can open the Admin Panel.',
             duration: 4000,
           });
-        } else setShowLoginModal(true);
+        } else useDesktopStore.getState().lockScreen();
       },
     },
   ];
 
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
+      if (useDesktopStore.getState().isScreenLocked) return;
       e.preventDefault();
       setIsDraggingOver(isAdmin);
     };
@@ -678,6 +699,10 @@ export function Desktop() {
     };
 
     const handleDrop = async (e: DragEvent) => {
+      if (useDesktopStore.getState().isScreenLocked) {
+        e.preventDefault();
+        return;
+      }
       const target = e.target as HTMLElement | null;
       if (target?.closest('[data-os-window="true"]')) {
         setIsDraggingOver(false);
@@ -795,6 +820,8 @@ export function Desktop() {
     );
   }
 
+  if (!hasEnteredDesktop) return null;
+
   if (isSmallDevice) {
     return (
       <div className="relative h-screen w-screen overflow-hidden bg-os-ink-950 text-white">
@@ -850,6 +877,9 @@ export function Desktop() {
               push the layout sideways (absolute children don't affect flex sizing). */}
           <div className="flex-1 relative min-w-0">
             <DesktopIcons iconSize={systemPreferences.iconSize} sortBy={sortBy} />
+            <button type="button" title="Timeline" aria-label="Timeline" aria-pressed={showTimeline} onClick={() => setShowTimeline(value => !value)} className="os-focus-ring absolute right-36 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-lg border border-os-line-dark bg-background-chrome text-fg-secondary hover:text-fg-primary">
+              <Icons.PanelRight className="h-4 w-4" aria-hidden="true" />
+            </button>
             <WindowManager />
           </div>
 
@@ -891,9 +921,8 @@ export function Desktop() {
 
         <PWAInstallPrompt />
 
-        <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
-        <WelcomeScreen />
+        {!isScreenLocked && <WelcomeScreen />}
 
         <NotificationContainer />
 

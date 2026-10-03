@@ -7,7 +7,6 @@ import { useDesktopStore } from '../store/desktopStore';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { App } from '../types';
-import { LoginModal } from './LoginModal';
 import { ContextMenu, ContextMenuItem } from './ContextMenu';
 import { SystemRow, SystemRowGroup, SystemRowDivider } from './ui/SystemRow';
 import { ContextMenuItemDef, ContextPermission, MenuGroup, resolveAndSort } from '../lib/contextMenuRegistry';
@@ -74,7 +73,6 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
   const { isAuthenticated, isAdmin, role, user, logout } = useAuthStore();
   const { addNotification } = useNotificationStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [appMenu, setAppMenu] = useState<{ app: App; x: number; y: number } | null>(null);
 
@@ -92,6 +90,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
 
   const confirmLogout = async () => {
     await logout();
+    useDesktopStore.getState().lockScreen();
     setShowLogoutConfirm(false);
     setStartMenuOpen(false);
   };
@@ -351,6 +350,15 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                   >
                     <Icons.Palette className="w-3.5 h-3.5" />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => useDesktopStore.getState().lockScreen()}
+                    title="Lock"
+                    aria-label="Lock"
+                    className="os-focus-ring w-8 h-8 flex items-center justify-center rounded text-fg-secondary hover:bg-os-ink-800 hover:text-fg-primary"
+                  >
+                    <Icons.Lock className="w-4 h-4" />
+                  </button>
                   {isAuthenticated ? (
                     <button
                       onClick={() => setShowLogoutConfirm(true)}
@@ -361,7 +369,7 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
                     </button>
                   ) : (
                     <button
-                      onClick={() => setShowLoginModal(true)}
+                      onClick={() => useDesktopStore.getState().lockScreen()}
                       title="Sign In"
                       className="w-7 h-7 flex items-center justify-center rounded text-white/35 hover:bg-os-ink-800 hover:text-white/70 transition-colors"
                     >
@@ -437,10 +445,6 @@ export function StartMenu({ anchor }: StartMenuProps = {}) {
             )}
           </AnimatePresence>
 
-          <LoginModal
-            isOpen={showLoginModal}
-            onClose={() => setShowLoginModal(false)}
-          />
         </>
       )}
     </AnimatePresence>

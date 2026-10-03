@@ -1,5 +1,107 @@
 # Implementation Progress Tracker
 
+## Launcher Panel Motion (2026-10-03)
+
+- Added spring-based panel entrance (subtle lift, scale and fade) with a faster exit and sequential transitions between launcher panels. A separate positioning wrapper prevents animation transforms from interfering with centring.
+- Reduced-motion preferences remove movement and transition duration. Open/close and settled desktop geometry verified live; typecheck passes.
+
+## Reading-Focused Lab Explainer (2026-10-03)
+
+- Restyled only the About panel with a wider responsive reading measure, fixed-size type hierarchy, generous line spacing, section headings, restrained dividers and a larger close target. Existing GenOS colour tokens and system font remain.
+- Preserved the open-book metaphor and concrete workspace example. Lab motion, settings and navigation are unchanged. Desktop rendering verified live.
+
+## Archive Entry / OS Return (2026-10-03)
+
+- Added the Window lab summary card below Info and above Archive's sidebar footer, keeping existing file/location controls separate.
+- Added History-based entry/return with browser back/forward support. The visited desktop remains mounted, hidden and inert while the lab is active; normal boot/lock behavior remains for direct visits.
+- Typecheck passes. Live round-trip testing retained the open Archive window and Documents location without a reload or renewed lock screen.
+
+## Deliberate Left Docking / Warmer Explainer (2026-10-03)
+
+- Removed geometry-triggered left docking. Both sides commit only after release within the outer 18px, retaining clipping safeguards and free compact placement.
+- Rewrote the Info panel with an open-book metaphor and a concrete workspace example, framing spatial memory as an exploration rather than a proven outcome.
+- Fifteen tests pass; live checks confirmed a floating left widget followed by deliberate docking on a second drag, and readable explainer layout.
+
+## Deliberate Right Docking / Study Context (2026-10-03)
+
+- Removed visibility/rail-triggered right docking; release in the outer 18px strip is required. Protected header geometry and minimum dimensions remain, while the left-side content safeguard is unchanged.
+- Refined recent-file metadata, selection feedback and filtered compact headings. Added an Info panel with the spatial-attention study's purpose and research questions.
+- Fifteen geometry tests pass. Live verification confirmed compact floating placement beyond the former right snap threshold, then intentional docking after re-grabbing and releasing at the edge.
+
+## Rich Lab Apps / Readable Header Floor (2026-10-03)
+
+- Renamed Archive to File Explorer and added sample navigation, filtering, search, list/grid views, storage usage, artwork and metadata. Timeline now has richer events/metrics; Notes has journal context and word count. Compact variants use task-specific reduced content.
+- Raised floating/resize minimums to 320px/240px and protected a 220px visible right header region. Removed translated controls that could cover titles; controls may leave the viewport. Release thresholds use the visible identity rather than control accessibility.
+- Fifteen geometry tests, typecheck and token checks pass. Live checks verified artwork rendering, search filtering, a readable right compact File Explorer, and Timeline undocking at a 180px boundary without redocking. Sample content remains isolated from production app data.
+
+## Asymmetric Edge Visibility (2026-10-03)
+
+- Hid corner marks while retaining resizing. Restyled lab settings and replaced the prominent reset button with an icon command.
+- Added independent left/right scale zones with legacy preference migration. Left clipping is limited to 8px and arms earlier release docking; left-aligned sample content receives a dock-aware inset.
+- Right window controls shift inward; visibility/collision thresholds arm release docking before controls become inaccessible at rest. Unstick uses the dragged icon centre to match its boundary guide.
+- Fifteen helper tests pass. Live checks confirmed earlier left docking, right collision docking, a floating compact right variant with visible controls, and the updated settings surface. Production windows are unchanged.
+
+## Threshold Tuning / App Lifecycle Lab (2026-10-03)
+
+- Replaced the header with a floating launcher, Start application list, three working app shortcuts, and settings. Closing removes the window and dock icon; opening restores one instance at centre. Additional apps are labelled samples.
+- Added adjustable desktop zone width, unstick distance, threshold overlays, and an active scaling-coordinate guide. Settings persist in versioned localStorage with validated fallback values and a visible save-failure state.
+- Twelve geometry/settings tests and typecheck pass. Live checks verified slider persistence after reload and Archive close/status/relaunch. Test adjustments were returned to 50%/100px. Production defaults remain unchanged.
+
+## Free-Movement Threshold Correction (2026-10-03)
+
+- Restored normal floating dimensions and a full-scale central 50% workspace. Smooth shrinking begins only in the outer quarters, replacing immediate off-centre scaling.
+- Re-grabbing retains the captured scale coordinate; pointer displacement drives scaling and the relative grab anchor drives placement. Side overhang preserves free movement instead of forcing the whole window inward as dimensions change.
+- Compact variants, deliberate release docking, dock layering, maximize/restore, and four-corner resizing remain intact. Pointer capture loss clears drag interaction state.
+- Ten geometry tests and typecheck pass. Live checks confirmed exact 80px/40px central movement without dimension changes, off-centre re-grab stability, compact-to-full return, and independent width resizing.
+
+## Pointer-Aware Dock Transition (2026-10-03)
+
+- Shrinking follows the pointer with a retained relative grab anchor. Compact windows may rest behind existing edge icons without automatically docking.
+- Docking commits only on release within an 18px outer strip, after a brand-border preview. Geometry eases over 320ms and the icon fades in; live drag/resize stay immediate, and reduced motion removes transition duration.
+- Keyboard movement leaves windows floating; Enter commits an armed dock. Existing dock icons retain their configurable unstick threshold.
+- Seven geometry tests pass. Live drag checks verified near-edge widget placement and intentional edge release.
+
+## Adaptive Content / Corner Resizing Lab (2026-10-03)
+
+- Added full and compact sample content variants with 65%/72% hysteresis. Notes shares one draft across variants; Archive and Timeline use condensed task-specific views.
+- Added four-corner pointer and keyboard resizing in both floating modes. Manual dimensions persist through dragging and maximize/restore; opposite corners stay anchored. Dock icons remain above floating windows and below maximized windows.
+- Six geometry tests, typecheck, and token lint pass. Live checks verified width-only keyboard resizing, pointer width/height resizing, content switching, draft preservation, and maximize/restore. Changes remain isolated to the lab.
+
+## Spatial Window Lab (2026-10-03)
+
+- Added `/window-lab` with rectangle windows: near-full centre sizing, continuous edgeward shrinking, sticky side icons, vertical collision slots, adjustable release threshold, and independent maximize/restore.
+- This prototype does not replace production window positioning or app state. Three geometry regression tests pass; live checks exercised pointer shrinking, keyboard docking, icon reopening, and maximize/restore.
+- Timeline is hidden by default with a PanelRight desktop toggle beside Widgets. Archive's square tile and fitted 3D canvas avoid the earlier top clipping.
+
+## Archive Minimal Presentation (2026-10-03)
+
+- Simplified file tiles and navigation using semantic surfaces, normal-case metadata, existing folder assets, and icon open controls. Removed decorative sidebar status animation and hardcoded update claim.
+- SplitCard details now float absolutely below selected tiles instead of animating grid row height. Detail content scrolls independently; the file surface owns overflow. Reduced-motion preferences disable detail movement.
+- Grid/list controls expose pressed states; tile-size and search controls have accessible labels. List metadata now uses semantic caption roles with horizontally scrollable minimum column width.
+- Live localhost checks verified folder navigation and list switching. All nine grid tile bounds were identical before and after expansion. Destructive writes and upload persistence were not exercised; their handlers and permission derivation remain unchanged.
+
+## Boot / Wallpaper Loading Design (2026-10-03)
+
+- Aligned boot with shared Typography and semantic chrome, foreground, brand, and feedback tokens. Lowercase `genos` matches sign-in branding.
+- Replaced decorative gradients and nested cards with divided startup rows, readable task details, explicit status text, and an accessible completion progress bar.
+- Added reduced-motion handling and scrollable short-screen layout. Wallpaper loading now uses a semantic Lucide indicator.
+- Startup tasks, timing, fallback handling, and lock-screen handoff are unchanged. Live boot rendering and lock handoff checked on localhost; this is not a full accessibility conformance audit.
+
+## Lock Screen (2026-10-03)
+
+- Added boot-to-lock entry, wallpaper clock/date layout, fading password stage with background blur, visitor entry, and exact-user Firebase reauthentication.
+- Start menu, desktop context menu, and Ctrl+Shift+L expose Lock. Desktop windows stay mounted; the overlay blocks background interaction and restores focus on return.
+- Added four isolated authentication regression tests. Live localhost checks cover public entry, owner/guest forms, cancellation, keyboard lock, and narrow layout; real-password success and active playback remain unverified.
+- See [LOCK_SCREEN.md](./LOCK_SCREEN.md) for flow, security boundaries, and remaining verification.
+
+## Settings / Admin Readability (2026-09-21)
+
+- Replaced neutral alpha text in Settings and Admin with existing `fg-primary`, `fg-secondary`, and `fg-tertiary` roles. Compact 9-11px text now uses the 12px caption role and normal letter spacing.
+- Changes are limited to presentation classes; handlers, persistence, permissions, and app registry logic are unchanged by this slice.
+- Added `npm run test:readability`: nine solid-surface contrast pairs and two scoped source guardrails. These checks and `lint:tokens` pass. Browser verification is still required for wrapping, zoom/text spacing, focus, keyboard use, and rendered states; this is not a WCAG conformance claim.
+- Both Vite dev startup and production build were blocked by esbuild's `Cannot read directory "../../..": Access is denied` while loading `vite.config.ts`. Do not mark this slice visually verified or production-build verified until rerun in an environment where the normal tooling can start.
+- Remaining: verify Settings and authenticated Admin at desktop/narrow widths, then migrate other apps incrementally. Older entries below are historical and may describe superseded behavior.
+
 > Last audited: 2026-05-02, updated 2026-05-10. This tracker reflects what is actually present in the codebase, not only what the planning docs describe.
 
 ## Summary
